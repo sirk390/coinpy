@@ -15,15 +15,18 @@ from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.varsizelist import varsizelist_encoder
 import struct
+from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
 
-BLOCK_READSIZE=1024*1024
-TX_READSIZE=1024*16
+BLOCKHEADER_READSIZE=1024
+BLOCK_READSIZE=8*1024
+TX_READSIZE=8*1024
 
 class BlockStorage:
     def __init__(self, runmode, directory):
         self.runmode = runmode
         self.directory = directory
         self.openhandles = {}
+        self.blockheaderserialize =  blockheader_serializer()
         self.blockserialize =  block_encoder()
         self.txserialize = tx_encoder()
         
@@ -51,6 +54,17 @@ class BlockStorage:
             return (handle)
         return self.openhandles[file]
 
+    def load_blockheader(self, filenum, blockpos):
+        handle = self._gethandle(filenum)
+        handle.seek(blockpos)
+        block, data = None, handle.read(BLOCKHEADER_READSIZE)
+        while (block is None):
+            try:
+                block, _ = self.blockheaderserialize.decode(data, 0)
+            except MissingDataException:
+                data += handle.read(BLOCKHEADER_READSIZE)
+        return (block)
+    
     def load_block(self, filenum, blockpos):
         handle = self._gethandle(filenum)
         handle.seek(blockpos)

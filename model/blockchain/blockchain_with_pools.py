@@ -42,15 +42,19 @@ class BlockchainWithPools(Observable):
             self.orphanblocks.add_block(sender, hash, block)
             return ([self.orphanblocks.get_missing_root()], [])
         #process / verify block
-        prevblockref = self.blockchain.getblockref(block.blockheader.hash_prev)
-        prevblock = prevblockref.get_block()
+        prevblockiter = self.blockchain.getblockiterator(block.blockheader.hash_prev)
+        #Check proof of work
+        if (prevblockiter.get_next_work_required() != block.blockheader.bits):
+            self.log.info("Incorrect difficulty target: %08x != %08x" % (block.blockheader.bits, prevblockiter.get_next_work_required()))
+            #return ([], [(sender, block, "Incorrect difficulty target: %08x != %08x" % (block.blockheader.bits, prevblockiter.get_next_work_required()))])
+        
         #check proof of work
-        if ((prevblock.height  + 1) % TARGET_INTERVAL):
+        #if ((prevblock.height  + 1) % TARGET_INTERVAL):
             #same difficulty
-            nbits = prevblock.blockheader.bits
-        else:
+        #    nbits = prevblock.blockheader.bits
+        #else:
             #recompute difficulty
-            
+        #    pass
         #check timestamp
         
         

@@ -5,8 +5,8 @@ Created on 7 Dec 2011
 @author: kris
 """
 from coinpy.model.protocol.messages.types import MSG_TX, MSG_BLOCK, MSG_INV
-from coinpy.lib.hash.hash_tx import hash_tx
-from coinpy.lib.hash.hash_block import hash_block
+from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.bitcoin.hash_block import hash_block
 from coinpy.model.protocol.messages.getdata import msg_getdata
 from coinpy.node.defines import MessageProcessed, MessageUnprocessed
 from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX

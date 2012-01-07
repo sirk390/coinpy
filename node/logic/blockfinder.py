@@ -10,7 +10,7 @@ from coinpy.tools.observer import Observable
 from coinpy.model.protocol.messages.getblocks import msg_getblocks
 from coinpy.node.defines import MessageProcessed, MessageUnprocessed
 from coinpy.model.protocol.structures.uint256 import uint256
-from coinpy.lib.hash.hash_block import hash_block
+from coinpy.lib.bitcoin.hash_block import hash_block
 
 
 class BlockFinder(Observable):

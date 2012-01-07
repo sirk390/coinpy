@@ -10,8 +10,8 @@ from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX, invitem
 from coinpy.model.protocol.messages.types import MSG_INV, MSG_TX, MSG_BLOCK
 from coinpy.model.protocol.messages.getblocks import msg_getblocks
 from coinpy.model.protocol.structures.uint256 import uint256
-from coinpy.lib.hash.hash_tx import hash_tx
-from coinpy.lib.hash.hash_block import hash_block
+from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.bitcoin.hash_block import hash_block
 from coinpy.model.protocol.messages.getdata import msg_getdata
 
 class BlockchainDownloader():
@@ -92,8 +92,8 @@ class BlockchainDownloader():
         for peer, missing_hash in missing_blocks:
             #request missing parts
             self.push_getblocks(peer, missing_hash)
-        for peer in misbehaving_senders:
-            self.node.misbehaving(peer)
+        for peer, block, reason in misbehaving_senders:
+            self.node.misbehaving(peer, reason)
         
     def request_items(self):
         for peer, items in self.required_items.iteritems():

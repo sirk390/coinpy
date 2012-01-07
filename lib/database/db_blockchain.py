@@ -9,8 +9,6 @@ import bsddb
 import os
 from coinpy.model.blockchain.blockchain import BlockChain
 from coinpy.lib.database.block_storage import BlockStorage
-from coinpy.lib.database.db_blockiterator import DbBlockIterator
-from coinpy.lib.database.db_txiterator import DbTxIterator
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.database.objects.blockindex import DbBlockIndex
 from coinpy.model.protocol.runmode import MAIN
@@ -18,8 +16,8 @@ from coinpy.lib.database.indexdb import IndexDB
 from coinpy.model.blockchain.hash import hashblock
 from coinpy.model.genesis import GENESIS
 from coinpy.lib.database.branch import Branch
-from coinpy.lib.database.blockref import BlockRef
-from coinpy.lib.hash.hash_block import hash_block
+from coinpy.lib.database.block_iterator import BlockIterator
+from coinpy.lib.bitcoin.hash_block import hash_block
 
 class DBBlockChain(BlockChain):
     def __init__(self, log, runmode, directory="."):
@@ -64,18 +62,19 @@ class DBBlockChain(BlockChain):
     def getbranch(self, lasthash, firsthash=None):
         if (not self.indexdb.contains_block(lasthash)):
             return (None)
-        return Branch(self.indexdb, self.blockstore, lasthash, firsthash)
+        return Branch(self.log, self.indexdb, self.blockstore, lasthash, firsthash)
     
-    def getblockref(self, hash):
+    def getblockiterator(self, hash):
         if (not self.indexdb.contains_block(hash)):
             return (None)
-        return BlockRef(self.indexdb, self.blockstore, hash)
+        return BlockIterator(self.log, self.indexdb, self.blockstore, hash)
        
 
     def appendblock(self, blockhash, block):
         #Save it
         file, blockpos = self.blockstore.saveblock(block)
-        idx = DbBlockIndex(self.version, uint256(0), file, blockpos, 0, block.blockheader) #height is filled later
+        prevblockiter = self.getblockiterator(block.blockheader.hash_prev)
+        idx = DbBlockIndex(self.version, uint256(0), file, blockpos, prevblockiter.height()+1, block.blockheader) #height is filled later
         self.indexdb.set_blockindex(blockhash, idx)
         #Add to branch
         brprev = self.getbranch(block.blockheader.hash_prev)

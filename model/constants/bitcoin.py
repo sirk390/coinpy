@@ -4,6 +4,7 @@ Created on 3 Jul 2011
 
 @author: kris
 """
+from coinpy.model.protocol.runmode import MAIN, TESTNET
 
 COIN = 100000000
 CENT = 1000000
@@ -12,6 +13,9 @@ MAX_MONEY = 21000000 * COIN
 TARGET_TIMESPAN =  14 * 24 * 60 * 60 # 2 weeks
 TARGET_SPACING = 10 * 60 # 10 minutes
 TARGET_INTERVAL = TARGET_TIMESPAN / TARGET_SPACING #  2016 blocks / 2weeks
+
+PROOF_OF_WORK_LIMIT = {MAIN: (1 << (256 - 32)) - 1,     #~uint256(0) >> 32
+                       TESTNET : (1 << (256 - 28)) - 1} #~uint256(0) >> 28
 
 def is_money_range(value):
     return (value >= 0 and value <= MAX_MONEY)
