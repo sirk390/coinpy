@@ -7,8 +7,9 @@ Created on 13 Aug 2011
 
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.model.constants.bitcoin import TARGET_INTERVAL, TARGET_TIMESPAN,\
-    PROOF_OF_WORK_LIMIT
+    PROOF_OF_WORK_LIMIT, MEDIAN_TIME_SPAN
 from coinpy.lib.bitcoin.difficulty import compact_difficulty
+from coinpy.tools.stat import median
 
 class BlockIterator():
     def __init__(self, log, indexdb, blockstorage, hash, blockindex=None):
@@ -33,7 +34,10 @@ class BlockIterator():
     
     def prev(self):
         self.hash = self.get_blockheader().hash_prev
+        if (self.hash == uint256(0)):
+            return (False)
         self.blockindex = self.indexdb.get_blockindex(self.hash)
+        return (True)
 
     def next(self):
         self.hash = self.blockindex.hash_next
@@ -69,4 +73,14 @@ class BlockIterator():
         new_bits = compact_difficulty(new_target)
         self.log.info("Retarget: targetTimespan:%d actualTimespan:%d, %08x -> %08x " % (TARGET_TIMESPAN, actual_timespan, header_blocknow.bits, new_bits))
         return (new_bits)
-        
+    
+    #ref main.h:1109
+    def get_median_time_past(self):
+        block_times = []
+        iter = BlockIterator(self.log, self.indexdb, self.blockstorage, self.hash, self.blockindex)
+        for i in range(MEDIAN_TIME_SPAN-1):
+            block_times.append(iter.get_blockheader().time)
+            if (not iter.prev()):
+                break;
+        return median(block_times)
+            

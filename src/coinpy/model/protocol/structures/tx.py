@@ -4,9 +4,11 @@ Created on 22 Jun 2011
 
 @author: kris
 """
-from coinpy.model.constants.bitcoin import is_money_range
+from coinpy.model.constants.bitcoin import is_money_range, LOCKTIME_THRESHOLD
 
 class tx():
+    LOCKTIME_HEIGHT, LOCKTIME_BLOCKTIME = LOCKTIME_TYPES = range(2)
+    
     def __init__(self, version, in_list, out_list, locktime):
         self.version = version  
         self.in_list = in_list          
@@ -45,7 +47,24 @@ class tx():
         if any(not script.isstandard() for script in self.out_list):
             return (False)        
         return (True)
-            
+
+    def locktimetype(self):
+        if (self.locktime < LOCKTIME_THRESHOLD):
+            return (self.LOCKTIME_HEIGHT)
+        return (self.LOCKTIME_BLOCKTIME)
+        
+    def isfinal(self, height, blocktime):
+        if self.locktime == 0:
+            return True
+        if (self.locktimetype() == self.LOCKTIME_HEIGHT and self.locktime < height):
+            return True
+        if (self.locktimetype() == self.LOCKTIME_BLOCKTIME and self.locktime < blocktime):
+            return True
+        for txin in self.in_list:
+            if (not txin.isfinal()):
+                return False
+        return True
+          
     def __str__(self):
         return ("tx(v:%d,in(%d)[%s...],out(%d)[%s...],lock:%d)" % 
                     (self.version, 

@@ -8,9 +8,6 @@ from coinpy.node.versionned_node import VersionnedNode
 from coinpy.node.node import Node
 from coinpy.node.logic.blockchain_server import BlockchainServer
 from coinpy.node.logic.blockchain_downloader import BlockchainDownloader
-from coinpy.node.logic.inventory import Inventory
-from coinpy.node.logic.item_downloader import ItemDownloader
-from coinpy.node.logic.blockfinder import BlockFinder
 from coinpy.model.protocol.messages.types import MESSAGE_TYPES
 from coinpy.node.message_dispatcher_node import MessageDispatcherNode
 

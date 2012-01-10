@@ -7,10 +7,8 @@ Created on 7 Dec 2011
 from coinpy.node.node import Node
 from coinpy.model.protocol.messages.types import MESSAGE_TYPES, MSG_INV
 from coinpy.node.versionned_node import VersionnedNode
-from coinpy.node.defines import MessageProcessed
 import heapq
 from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX
-from coinpy.node.dispatch_status import DispatchStatus
 import collections
 
 class MessageDispatcherNode(VersionnedNode):

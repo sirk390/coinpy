@@ -4,7 +4,6 @@ Created on 13 Sep 2011
 
 @author: kris
 """
-from coinpy.node.logic.inventory import Inventory
 from coinpy.node.versionned_node import VersionnedNode
 from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX, invitem
 from coinpy.model.protocol.messages.types import MSG_INV, MSG_TX, MSG_BLOCK
