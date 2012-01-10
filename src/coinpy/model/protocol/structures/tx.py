@@ -27,7 +27,7 @@ class tx():
         
     def iscoinbase(self):
         return ((len(self.in_list) == 1) and 
-                (self.in_list[0].previous_output is None))
+                (self.in_list[0].previous_output.is_null()))
     
     def iterscripts(self):
         for txin in self.in_list:

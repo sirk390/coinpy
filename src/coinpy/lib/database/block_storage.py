@@ -42,8 +42,10 @@ class BlockStorage:
         #Write block
         handle.write(blockdata)
         #Flush and commit to disk
-        handle.flush()
-        os.fsync(handle.fileno())
+        
+        #FIXME?
+        #handle.flush()
+        #os.fsync(handle.fileno())
         return (file, blockpos)
        
     def _gethandle(self, filenum):

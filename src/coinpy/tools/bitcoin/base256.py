@@ -5,6 +5,7 @@ Created on 2 Jul 2011
 @author: kris
 """
 
+#uint256.to_bytestr
 def base256encode(value, pad=None):
     result = b""
     while value != 0:
@@ -13,6 +14,7 @@ def base256encode(value, pad=None):
         value = div
     return (result.rjust(pad or 0, "\0"))
 
+#uint256.from_bytestr
 def base256decode(bytestr):
     value = 0
     for b in bytestr:
@@ -20,6 +22,6 @@ def base256decode(bytestr):
     return (value)
 
 if __name__ == '__main__':
-    from coinpy.tools.hexdump import hexstr
+    from coinpy.tools.hex import hexstr
     print hexstr(base256encode(8728178917894516516))
 

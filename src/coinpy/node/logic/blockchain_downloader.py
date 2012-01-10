@@ -96,7 +96,7 @@ class BlockchainDownloader():
         
     def request_items(self):
         for peer, items in self.required_items.iteritems():
-            self.log.info("Downloading items %s" % (str(items)))
+            self.log.info("Downloading items %s" % (",".join((str(s) for s in items))))
             
             #self.inprogress[item.hash] = (callback, callback_args)
             self.node.send_message(peer, msg_getdata(items))

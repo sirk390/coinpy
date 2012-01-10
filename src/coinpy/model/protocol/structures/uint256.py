@@ -34,6 +34,8 @@ class uint256():
         return (self.to_hexstr())
     def __eq__(self, other):
         return self.value == other.value
+    def __cmp__(self, other):
+        return (cmp(self.value, other.value))
     def __ne__(self, other):
         return self.value != other.value
     def __hash__(self):

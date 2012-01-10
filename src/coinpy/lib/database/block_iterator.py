@@ -67,7 +67,7 @@ class BlockIterator():
             actual_timespan = TARGET_TIMESPAN*4;
 
         # Retarget
-        new_target = (header_blocknow.target() * actual_timespan / TARGET_TIMESPAN)
+        new_target = uint256(header_blocknow.target().value * actual_timespan / TARGET_TIMESPAN)
         if new_target > PROOF_OF_WORK_LIMIT[self.indexdb.runmode]:
             new_target = PROOF_OF_WORK_LIMIT[self.indexdb.runmode]
         new_bits = compact_difficulty(new_target)
@@ -78,7 +78,7 @@ class BlockIterator():
     def get_median_time_past(self):
         block_times = []
         iter = BlockIterator(self.log, self.indexdb, self.blockstorage, self.hash, self.blockindex)
-        for i in range(MEDIAN_TIME_SPAN-1):
+        for i in range(MEDIAN_TIME_SPAN):
             block_times.append(iter.get_blockheader().time)
             if (not iter.prev()):
                 break;

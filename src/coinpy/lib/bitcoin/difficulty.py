@@ -10,11 +10,11 @@ def uint256_difficulty(bits):
     exp, value = bits >> 24, bits & 0xFFFFFF
     return (value * 2 ** (8 * (exp - 3)))
 
-def compact_difficulty(bignum):
+def compact_difficulty(uin256num):
     shr = 0
-    while ((bignum >> (shr * 8)) > 0x7fffff):
+    while ((uin256num.value >> (shr * 8)) > 0x7fffff):
         shr += 1
-    exp, value = shr + 3, (bignum >> (shr * 8) )
+    exp, value = shr + 3, (uin256num.value >> (shr * 8) )
     return (exp << (3*8)| value)
 
 
