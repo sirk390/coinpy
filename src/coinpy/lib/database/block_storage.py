@@ -64,6 +64,7 @@ class BlockStorage:
             try:
                 block, _ = self.blockheaderserialize.decode(data, 0)
             except MissingDataException:
+                #FIXME: infinite loop when end of file
                 data += handle.read(BLOCKHEADER_READSIZE)
         return (block)
     
