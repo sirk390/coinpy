@@ -21,8 +21,12 @@ MEDIAN_TIME_SPAN=11
 # when smaller, locktime is treated as a blockheight, otherwise as a blocktime
 LOCKTIME_THRESHOLD = 500000000; # Tue Nov  5 00:53:20 1985 UTC
 
+
+COINBASE_MATURITY=100
+
 MAX_BLOCK_SIZE = 1000000
 #MAX_BLOCK_SIZE
+
 
 PROOF_OF_WORK_LIMIT = {MAIN:     uint256((1 << (256 - 32)) - 1),     #~uint256(0) >> 32
                        TESTNET : uint256((1 << (256 - 28)) - 1)} #~uint256(0) >> 28

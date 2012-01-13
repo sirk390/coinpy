@@ -13,11 +13,11 @@ from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.database.objects.blockindex import DbBlockIndex
 from coinpy.model.protocol.runmode import MAIN
 from coinpy.lib.database.indexdb import IndexDB
-from coinpy.model.blockchain.hash import hashblock
 from coinpy.model.genesis import GENESIS
 from coinpy.lib.database.branch import Branch
-from coinpy.lib.database.block_iterator import BlockIterator
 from coinpy.lib.bitcoin.hash_block import hash_block
+from coinpy.lib.database.db_txinterface import DBTxInterface
+from coinpy.lib.database.db_blockinterface import DBBlockInterface
 
 class DBBlockChain(BlockChain):
     def __init__(self, log, runmode, directory="."):
@@ -36,7 +36,7 @@ class DBBlockChain(BlockChain):
     def create(self, genesis_block):
         file, blockpos = self.blockstore.saveblock(genesis_block)
         genesis_index = DbBlockIndex(self.version, uint256(0), file, blockpos, 0, genesis_block.blockheader)
-        self.indexdb.create(hashblock(genesis_block), genesis_index)
+        self.indexdb.create(hash_block(genesis_block), genesis_index)
     
     def open_or_create(self, genesisblock):
         self.genesisblock = genesisblock
@@ -52,24 +52,37 @@ class DBBlockChain(BlockChain):
     """
     def contains_transaction(self, hash):
         return self.indexdb.contains_transaction(hash)
+    """    
+    def get_transaction(self, hash):
+        return DBTxInterface(self.log, self.indexdb, self.blockstore, hash)
     
-    def get_transaction_iterator(self, hash):
-        return DbTxIterator(self.indexdb, self.blockstore, hash)
-    
-    def get_block_iterator(self, hash):
-        return DbBlockIterator.from_hash(self.indexdb, self.blockstore, hash)
-    """
+
     def getbranch(self, lasthash, firsthash=None):
         if (not self.indexdb.contains_block(lasthash)):
             return (None)
         return Branch(self.log, self.indexdb, self.blockstore, lasthash, firsthash)
     
-    def getblockiterator(self, hash):
+    def getblock(self, hash):
         if (not self.indexdb.contains_block(hash)):
             return (None)
-        return BlockIterator(self.log, self.indexdb, self.blockstore, hash)
-       
+        return DBBlockInterface(self.log, self.indexdb, self.blockstore, hash)
+   
+    """
+        returns (blocks_removed, blocks_added)
+    """
+    def simulate_appendblock(self, blockhash, block):
+        brprev = self.getbranch(block.blockheader.hash_prev)
+        if not brprev.is_mainchain():
+            mainchain_parent = brprev.mainchain_parent()
+            altchain = Branch(mainchain_parent, brprev)
+            mainchain = Branch(mainchain_parent, self.indexdb.hashbestchain())
+            if (altchain.work() + block.blockheader.work() > mainchain.work()):
+                return (mainchain, altchain)
+        return ([], [block])
 
+    def commit_appendblock(self, blocks_removed, blocks_added):
+        pass
+    
     def appendblock(self, blockhash, block):
         #Save it
         file, blockpos = self.blockstore.saveblock(block)
@@ -147,7 +160,7 @@ if __name__ == '__main__':
     print db.get_block_iterator(db.indexdb.hashbestchain()).get_block()
     #db.addblock("hello")
     #db.load_owner_transactions(owner1)
-    #0rint db.load_txindex(uint256.from_hexstr("00004b78031f6f406c23cb7d1d0990d56f39107febe8c982a5f75a87254143ea"))
+    #print db.load_txindex(uint256.from_hexstr("00004b78031f6f406c23cb7d1d0990d56f39107febe8c982a5f75a87254143ea"))
 
     
 

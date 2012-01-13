@@ -9,8 +9,13 @@ from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.tools.bitcoin.sha256 import doublesha256
 
 BLOCK_SERIALIZE = blockheader_serializer()
+
+    
+def hash_blockheader(blockheader):
+    return (uint256.from_bytestr(doublesha256(BLOCK_SERIALIZE.encode(blockheader))))
     
 def hash_block(block):
-    return (uint256.from_bytestr(doublesha256(BLOCK_SERIALIZE.encode(block.blockheader))))
+    return (hash_blockheader(block.blockheader))
+
 
 
