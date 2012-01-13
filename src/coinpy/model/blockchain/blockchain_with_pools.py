@@ -52,9 +52,17 @@ class BlockchainWithPools(Observable):
             self.orphanblocks.add_block(sender, hash, block)
             return ([self.orphanblocks.get_missing_root()], [])
         #Checks-2 (done after finding the parent block)
-        result = self.blockverifier.verify_block(hash, block, self.blockchain)
+        result = self.blockverifier.accept_block(hash, block, self.blockchain)
         if (result):
             return ([], [(sender, block, "error in block:" + result.message)])
+        #TODO: Check timestamp
+        #if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
+        #return error("CheckBlock() : block timestamp too far in the future");
+
+        
+        #TODO: check transactions
+        
+        #TODO:relay
         #add it to the blockchain
         self.blockchain.appendblock(hash, block)
         return ([], [])

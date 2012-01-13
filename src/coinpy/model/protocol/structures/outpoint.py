@@ -14,5 +14,11 @@ class outpoint():
         self.index = index          
     def is_null(self):
         return (self.hash == uint256(0) and self.index == NULL_OUTPOINT_INDEX)
+    def __eq__(self, other):
+        return (self.hash == other.hash and self.index == other.index)
+    
+    def __hash__(self):
+        return (hash(self.hash) + hash(self.index))
+    
     def __str__(self):
         return ("outpoint: hash:%s index:%d" % (self.hash, self.index))
