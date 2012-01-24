@@ -12,6 +12,7 @@ from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.lib.bitcoin.hash_block import hash_block
 from coinpy.model.protocol.messages.getdata import msg_getdata
+from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
 
 class BlockchainDownloader():
     def __init__(self, reactor, blockchain_with_pools, node,log):
@@ -27,6 +28,7 @@ class BlockchainDownloader():
         node.add_handler(MSG_BLOCK, self.on_block)
         
         self.node.subscribe (VersionnedNode.EVT_VERSION_EXCHANGED, self.on_version_exchange)
+        self.blockchain_with_pools.subscribe (BlockchainWithPools.EVT_MISSING_BLOCK, self.on_missing_block)
         self.reactor.schedule_each(0.1, self.request_items)
         
         
@@ -87,12 +89,17 @@ class BlockchainDownloader():
         #if (hash == ):
         #    pass
         self.requested_blocks[peer].remove(hash)
-        missing_blocks, misbehaving_senders =  self.blockchain_with_pools.add_block(peer, hash, message.block)
-        for peer, missing_hash in missing_blocks:
+        try:
+            self.blockchain_with_pools.add_block(peer, hash, message.block)
+        except Exception as err:
+            self.node.misbehaving(peer, err)
+        #for peer, missing_hash in missing_blocks:
             #request missing parts
-            self.push_getblocks(peer, missing_hash)
-        for peer, block, reason in misbehaving_senders:
-            self.node.misbehaving(peer, reason)
+        #    self.push_getblocks(peer, missing_hash)
+        #for peer, block, reason in misbehaving_senders:
+            
+    def on_missing_block(self, event):
+        self.push_getblocks(event.peer, event.missing_hash)
         
     def request_items(self):
         for peer, items in self.required_items.iteritems():

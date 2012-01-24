@@ -7,7 +7,6 @@ Created on 25 Jul 2011
 from bsddb.db import *
 import bsddb
 import os
-from coinpy.model.blockchain.blockchain import BlockChain
 from coinpy.lib.database.block_storage import BlockStorage
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.database.objects.blockindex import DbBlockIndex
@@ -18,8 +17,9 @@ from coinpy.lib.database.branch import Branch
 from coinpy.lib.bitcoin.hash_block import hash_block
 from coinpy.lib.database.db_txinterface import DBTxInterface
 from coinpy.lib.database.db_blockinterface import DBBlockInterface
+from coinpy.model.blockchain.blockchain_database import BlockChainDatabase
 
-class DBBlockChain(BlockChain):
+class BSDDbBlockChainDatabase(BlockChainDatabase):
     def __init__(self, log, runmode, directory="."):
         self.log = log
         self.runmode = runmode
@@ -57,55 +57,26 @@ class DBBlockChain(BlockChain):
         return DBTxInterface(self.log, self.indexdb, self.blockstore, hash)
     
 
-    def getbranch(self, lasthash, firsthash=None):
+    def get_branch(self, lasthash, firsthash=None):
         if (not self.indexdb.contains_block(lasthash)):
             return (None)
         return Branch(self.log, self.indexdb, self.blockstore, lasthash, firsthash)
     
-    def getblock(self, hash):
+    def get_block(self, hash):
         if (not self.indexdb.contains_block(hash)):
             return (None)
         return DBBlockInterface(self.log, self.indexdb, self.blockstore, hash)
    
-    """
-        returns (blocks_removed, blocks_added)
-    """
-    def simulate_appendblock(self, blockhash, block):
-        brprev = self.getbranch(block.blockheader.hash_prev)
-        if not brprev.is_mainchain():
-            mainchain_parent = brprev.mainchain_parent()
-            altchain = Branch(mainchain_parent, brprev)
-            mainchain = Branch(mainchain_parent, self.indexdb.hashbestchain())
-            if (altchain.work() + block.blockheader.work() > mainchain.work()):
-                return (mainchain, altchain)
-        return ([], [block])
-
-    def commit_appendblock(self, blocks_removed, blocks_added):
-        pass
-    
-    def appendblock(self, blockhash, block):
-        #Save it
+    def saveblock(self, blockhash, block):
         file, blockpos = self.blockstore.saveblock(block)
-        prevblockiter = self.getblockiterator(block.blockheader.hash_prev)
-        idx = DbBlockIndex(self.version, uint256(0), file, blockpos, prevblockiter.height()+1, block.blockheader) #height is filled later
+        prevblockiter = self.get_block(block.blockheader.hash_prev)
+        idx = DbBlockIndex(self.version, uint256(0), file, blockpos, prevblockiter.get_height()+1, block.blockheader)
         self.indexdb.set_blockindex(blockhash, idx)
-        #Add to branch
-        brprev = self.getbranch(block.blockheader.hash_prev)
-        if not brprev.is_mainchain():
-            mainchain_parent = brprev.mainchain_parent()
-            altchain = Branch(mainchain_parent, brprev)
-            mainchain = Branch(mainchain_parent, self.indexdb.hashbestchain())
-            if (altchain.work() + block.blockheader.work() > mainchain.work()):
-                self.update_bestbranch(mainchain, altchain)     
-        brprev.append(blockhash, idx)
-        if self.indexdb.get_blockindex(blockhash).height % 20 == 0:
-            self.log.info("Appended block : %d" % self.indexdb.get_blockindex(blockhash).height)
-            
-            
+        return DBBlockInterface(self.log, self.indexdb, self.blockstore, hash, idx)
+               
     def update_bestbranch(self, oldbest, newbest):
-        oldbest.set_mainchain(False)
-        newbest.set_mainchain(True)
-        
+        oldbest.set_altchain()
+        newbest.set_mainchain()
         
     def getheight(self):
         besthash = self.indexdb.get_hashbestchain() 

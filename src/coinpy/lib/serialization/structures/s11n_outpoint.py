@@ -13,6 +13,9 @@ class outpoint_encoder():
     OUTPOINT = Structure([uint256_encoder("hash"),
                           Field("<I","index")], "outpoint")
 
+    def get_size(self, outpoint):
+        return (self.OUTPOINT.get_size(outpoint.hash, outpoint.index))
+    
     def encode(self, outpoint):
         return (self.OUTPOINT.encode(outpoint.hash, outpoint.index))
 

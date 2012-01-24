@@ -19,8 +19,8 @@ class IndexDB():
         self.dbenv = bsddb.db.DBEnv()
  
         self.dbenv.open(directory,
-                          (DB_CREATE|DB_INIT_LOCK|DB_INIT_LOG|DB_INIT_MPOOL|
-                           DB_INIT_TXN|DB_THREAD|DB_RECOVER))
+                          DB_CREATE|DB_INIT_LOCK|DB_INIT_LOG|DB_INIT_MPOOL|
+                           DB_INIT_TXN|DB_THREAD|DB_RECOVER)
         self.db = bsddb.db.DB(self.dbenv)
         self.dbflags = bsddb.db.DB_THREAD
         
@@ -45,7 +45,13 @@ class IndexDB():
     def get_transactionindex(self, transaction_hash):
         txindex, cursor = self.txindexserialize.decode(self.db["\x02tx" + transaction_hash.to_bytestr()])
         return txindex
-    
+ 
+    def set_transactionindex(self, transaction_hash, txindex):
+        self.db["\x02tx" + transaction_hash.to_bytestr()] = self.txindexserialize.encode(txindex)
+
+    def del_transactionindex(self, transaction_hash):
+        self.db.delete("\x02tx" + transaction_hash.to_bytestr())
+        
     def contains_block(self, block_hash):
         return (self.db.has_key("\x0Ablockindex" + block_hash.to_bytestr()))    
 

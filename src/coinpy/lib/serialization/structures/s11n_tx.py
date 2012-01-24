@@ -20,6 +20,9 @@ class tx_encoder(Encoder):
                     varsizelist_encoder(varint_encoder("txout_count"), tx_out_encoder()),
                     Field("<I", "lock_time")], "tx")
 
+    def get_size(self, outpoint):
+        return (self.TX.get_size(tx.version, tx.in_list, tx.out_list, tx.locktime))
+
     def encode(self, tx):
         return (self.TX.encode(tx.version, tx.in_list, tx.out_list, tx.locktime))
 

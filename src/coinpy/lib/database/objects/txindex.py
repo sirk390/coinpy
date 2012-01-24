@@ -12,7 +12,7 @@ class DbTxIndex():
     def is_output_spent(self, output):
         #when spent, CDiskTxPos.File is set to -1, main.h:135 IsNull() 
         return (self.txindex.spent[output].file == -1)
-    
+
     def __str__(self):
         return ("DbTxIndex(ver:%d,pos:%s,spent(%d):[%s...])" % 
                     (self.version, 

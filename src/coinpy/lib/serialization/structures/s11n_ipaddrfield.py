@@ -12,7 +12,10 @@ class IPAddrField(Encoder):
     IP6HEADER = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF"
     def __init__(self, desc):
         super(IPAddrField, self).__init__(desc)
-        
+
+    def get_size(self, ip):
+        return (16)
+    
     def encode(self, ip):
         return (self.IP6HEADER + struct.pack(">4B", *[int(b) for b in ip.split(".")]))
     

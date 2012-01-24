@@ -12,11 +12,10 @@ class Field(Encoder):
         super(Field, self).__init__(desc)
         self.format = format
         self.size = struct.calcsize(format)
-        self.setoptions(options)
-
-    def setoptions(self, options):
-        pass
  
+    def get_size(self, value):
+        return self.size
+    
     def encode(self, value):
         return (struct.pack(self.format, value))
 

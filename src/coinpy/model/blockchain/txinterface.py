@@ -15,5 +15,5 @@ class TxInterface():
     def is_output_spent(self, output):
         pass
     
-    def mark_spent(self, n):        
+    def mark_spent(self, n, is_spent, in_tx_hash=None):
         pass

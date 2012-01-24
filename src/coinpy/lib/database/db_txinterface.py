@@ -11,9 +11,10 @@ from coinpy.lib.database.db_blockinterface import DBBlockInterface
 class DBTxInterface(TxInterface):
     def __init__(self, log, indexdb, blockstorage, hash):
         self.log = log
-        self.txindex = self.indexdb.get_blockindex(self.hash)
         self.indexdb = indexdb
         self.blockstorage = blockstorage
+        self.txindex = self.indexdb.get_blockindex(hash)
+        self.hash = hash
         
     def get_transaction(self):
         return (self.blockstorage.load_tx(self.txindex.pos.file, self.txindex.pos.txpos))
@@ -26,11 +27,18 @@ class DBTxInterface(TxInterface):
     def is_output_spent(self, output):
         #when spent, CDiskTxPos.File is set to -1, main.h:135 IsNull() 
         return (self.txindex.spent[output].file == -1)
+
+    def output_count(self):
+        return (len(self.txindex.spent))
     
-    def mark_spent(self, n):        
-        pass
-
-
+    def mark_spent(self, n, is_spent, in_tx_hash=None):
+        if (is_spent):   
+            spent_txindex = self.indexdb.get_transactionindex(self, in_tx_hash)
+            self.txindex.spent[n] = spent_txindex.pos
+        else:
+            self.txindex.spent[n].file = -1
+        self.indexdb.set_transactionindex(self.hash, self.txindex)
+  
 '''
 class DbTxIterator(TxIterator):
     def __init__(self, indexdb, blockstorage, currenthash):

@@ -6,6 +6,7 @@ Created on 9 Aug 2011
 """
 from coinpy.lib.database.db_blockinterface import DBBlockInterface
 from copy import copy
+from coinpy.model.protocol.structures.uint256 import uint256
 
 
 class Branch():
@@ -14,6 +15,7 @@ class Branch():
         self.indexdb = indexdb
         self.blockstore = blockstore
         self.firsthash = firsthash
+        self.lasthash = lasthash
         self.last = DBBlockInterface(self.log, self.indexdb, self.blockstore, self.lasthash)
 
     def is_mainchain(self):
@@ -21,29 +23,36 @@ class Branch():
 
     def work(self):
         return sum(blk.blockindex.blockheader.work() for blk in self)
-            
-    def append(self, blockhash, blockindex):
-        #if mainchain maintain hash_next links
+    
+    def append(self, blockinterface):
+        blockhash = blockinterface.get_hash()
+        #if mainchain maintain hash_next link for the preceding item
         if self.is_mainchain():
             self.last.blockindex.hash_next = blockhash
             self.indexdb.set_blockindex(self.last.hash, self.last.blockindex)
             self.indexdb.set_hashbestchain(blockhash)
-        self.last = DBBlockInterface(self.log, self.indexdb, self.blockstore, blockhash)
-    '''    
-        rework.
-    def set_mainchain(self, mainchain=True):
-        hashnext = None
-        for blk in self:
-            blk.blockindex.hash_next = (mainchain and hashnext) or None
-            blk.save()
-            hashnext = blk.hash
-    '''
+            #index transactions
+            blockinterface.index_transactions()
+        self.last = blockinterface
+
+    def set_mainchain(self):
+        next = uint256(0)
+        for blk in self.backward_iterblocks():
+            blk.set_next(next)
+            blk.index_transactions()
+            next = blk 
+
+    def set_altchain(self):
+        for blk in self.backward_iterblocks():
+            blk.set_next(uint256(0))
+            blk.a()
+
     def mainchain_parent(self):
         for blk in self:
             if blk.is_mainchain():
                 return blk
 
-    def height(self):
+    def get_height(self):
         return self.last.blockindex.height
             
     def backward_iterblocks(self):

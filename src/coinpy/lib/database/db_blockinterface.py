@@ -11,6 +11,10 @@ from coinpy.model.constants.bitcoin import TARGET_INTERVAL, TARGET_TIMESPAN,\
 from coinpy.lib.bitcoin.difficulty import compact_difficulty
 from coinpy.tools.stat import median
 from coinpy.model.blockchain.blockinterface import BlockInterface
+from coinpy.lib.database.objects.txindex import DbTxIndex
+from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
+from coinpy.lib.serialization.structures.s11n_varint import varint_encoder
+from coinpy.lib.bitcoin.hash_tx import hash_tx
 
 class DBBlockInterface(BlockInterface):
     def __init__(self, log, indexdb, blockstorage, hash, blockindex=None):
@@ -24,10 +28,27 @@ class DBBlockInterface(BlockInterface):
         return (self.blockindex.hash_next == uint256(0) or 
                 self.hash == self.indexdb.hashbestchain())
 
+    def index_transactions(self):
+        #Add all transactions to the indexdb
+        block = self.get_block()
+        size_blockheader = blockheader_serializer().get_size(block.blockheader)
+        size_tx_size = varint_encoder().get_size(len(block.transactions))
+        txpos = self.blockindex.blockpos + size_blockheader + size_tx_size 
+        
+        for i, tx in enumerate(block.transactions):
+            txindex = DbTxIndex(1, txpos, False)
+            self.indexdb.set_transactionindex(hash_tx(tx), txindex)
+            txpos += tx.get_size(tx)
+            
+    def unindex_transactions(self):
+        block = self.get_block()
+        for tx in block.transactions:
+            self.indexdb.del_transactionindex(hash_tx(tx))
+            
     def get_block(self):
         return (self.blockstorage.load_block(self.blockindex.file, self.blockindex.blockpos))
 
-    def height(self):
+    def get_height(self):
         return self.blockindex.height
 
     def hasprev(self):
@@ -42,7 +63,11 @@ class DBBlockInterface(BlockInterface):
 
     def hasnext(self):
         return (self.blockindex.hash_next != uint256(0))
-
+    
+    def set_next(self, next):
+        self.blockindex.hash_next = next
+        self.indexdb.set_blockindex(self.hash, self.blockindex.hash_next)    
+    
     def next(self):
         self.hash = self.blockindex.hash_next
         self.blockindex = self.indexdb.get_blockindex(self.hash)
@@ -61,12 +86,12 @@ class DBBlockInterface(BlockInterface):
             the difficulty computation rules. 
     """
     def get_next_work_required(self):
-        if ((self.height() + 1) % TARGET_INTERVAL):
+        if ((self.get_height() + 1) % TARGET_INTERVAL):
             # Difficulty unchanged
             return (self.get_blockheader().bits)
         
         # Locate the block 2 weeks ago
-        it2weekago = BlockIterator(self.log, self.indexdb, self.blockstorage, self.hash, self.blockindex)
+        it2weekago = DBBlockInterface(self.log, self.indexdb, self.blockstorage, self.hash, self.blockindex)
         for i in range(TARGET_INTERVAL-1):
             it2weekago.prev()
         header_block2weekago = it2weekago.get_blockheader()
@@ -90,7 +115,8 @@ class DBBlockInterface(BlockInterface):
     #ref main.h:1109
     def get_median_time_past(self):
         block_times = []
-        iter = BlockIterator(self.log, self.indexdb, self.blockstorage, self.hash, self.blockindex)
+        #TODO replace with "branch"
+        iter = DBBlockInterface(self.log, self.indexdb, self.blockstorage, self.hash, self.blockindex)
         for i in range(MEDIAN_TIME_SPAN):
             block_times.append(iter.get_blockheader().time)
             if (not iter.prev()):

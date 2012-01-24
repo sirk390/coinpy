@@ -17,6 +17,9 @@ class tx_in_encoder():
                       Field("<I","sequence")], "outpoint")
     TXIN2 = Structure([outpoint_encoder(),
                       varstr_script_encoder()], "outpoint")
+    
+    def get_size(self, txin):
+        return (self.TXIN.get_size(txin.previous_output, txin.script, txin.sequence))
 
     def encode(self, txin):
         #Tmp FIXME

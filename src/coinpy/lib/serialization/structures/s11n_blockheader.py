@@ -21,6 +21,14 @@ class blockheader_serializer():
                                       Field("<I", "bits"),
                                       Field("<I", "nonce")], "txindex")
 
+    def get_size(self, blockheader):
+        return (self.BLOCKHEADER.get_size(blockheader.version,
+                                          blockheader.hash_prev,
+                                          blockheader.hash_merkle,
+                                          blockheader.time,
+                                          blockheader.bits,
+                                          blockheader.nonce))
+
     def encode(self, blockheader):
         return (self.BLOCKHEADER.encode(blockheader.version,
                                         blockheader.hash_prev,

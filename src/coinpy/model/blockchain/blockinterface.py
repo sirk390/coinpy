@@ -14,7 +14,7 @@ class BlockInterface():
     def is_mainchain(self):
         pass
 
-    def height(self):
+    def get_height(self):
         pass
 
     def get_blockheader(self):

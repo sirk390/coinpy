@@ -13,6 +13,9 @@ class tx_out_encoder():
     TXOUT = Structure([Field("<Q","value"),
                        varstr_script_encoder()], "outpoint")
 
+    def get_size(self, txout):
+        return (self.TXOUT.get_size(txout.value, txout.script))
+
     def encode(self, outpoint):
         return (self.TXOUT.encode(outpoint.value, outpoint.script))
 

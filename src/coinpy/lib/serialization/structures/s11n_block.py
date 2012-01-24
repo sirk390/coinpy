@@ -20,6 +20,10 @@ class block_encoder(Encoder):
         self.BLOCK = Structure([blockheader_serializer(flags), 
                                 varsizelist_encoder(varint_encoder("txn_count"), tx_encoder())], "block")
 
+    def get_size(self, block):
+        return (self.BLOCK.get_size(block.blockheader,
+                                    block.transactions))
+
     def encode(self, block):
         return (self.BLOCK.encode(block.blockheader,
                                   block.transactions))

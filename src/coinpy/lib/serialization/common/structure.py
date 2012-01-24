@@ -19,6 +19,9 @@ class Structure(Encoder):
             result += enc
         return (result)
 
+    def get_size(self, *args):
+        return sum(field.get_size(value) for value, field in zip(args, self.fields))
+    
     def decode(self, data, cursor):
         results = []
         for field in self.fields:

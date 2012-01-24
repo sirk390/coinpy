@@ -21,6 +21,15 @@ class varint_encoder(Encoder):
             return ("\xfe" + struct.pack("<I", value))
         return ("\xff" + struct.pack("<Q", value))
     
+    def get_size(self, value):
+        if (value < 0xfd):
+            return (1)
+        if (value <= 0xffff):
+            return (3)
+        if (value <= 0xffffffff):
+            return (5)
+        return (9)
+
     def decode(self, data, cursor):
         if (len(data) - cursor < 1):
             raise MissingDataException("Decoding error: not enough data for varint")

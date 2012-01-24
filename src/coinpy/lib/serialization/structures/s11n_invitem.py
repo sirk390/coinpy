@@ -14,6 +14,9 @@ class invitem_encoder():
     INVITEM_ENC = Structure([Field("<I", "type"),
                              uint256_encoder("hash")], "getblocks")
 
+    def get_size(self, invitem):
+        return (self.INVITEM_ENC.get_size(invitem.type,
+                                          invitem.hash))
     def encode(self, invitem):
         return (self.INVITEM_ENC.encode(invitem.type, invitem.hash))
 

@@ -7,6 +7,7 @@ Created on 14 Dec 2011
 
 '''
     list of linked blocks used in BlockPool
+
 '''
 class LinkedBlockList():
     def __init__(self, sender, hash, block):
