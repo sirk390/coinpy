@@ -7,7 +7,6 @@ Created on 10 Jan 2012
 from coinpy.lib.serialization.structures.s11n_block import block_encoder
 from coinpy.model.constants.bitcoin import MAX_BLOCK_SIZE, PROOF_OF_WORK_LIMIT,\
     MEDIAN_TIME_SPAN
-from coinpy.lib.bitcoin.checks.error import CheckError
 from coinpy.lib.bitcoin.merkle_tree import compute_merkle_root
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.bitcoin.hash_tx import hash_tx

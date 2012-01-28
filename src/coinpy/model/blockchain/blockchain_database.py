@@ -24,6 +24,4 @@ class BlockChainDatabase():
     def saveblock(self, blockhash, block):
         pass
 
-    def getheight(self):
-        return (0)
 

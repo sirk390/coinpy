@@ -7,55 +7,32 @@ Created on 9 Aug 2011
 from coinpy.lib.database.db_blockinterface import DBBlockInterface
 from copy import copy
 from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
 
 
 class Branch():
-    def __init__(self, log, indexdb, blockstore, lasthash, firsthash=None):
+    def __init__(self, log, database, lasthash, firsthash=None):
         self.log = log
-        self.indexdb = indexdb
-        self.blockstore = blockstore
         self.firsthash = firsthash
         self.lasthash = lasthash
-        self.last = DBBlockInterface(self.log, self.indexdb, self.blockstore, self.lasthash)
+        self.last = BlockIterator(database, lasthash) 
 
     def is_mainchain(self):
         return (self.last.is_mainchain())
 
     def work(self):
         return sum(blk.blockindex.blockheader.work() for blk in self)
-    
-    def append(self, blockinterface):
-        blockhash = blockinterface.get_hash()
-        #if mainchain maintain hash_next link for the preceding item
-        if self.is_mainchain():
-            self.last.blockindex.hash_next = blockhash
-            self.indexdb.set_blockindex(self.last.hash, self.last.blockindex)
-            self.indexdb.set_hashbestchain(blockhash)
-            #index transactions
-            blockinterface.index_transactions()
-        self.last = blockinterface
-
-    def set_mainchain(self):
-        next = uint256(0)
-        for blk in self.backward_iterblocks():
-            blk.set_next(next)
-            blk.index_transactions()
-            next = blk 
-
-    def set_altchain(self):
-        for blk in self.backward_iterblocks():
-            blk.set_next(uint256(0))
-            blk.a()
-
+   
     def mainchain_parent(self):
         for blk in self:
             if blk.is_mainchain():
                 return blk
 
     def get_height(self):
-        return self.last.blockindex.height
+        return self.last.get_height()
             
     def backward_iterblocks(self):
+        #self.last = BlockIterator(database, lasthash) 
         pos, completed = copy(self.last), False
         while not completed:
             yield pos

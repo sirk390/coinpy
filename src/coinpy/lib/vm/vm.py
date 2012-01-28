@@ -4,7 +4,7 @@ Created on 27 Jul 2011
 
 @author: kris
 """
-from coinpy.model.scripts.vm.opcode_impl.opcode_functions import OPCODE_FUNCTIONS
+from coinpy.lib.vm.opcode_impl.opcode_functions import OPCODE_FUNCTIONS
 from coinpy.lib.serialization.messages.s11n_tx import tx_encoder
 from coinpy.tools.hex import decodehexstr
 import traceback

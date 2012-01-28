@@ -4,11 +4,11 @@ Created on 27 Jul 2011
 
 @author: kris
 """
-from coinpy.tools.hash160 import hash160
+from coinpy.tools.bitcoin.hash160 import hash160
 import copy
 from coinpy.lib.serialization.messages.s11n_tx import tx_encoder
 from coinpy.tools.bitcoin.sha256 import doublesha256
-from coinpy.tools.ecdsa.ecdsa_ssl import KEY
+from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
 from coinpy.model.scripts.script import Script
 
 def op_hash160(vm, instr):

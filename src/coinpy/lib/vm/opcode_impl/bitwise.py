@@ -4,7 +4,7 @@ Created on 27 Jul 2011
 
 @author: kris
 """
-from coinpy.model.scripts.vm.opcode_impl.flow import op_verify
+from coinpy.lib.vm.opcode_impl.flow import op_verify
 
 def op_equal(vm, instr):
     if len(vm.stack) < 2:

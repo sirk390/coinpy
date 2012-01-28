@@ -5,12 +5,12 @@ Created on 27 Jul 2011
 @author: kris
 """
 from coinpy.model.scripts.opcodes import *
-from coinpy.model.scripts.vm.opcode_impl.reserved import op_not_implemented
-from coinpy.model.scripts.vm.opcode_impl.pushdata import op_pushdata
-from coinpy.model.scripts.vm.opcode_impl.stack import op_dup
-from coinpy.model.scripts.vm.opcode_impl.bitwise import op_equal, op_equalverify
-from coinpy.model.scripts.vm.opcode_impl.flow import op_verify
-from coinpy.model.scripts.vm.opcode_impl.crypto import op_hash160, op_checksig
+from coinpy.lib.vm.opcode_impl.reserved import op_not_implemented
+from coinpy.lib.vm.opcode_impl.pushdata import op_pushdata
+from coinpy.lib.vm.opcode_impl.stack import op_dup
+from coinpy.lib.vm.opcode_impl.bitwise import op_equal, op_equalverify
+from coinpy.lib.vm.opcode_impl.flow import op_verify
+from coinpy.lib.vm.opcode_impl.crypto import op_hash160, op_checksig
 
 OPCODE_FUNCTIONS = {
     OP_0 : op_not_implemented,

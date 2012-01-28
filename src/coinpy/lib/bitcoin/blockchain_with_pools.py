@@ -8,17 +8,9 @@ from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK
 
 
-from coinpy.lib.serialization.messages.s11n_tx import tx_encoder
-from coinpy.tools.hex import hexdump, hexstr
 from coinpy.lib.bitcoin.pools.blockpool import BlockPool
-from coinpy.model.constants.bitcoin import TARGET_INTERVAL, MEDIAN_TIME_SPAN,\
-    COINBASE_MATURITY
-from coinpy.lib.bitcoin.hash_tx import hash_tx
-from coinpy.model.blockchain.checkpoints import verify_checkpoints,\
-    get_checkpoint
+
 from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
-from coinpy.lib.bitcoin.checks.blockchain_checks import BlockChainChecks
-from coinpy.lib.bitcoin.blockchain.verifier.blockchain_appender import BlockchainAppender
 
 class BlockchainWithPools(Observable):
     EVT_MISSING_BLOCK = Observable.createevent()
@@ -37,7 +29,6 @@ class BlockchainWithPools(Observable):
         self.runmode = self.blockchain.runmode
         
         self.blockverifier = BlockVerifier(self.runmode)
-        self.blockchain_checks = BlockChainChecks()
         
     def verified_add_tx(self, item):
         self.log.info("Adding tx %s" % str(item))

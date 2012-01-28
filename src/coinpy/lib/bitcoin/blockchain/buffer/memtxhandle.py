@@ -6,7 +6,7 @@ Created on 19 Jan 2012
 """
 from coinpy.model.blockchain.txinterface import TxInterface
 
-class BufferedTx(TxInterface):
+class MemTxHandle(TxInterface):
     def __init__(self, hash, tx, block, outputs_spent):
         self.hash = hash
         self.tx = tx
@@ -27,9 +27,4 @@ class BufferedTx(TxInterface):
     def mark_spent(self, n, is_spent, in_tx_hash=None):
         self.outputs_spent[n] = (is_spent, in_tx_hash)
         self.modified = True
-    
-    """    
-    def commit(self):
-        for o, (is_spent, in_tx_hash) in self.outputs_spent.iteritems():
-            self.dbtx.mark_spent(o, is_spent, in_tx_hash)
-    """
+

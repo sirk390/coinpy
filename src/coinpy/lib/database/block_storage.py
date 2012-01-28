@@ -34,7 +34,7 @@ class BlockStorage:
         file = 1
         handle = self._gethandle(file)
         handle.seek(0, os.SEEK_END)
-        blockdata = self.blockserialize.encode(block)
+        bl ockdata = self.blockserialize.encode(block)
         #Write index header
         handle.write(struct.pack("<I", MAGICS[self.runmode]))
         handle.write(struct.pack("<I", len(blockdata)))
