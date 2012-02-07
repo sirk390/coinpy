@@ -34,7 +34,7 @@ class BlockStorage:
         file = 1
         handle = self._gethandle(file)
         handle.seek(0, os.SEEK_END)
-        bl ockdata = self.blockserialize.encode(block)
+        blockdata = self.blockserialize.encode(block)
         #Write index header
         handle.write(struct.pack("<I", MAGICS[self.runmode]))
         handle.write(struct.pack("<I", len(blockdata)))
@@ -55,38 +55,44 @@ class BlockStorage:
             self.openhandles[file] = handle
             return (handle)
         return self.openhandles[file]
-
+    
+    def _read_data(self, handle, size):
+        data = handle.read(size)
+        if len(data) == 0:
+            raise Exception("End of file") 
+        return data
+        
     def load_blockheader(self, filenum, blockpos):
         handle = self._gethandle(filenum)
         handle.seek(blockpos)
-        block, data = None, handle.read(BLOCKHEADER_READSIZE)
+        block, data = None, self._read_data(handle, BLOCKHEADER_READSIZE)
         while (block is None):
             try:
                 block, _ = self.blockheaderserialize.decode(data, 0)
             except MissingDataException:
                 #FIXME: infinite loop when end of file
-                data += handle.read(BLOCKHEADER_READSIZE)
+                data += self._read_data(handle, BLOCKHEADER_READSIZE)
         return (block)
     
     def load_block(self, filenum, blockpos):
         handle = self._gethandle(filenum)
         handle.seek(blockpos)
-        block, data = None, handle.read(BLOCK_READSIZE)
+        block, data = None, self._read_data(handle, BLOCK_READSIZE)
         while (block is None):
             try:
                 block, _ = self.blockserialize.decode(data, 0)
             except MissingDataException:
-                data += handle.read(BLOCK_READSIZE)
+                data += self._read_data(handle, BLOCK_READSIZE)
         return (block)
     
     def load_tx(self, filenum, txpos):
         handle = self._gethandle(filenum)
         handle.seek(txpos)
-        tx, data = None, handle.read(TX_READSIZE)
+        tx, data = None, self._read_data(handle, TX_READSIZE)
         while (tx is None):
             try:
                 tx, _ = self.txserialize.decode(data, 0)
             except MissingDataException:
-                data += handle.read(TX_READSIZE)
+                data += self._read_data(handle, TX_READSIZE)
         return (tx)
 

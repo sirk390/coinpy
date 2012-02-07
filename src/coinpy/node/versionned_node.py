@@ -7,7 +7,6 @@ Created on 18 Jun 2011
 from coinpy.model.protocol.services import SERVICES_NONE, SERVICES_NODE_NETWORK
 from coinpy.node.network.connection_manager import ConnectionManager
 from coinpy.model.protocol.structures.netaddr import netaddr
-from coinpy.model.protocol.sockaddr import SockAddr
 from coinpy.node.network.peerconnectionfactory import PeerConnectionFactory
 from coinpy.lib.serialization.messages.s11n_message import MessageEncoder
 from coinpy.node.network.peerconnection import PeerConnection

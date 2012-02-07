@@ -9,14 +9,14 @@ from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.database.objects.disktxpos import DiskTxPos
 
 class DiskTxPosSerializer():
-    DISKTXPOS = Structure([Field("<i", "file"),
+    DISKTXPOS = Structure([Field("<I", "file"),
                            Field("<I", "blockpos"),
                            Field("<I", "txpos")], "disktxpos")
 
     def encode(self, disktxpos_obj):
         return (self.DISKTXPOS.encode(disktxpos_obj.file,
-                                 disktxpos_obj.nblockpos,
-                                 disktxpos_obj.ntxpos))
+                                      disktxpos_obj.blockpos,
+                                      disktxpos_obj.txpos))
 
     def decode(self, data, cursor=0):
         (file, nblockpos, ntxpos), cursor = self.DISKTXPOS.decode(data, cursor)

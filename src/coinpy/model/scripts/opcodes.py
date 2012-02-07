@@ -7,11 +7,12 @@ Created on 2 Jul 2011
 
 ''' Constants '''
 OP_0 = OP_FALSE = 0
-# OP_PUSHDATA: opcodes 1-78 are all grouped in OP_PUSHDATA=1
-OP_PUSHDATA = 1 
-# -- used for decoding purposes only
-OP_PUSHDATA_MIN = 1
-OP_PUSHDATA_MAX = 78
+#non specific pushdata opcode
+OP_PUSHDATA = 1
+#specific pushdata opcode. This is required for deserialization+serialization 
+#without information loss (wich causes a different transaction hash)
+OP_PUSHDATA1_75_MIN = 1
+OP_PUSHDATA1_75_MAX = 75
 OP_PUSHDATA1 = 76 
 OP_PUSHDATA2 = 77
 OP_PUSHDATA4 = 78
@@ -134,3 +135,5 @@ OP_NOP7 = 182
 OP_NOP8 = 183
 OP_NOP9 = 184
 OP_NOP10 = 185
+
+OP_RAWSCRIPT=256

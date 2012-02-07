@@ -4,9 +4,9 @@ import time
 from peerhandler import PeerHandler
 import traceback
 from peerconnection import PeerConnection
-from coinpy.model.protocol.sockaddr import SockAddr
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.messages.getaddr import msg_getaddr
+from coinpy.node.network.sockaddr import SockAddr
 
 PEER_RECONNECT_INTERVAL = 5
 
@@ -42,6 +42,8 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         if (close and (addr in self.peers)):
             handler = self.peers[addr]
             handler.handle_close()
+        #print self.known_peer_addresses.pop() == addr
+        print addr
         self.known_peer_addresses.remove(addr)
 
     def handle_error(self):

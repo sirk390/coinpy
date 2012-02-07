@@ -21,7 +21,7 @@ class varstr_encoder(Encoder):
 
     def decode(self, data, cursor):
         length, newpos = self.lenfield.decode(data, cursor)
-         #data = data[newpos:]
+        #data = data[newpos:]
         if (length > len(data) - newpos):
             raise MissingDataException("Decoding error: not enough data for varstring (expected:%d, got:%d)" % (length, len(data) - newpos))
         return (data[newpos:newpos+length], newpos+length)

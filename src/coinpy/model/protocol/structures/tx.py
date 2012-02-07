@@ -19,6 +19,9 @@ class tx():
     #todo in serialisation:   size < MAX_BLOCK_SIZE
     #                         coinbase  => scriptsize
     #                         !coinbase => prevout!=null
+    def output_count(self):
+        return (len(self.out_list))
+    
     def basic_check(self):
         assert self.in_list and self.out_list
         for txout in self.out_list:

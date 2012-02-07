@@ -15,6 +15,9 @@ class varsizelist_encoder():
             result += self.element_encoder.encode(elm)
         return (result)
 
+    def get_size(self, lst):
+        return self.count_encoder.get_size(len(lst)) + sum(self.element_encoder.get_size(value) for value in lst)
+
     def decode(self, data, cursor):
         length, cursor = self.count_encoder.decode(data, cursor)
         elms = []

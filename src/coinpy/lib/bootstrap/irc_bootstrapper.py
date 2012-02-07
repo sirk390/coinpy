@@ -8,8 +8,8 @@ from coinpy.tools.bitcoin.base58 import b58decode , b58encode
 from coinpy.tools.bitcoin.base58check import decode_base58check
 from coinpy.tools.observer import Observable
 from coinpy.lib.bootstrap.irc_handler import IrcHandler
-from coinpy.model.protocol.sockaddr import SockAddr
 from coinpy.model.protocol.runmode import MAIN
+from coinpy.node.network.sockaddr import SockAddr
 
 class IrcBootstrapper(Observable):
     EVT_FOUND_PEER = Observable.createevent()
@@ -57,9 +57,10 @@ class IrcBootstrapper(Observable):
                 hostaddr = decode_base58check(nick[1:])
                 ip = ".".join([str(struct.unpack(">B", x)[0]) for x in hostaddr[:4]])
                 port = struct.unpack(">H", hostaddr[4:])[0]
-                self.fire(self.EVT_FOUND_PEER, peeraddress=SockAddr(ip, port))
             except:
                 self.log.info("Error unpacking nickname (errorneous peer): %s" % (nick))
+                return
+            self.fire(self.EVT_FOUND_PEER, peeraddress=SockAddr(ip, port))
             
     def stop(self):
         if (self.running):

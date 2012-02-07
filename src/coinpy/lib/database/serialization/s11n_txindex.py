@@ -23,8 +23,8 @@ class TxIndexSerializer():
 
     def encode(self, txindex_obj):
         return (self.TXINDEX.encode(txindex_obj.version,
-                               txindex_obj.pos,
-                               txindex_obj.spent))
+                                    txindex_obj.pos,
+                                    txindex_obj.spent))
 
     def decode(self, data, cursor=0):
         (version, pos, spent), cursor = self.TXINDEX.decode(data, cursor)

@@ -16,6 +16,10 @@ class varstr_script_encoder():
         scriptstr = self.serializer.serialize(script)
         return (self.strencoder.encode(scriptstr))
 
+    def get_size(self, script):
+        #todo: fix algorithm
+        return len(self.encode(script))
+
     def decode(self, data, cursor):
         scriptstr, newcursor = self.strencoder.decode(data, cursor)
         return (self.serializer.deserialize(scriptstr), newcursor)

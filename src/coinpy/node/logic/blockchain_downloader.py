@@ -13,6 +13,7 @@ from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.lib.bitcoin.hash_block import hash_block
 from coinpy.model.protocol.messages.getdata import msg_getdata
 from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
+import traceback
 
 class BlockchainDownloader():
     def __init__(self, reactor, blockchain_with_pools, node,log):
@@ -41,7 +42,7 @@ class BlockchainDownloader():
     #1/keep up with peer heights in version exchanges    
     def on_version_exchange(self, event):
         peer_heigth = event.version_message.start_height
-        my_height = self.blockchain_with_pools.blockchain.getheight()
+        my_height = self.blockchain_with_pools.blockchain.get_height()
         if (peer_heigth > my_height):
             locator = self.blockchain_with_pools.blockchain.get_block_locator()
             self.log.info("requesting blocks, block locator: %d" % (len(locator)))
@@ -92,6 +93,7 @@ class BlockchainDownloader():
         try:
             self.blockchain_with_pools.add_block(peer, hash, message.block)
         except Exception as err:
+            traceback.print_exc()
             self.node.misbehaving(peer, err)
         #for peer, missing_hash in missing_blocks:
             #request missing parts
@@ -103,7 +105,8 @@ class BlockchainDownloader():
         
     def request_items(self):
         for peer, items in self.required_items.iteritems():
-            self.log.info("Downloading items %s" % (",".join((str(s) for s in items))))
+            #self.log.info("Downloading items %s" % (",".join((str(s) for s in items))))
+            self.log.info("Downloading items: %d block, %d transactions" % (len([i for i in items if i.type == INV_BLOCK]), len([i for i in items if i.type == INV_TX])))
             
             #self.inprogress[item.hash] = (callback, callback_args)
             self.node.send_message(peer, msg_getdata(items))

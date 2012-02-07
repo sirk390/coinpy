@@ -5,7 +5,7 @@ Created on 2 Jul 2011
 @author: kris
 """
 
-#uint256.to_bytestr
+# Make a big endian bytestring from an integer.
 def base256encode(value, pad=None):
     result = b""
     while value != 0:
@@ -14,7 +14,7 @@ def base256encode(value, pad=None):
         value = div
     return (result.rjust(pad or 0, "\0"))
 
-#uint256.from_bytestr
+# Make an integer from a big endian bytestring.
 def base256decode(bytestr):
     value = 0
     for b in bytestr:

@@ -47,11 +47,15 @@ class BlockchainWithPools(Observable):
             self.orphanblocks.add_block(sender, hash, block)
             sender, missing_hash = self.orphanblocks.get_missing_root()
             self.fire(self.EVT_MISSING_BLOCK, peer=sender, missing_hash=missing_hash)
+            return
         #Checks-2 (done after finding the parent block)
         #TODO: Check timestamp
         #if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
         #return error("CheckBlock() : block timestamp too far in the future");       
-        self.blockchain.appendblock(hash, block)
+        blockhandle = self.blockchain.appendblock(hash, block)
+        
+        if blockhandle.get_height() % 1 == 0:
+            self.log.info("Appended block %d" % blockhandle.get_height())
            
     def has_transaction(self, hash):
         return (self.blockchain.contains_transaction(hash) or 

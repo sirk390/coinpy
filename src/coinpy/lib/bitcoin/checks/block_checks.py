@@ -13,6 +13,7 @@ from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.model.blockchain.checkpoints import verify_checkpoints,\
     get_checkpoint
 from coinpy.lib.bitcoin.checks.tx_checks import TxVerifier
+import pickle
 
 class BlockVerifier():
     def __init__(self, runmode):
@@ -68,8 +69,10 @@ class BlockVerifier():
     def check_merkle_root(self, hash, block):
         merkle = compute_merkle_root(block)
         if merkle != block.blockheader.hash_merkle:
+            with open("block_%s.pkl" % hash, "wb") as f:
+                pickle.dump(block, f)
             raise Exception("merkel root incorrect for block %s: %s != %s" % (str(hash), str(merkle), str(block.blockheader.hash_merkle)) )
-    
+            
     """
         accept_block: check block after finding the parent block.
     """

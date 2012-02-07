@@ -4,7 +4,6 @@ Created on 9 Aug 2011
 
 @author: kris
 """
-from coinpy.lib.database.db_blockinterface import DBBlockInterface
 from copy import copy
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
@@ -13,6 +12,7 @@ from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
 class Branch():
     def __init__(self, log, database, lasthash, firsthash=None):
         self.log = log
+        self.database = database
         self.firsthash = firsthash
         self.lasthash = lasthash
         self.last = BlockIterator(database, lasthash) 
@@ -21,7 +21,7 @@ class Branch():
         return (self.last.is_mainchain())
 
     def work(self):
-        return sum(blk.blockindex.blockheader.work() for blk in self)
+        return sum(blk.get_blockheader().work() for blk in self)
    
     def mainchain_parent(self):
         for blk in self:
@@ -32,23 +32,16 @@ class Branch():
         return self.last.get_height()
             
     def backward_iterblocks(self):
-        #self.last = BlockIterator(database, lasthash) 
-        pos, completed = copy(self.last), False
-        while not completed:
-            yield pos
-            completed = (not pos.prev() or pos.hash == self.firsthash)
-
+        pos = BlockIterator(self.database, self.lasthash) 
+        while pos.hashprev() and pos.hash != self.firsthash:
+            yield pos.get_handle()
+            pos.prev()
+        yield pos.get_handle()
+            
     def foreward_iterblocks(self):
-        #in mainchain use hash_next
-        if self.is_mainchain():
-            pos = copy(self.first)
-            while (pos.hash != self.lasthash):
-                yield pos
-                pos.next()
-        else:
-        #in altchains accumulate and reverse hash_prev links (TODO: add a chain length limit)
-            for block in list( self.backward_iterblocks() ).reverse:
-                yield block
+        #accumulate and reverse hash_prev links (TODO: add a chain length limit)
+        for block in list( self.backward_iterblocks() ).reverse:
+            yield block
             
     def __iter__(self):
         return self.backward_iterblocks()

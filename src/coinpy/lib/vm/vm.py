@@ -6,31 +6,45 @@ Created on 27 Jul 2011
 """
 from coinpy.lib.vm.opcode_impl.opcode_functions import OPCODE_FUNCTIONS
 from coinpy.lib.serialization.messages.s11n_tx import tx_encoder
-from coinpy.tools.hex import decodehexstr
+from coinpy.tools.hex import decodehexstr, hexstr
 import traceback
+from coinpy.model.scripts.opcodes_info import is_pushdata, OPCODE_NAMES,\
+    is_conditionnal
+from coinpy.model.scripts.opcodes import OP_PUSHDATA
+from coinpy.lib.vm.stack_valtype import cast_to_bool
 
 class TxValidationVM():
     def __init__(self):
+        self.reset()
+    
+    def reset(self):
         self.stack = []
         self.altstack = []
         self.checksig_data = None
+        self.cond_stack = [] #conditional if/else stack (vfExec)
 
     def validate(self, transaction, inputindex, unspent_script, claim_script):
+        self.reset()
         try:
             self.set_checksig_data(transaction, inputindex, unspent_script)
             self.eval(claim_script)
             self.eval(unspent_script)
-            return (len(self.stack) == 1) and (self.stack[0] == True)
+            return (len(self.stack) > 0) and (cast_to_bool(self.stack[-1]) == True)
         except:
             traceback.print_exc()
             return (False)
 
     def eval(self, script):
         for i in script.instructions:
-            OPCODE_FUNCTIONS[i.opcode](self, i)
+            op = is_pushdata(i.opcode) and OP_PUSHDATA or i.opcode
+            executed = all(self.cond_stack)
+            if executed or is_conditionnal(op):
+                OPCODE_FUNCTIONS[op](self, i)
+            #print "stack:", [hexstr(elm)[:10] for elm in self.stack]  
+
 
     def set_checksig_data(self, transaction, inputindex, unspent_script):
-        self.checksig_data = (transaction, inputindex, unspent_script)  
+        self.checksig_data = (transaction, inputindex, unspent_script.signed_part())  
     
     """
         ['OP_PUSHDATA(73:30460221...]', 'OP_PUSHDATA(65:048791c5...]']

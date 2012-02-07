@@ -6,9 +6,17 @@ Created on 2 Jul 2011
 """
 from coinpy.model.scripts.opcodes import OP_PUBKEY, OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY,\
     OP_HASH160, OP_PUBKEYHASH, OP_PUSHDATA, OP_CHECKSIGVERIFY, OP_CHECKMULTISIG,\
-    OP_CHECKMULTISIGVERIFY
+    OP_CHECKMULTISIGVERIFY, OP_CODESEPARATOR
+from coinpy.tools.hex import hexstr
 
-class Script():
+# Used when a script cannot be decoded (error cases with PUSHDATA missing data)
+class RawScript(object):
+    def __init__(self, data):
+        self.data = data
+    def __str__(self):
+        return ("RawScript:" + hexstr(self.data))
+         
+class Script(object):
     #STANDARD_TX = [OP_PUBKEY, OP_CHECKSIG]
     STANDARD_ADDRESS_TX = [OP_DUP, OP_HASH160, OP_PUSHDATA, OP_EQUALVERIFY, OP_CHECKSIG]
     
@@ -17,6 +25,19 @@ class Script():
     
     def opcodes(self):
         return ([i.opcode for i in self.instructions])
+
+    def last_codeseparator_index(self):
+        codesep_idx = None
+        for idx, instr in enumerate(self.instructions):
+            if instr.opcode == OP_CODESEPARATOR:
+                codesep_idx = idx
+        return codesep_idx
+    
+    def signed_part(self):
+        codesep_idx = self.last_codeseparator_index()
+        if (codesep_idx != None):
+            return Script(self.instructions[codesep_idx+1:])
+        return Script(self.instructions)
     
     #script.cpp:Solver:962
     def is_standard_address_tx(self):

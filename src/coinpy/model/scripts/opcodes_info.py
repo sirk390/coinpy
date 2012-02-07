@@ -8,7 +8,9 @@ from opcodes import *
 
 OPCODE_NAMES = {
     OP_0 : "OP_0",
-    OP_PUSHDATA : "OP_PUSHDATA", 
+    OP_PUSHDATA1: "OP_PUSHDATA1", 
+    OP_PUSHDATA2: "OP_PUSHDATA3", 
+    OP_PUSHDATA4: "OP_PUSHDATA4", 
     OP_1NEGATE : "OP_1NEGATE",
     OP_1 : "OP_1",
     OP_2 : "OP_2",
@@ -128,3 +130,14 @@ OPCODE_NAMES = {
     OP_NOP9 : "OP_NOP9",
     OP_NOP10 : "OP_NOP10"
 }
+
+def is_conditionnal(op):
+    return (OP_IF <= op <= OP_ENDIF) 
+
+def is_pushdata(opcode):
+    return (OP_PUSHDATA1_75_MIN <= opcode <= OP_PUSHDATA1_75_MAX or
+            opcode == OP_PUSHDATA1 or
+            opcode == OP_PUSHDATA2 or
+            opcode == OP_PUSHDATA4)
+
+        
