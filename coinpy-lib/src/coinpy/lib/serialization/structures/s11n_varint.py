@@ -5,10 +5,10 @@ Created on 13 Jun 2011
 @author: kris
 """
 import struct
-from coinpy.lib.serialization.common.encodable import Encoder
+from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.exceptions import MissingDataException
 
-class varint_encoder(Encoder):
+class VarintSerializer(Serializer):
     def __init__(self, desc=""):
         self.desc = desc
     

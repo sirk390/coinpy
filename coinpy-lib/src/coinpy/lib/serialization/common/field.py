@@ -4,10 +4,10 @@ Created on 13 Jun 2011
 
 @author: kris
 """
-from coinpy.lib.serialization.common.encodable import Encoder
+from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.exceptions import MissingDataException
 
-class Field(Encoder):
+class Field(Serializer):
     def __init__(self, format, desc, options=0):
         super(Field, self).__init__(desc)
         self.format = format

@@ -4,9 +4,9 @@ Created on 13 Jun 2011
 
 @author: kris
 """
-from coinpy.lib.serialization.common.encodable import Encoder
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class Structure(Encoder):
+class Structure(Serializer):
     def __init__(self, fields, desc, flags=0):
         super(Structure, self).__init__(desc)
         self.fields = fields

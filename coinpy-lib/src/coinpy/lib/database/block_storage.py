@@ -4,18 +4,13 @@ Created on 6 Aug 2011
 
 @author: kris
 """
-from coinpy.model.protocol.structures.block import Block
-from coinpy.lib.serialization.messages.s11n_block import block_encoder
-from coinpy.model.protocol.structures.tx import tx
-from coinpy.lib.serialization.messages.s11n_tx import tx_encoder
 import os
 from coinpy.lib.serialization.exceptions import MissingDataException
 from coinpy.lib.serialization.magic import MAGICS
-from coinpy.lib.serialization.common.structure import Structure
-from coinpy.lib.serialization.common.field import Field
-from coinpy.lib.serialization.common.varsizelist import varsizelist_encoder
 import struct
-from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
+from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
+from coinpy.lib.serialization.structures.s11n_block import BlockSerializer
+from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 
 BLOCKHEADER_READSIZE=1024
 BLOCK_READSIZE=8*1024
@@ -26,9 +21,9 @@ class BlockStorage:
         self.runmode = runmode
         self.directory = directory
         self.openhandles = {}
-        self.blockheaderserialize =  blockheader_serializer()
-        self.blockserialize =  block_encoder()
-        self.txserialize = tx_encoder()
+        self.blockheaderserialize =  BlockheaderSerializer()
+        self.blockserialize =  BlockSerializer()
+        self.txserialize = TxSerializer()
         
     def saveblock(self, block):
         file = 1

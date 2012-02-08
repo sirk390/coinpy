@@ -8,7 +8,6 @@ from coinpy.model.protocol.services import SERVICES_NONE, SERVICES_NODE_NETWORK
 from coinpy.node.network.connection_manager import ConnectionManager
 from coinpy.model.protocol.structures.netaddr import netaddr
 from coinpy.node.network.peerconnectionfactory import PeerConnectionFactory
-from coinpy.lib.serialization.messages.s11n_message import MessageEncoder
 from coinpy.node.network.peerconnection import PeerConnection
 from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_INV, MSG_TX, MSG_BLOCK,\
     MSG_VERACK, MESSAGE_TYPES
@@ -19,6 +18,7 @@ from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK
 from coinpy.model.protocol.messages.getdata import msg_getdata
 from coinpy.node.network.sockaddr import SockAddr
+from coinpy.lib.serialization.messages.s11n_message import MessageSerializer
 
 """
     Bitcoin node that uses the standard binary protocol.
@@ -37,7 +37,7 @@ class Node(Observable):
         self.log = log
         self.addr_me = netaddr(self.params.enabledservices, "192.168.1.1", 78)
         
-        self.message_encoder = MessageEncoder(self.params.runmode, log)
+        self.message_encoder = MessageSerializer(self.params.runmode, log)
         self.connection_factory = PeerConnectionFactory(self.message_encoder, log)
         self.connection_manager = ConnectionManager(reactor, SockAddr('localhost', self.params.port), self.connection_factory, log)
         self.connection_manager.subscribe(ConnectionManager.EVT_CONNECTED_HANDLER, self.__on_connected)

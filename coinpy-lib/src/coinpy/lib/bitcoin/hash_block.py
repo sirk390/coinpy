@@ -4,11 +4,11 @@ Created on 17 Nov 2011
 
 @author: kris
 """
-from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
+from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.tools.bitcoin.sha256 import doublesha256
 
-BLOCK_SERIALIZE = blockheader_serializer()
+BLOCK_SERIALIZE = BlockheaderSerializer()
 
     
 def hash_blockheader(blockheader):

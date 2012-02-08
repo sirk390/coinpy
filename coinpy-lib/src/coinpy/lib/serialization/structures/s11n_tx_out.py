@@ -7,11 +7,12 @@ Created on 2 Jul 2011
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.model.protocol.structures.tx_out import tx_out
-from coinpy.lib.serialization.structures.s11n_varstr_script import varstr_script_encoder
+from coinpy.lib.serialization.structures.s11n_varstr_script import VarstrScriptSerializer
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class tx_out_encoder():
+class TxoutSerializer(Serializer):
     TXOUT = Structure([Field("<Q","value"),
-                       varstr_script_encoder()], "outpoint")
+                       VarstrScriptSerializer()], "outpoint")
 
     def get_size(self, txout):
         return (self.TXOUT.get_size(txout.value, txout.script))

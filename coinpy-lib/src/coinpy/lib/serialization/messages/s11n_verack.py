@@ -5,9 +5,9 @@ Created on 13 Jun 2011
 @author: kris
 """
 from coinpy.model.protocol.messages.verack import msg_verack
-from coinpy.lib.serialization.common.encodable import Encoder
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class verack_encoder(Encoder):
+class VerackMessageSerializer(Serializer):
     def encode(self, verack):
         return ("")
     

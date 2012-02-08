@@ -5,11 +5,9 @@ Created on 27 Jul 2011
 @author: kris
 """
 from coinpy.lib.vm.opcode_impl.opcode_functions import OPCODE_FUNCTIONS
-from coinpy.lib.serialization.messages.s11n_tx import tx_encoder
 from coinpy.tools.hex import decodehexstr, hexstr
 import traceback
-from coinpy.model.scripts.opcodes_info import is_pushdata, OPCODE_NAMES,\
-    is_conditionnal
+from coinpy.model.scripts.opcodes_info import is_pushdata, is_conditionnal
 from coinpy.model.scripts.opcodes import OP_PUSHDATA
 from coinpy.lib.vm.stack_valtype import cast_to_bool
 

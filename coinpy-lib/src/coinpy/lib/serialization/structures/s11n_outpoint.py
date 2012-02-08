@@ -6,11 +6,12 @@ Created on 2 Jul 2011
 """
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
-from coinpy.lib.serialization.structures.s11n_uint256 import uint256_encoder
+from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
 from coinpy.model.protocol.structures.outpoint import outpoint
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class outpoint_encoder():
-    OUTPOINT = Structure([uint256_encoder("hash"),
+class OutpointSerializer(Serializer):
+    OUTPOINT = Structure([Uint256Serializer("hash"),
                           Field("<I","index")], "outpoint")
 
     def get_size(self, outpoint):

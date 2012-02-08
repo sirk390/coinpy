@@ -5,9 +5,9 @@ Created on 26 Jun 2011
 @author: kris
 """
 from coinpy.model.protocol.messages.getaddr import msg_getaddr
-from coinpy.lib.serialization.common.encodable import Encoder
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class getaddr_encoder(Encoder):
+class GetAddrMessageSerializer(Serializer):
     def encode(self, getaddr):
         return ("")
     

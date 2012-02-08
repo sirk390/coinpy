@@ -7,11 +7,12 @@ Created on 26 Jun 2011
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.model.protocol.structures.timenetaddr import timenetaddr
-from coinpy.lib.serialization.structures.s11n_netaddrfield import NetAddrField
+from coinpy.lib.serialization.structures.s11n_netaddrfield import NetAddrSerializer
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class timenetaddr_encoder():
+class TimenetaddrSerializer(Serializer):
     TIME_NETADDR = Structure([Field("<I", "timestamp"),
-                              NetAddrField("addr")], "timestamped_netaddr")
+                              NetAddrSerializer("addr")], "timestamped_netaddr")
 
     def encode(self, timenetaddr):
         return (self.TIME_NETADDR.encode(timenetaddr.timestamp, timenetaddr.netaddr))

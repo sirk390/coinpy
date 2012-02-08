@@ -7,12 +7,12 @@ Created on 23 Jun 2011
 
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.common.field import Field
-from coinpy.lib.serialization.common.encodable import Encoder
-from coinpy.lib.serialization.structures.s11n_varint import varint_encoder
+from coinpy.lib.serialization.common.serializer import Serializer
+from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
 from coinpy.model.protocol.messages.getheaders import msg_getheaders
 
-class getheaders_encoder(Encoder):
-    GETHEADERS = Structure([varint_encoder(),
+class GetheadersMessageSerializer(Serializer):
+    GETHEADERS = Structure([VarintSerializer(),
                            Field("32s", "hash_start"),
                            Field("32s","hash_stop")], "getheaders")
 

@@ -4,7 +4,7 @@ Created on 10 Jan 2012
 
 @author: kris
 """
-from coinpy.lib.serialization.structures.s11n_block import block_encoder
+from coinpy.lib.serialization.structures.s11n_block import BlockSerializer
 from coinpy.model.constants.bitcoin import MAX_BLOCK_SIZE, PROOF_OF_WORK_LIMIT,\
     MEDIAN_TIME_SPAN
 from coinpy.lib.bitcoin.merkle_tree import compute_merkle_root
@@ -18,7 +18,7 @@ import pickle
 class BlockVerifier():
     def __init__(self, runmode):
         self.runmode = runmode
-        self.block_serializer = block_encoder()
+        self.block_serializer = BlockSerializer()
         self.tx_verifier = TxVerifier(self.runmode)
         
     """

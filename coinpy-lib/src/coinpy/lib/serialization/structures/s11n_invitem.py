@@ -8,11 +8,12 @@ from coinpy.model.protocol.structures.invitem import INV_ITEMS, invitem
 from coinpy.lib.serialization.exceptions import FormatErrorException
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
-from coinpy.lib.serialization.structures.s11n_uint256 import uint256_encoder
+from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class invitem_encoder():
+class InvitemSerializer(Serializer):
     INVITEM_ENC = Structure([Field("<I", "type"),
-                             uint256_encoder("hash")], "getblocks")
+                             Uint256Serializer("hash")], "getblocks")
 
     def get_size(self, invitem):
         return (self.INVITEM_ENC.get_size(invitem.type,

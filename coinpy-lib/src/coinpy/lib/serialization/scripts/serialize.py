@@ -10,8 +10,9 @@ from coinpy.tools.bitcoin.base256 import base256encode, base256decode
 from coinpy.model.scripts.script import Script, RawScript
 from coinpy.model.scripts.opcodes_info import is_pushdata
 from coinpy.lib.serialization.exceptions import MissingDataException
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class IntructionSerializer():
+class IntructionSerializer(Serializer):
     """
         Deserialisation + serialisation shouldn't change opcodes even 
         in case of errors in the script.

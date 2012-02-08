@@ -4,15 +4,15 @@ Created on 13 Jun 2011
 
 @author: kris
 """
-from coinpy.lib.serialization.common.encodable import Encoder
-from coinpy.lib.serialization.structures.s11n_varint import varint_encoder
-from coinpy.lib.serialization.structures.s11n_invitem import invitem_encoder
-from coinpy.lib.serialization.common.varsizelist import varsizelist_encoder
+from coinpy.lib.serialization.common.serializer import Serializer
+from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
+from coinpy.lib.serialization.structures.s11n_invitem import InvitemSerializer
+from coinpy.lib.serialization.common.varsizelist import VarsizelistSerializer
 from coinpy.model.protocol.messages.inv import msg_inv
 
-class inv_encoder(Encoder):
-    INV_ENCODER = varsizelist_encoder( varint_encoder(), 
-                                       invitem_encoder())
+class InvMessageSerializer(Serializer):
+    INV_ENCODER = VarsizelistSerializer(VarintSerializer(), 
+                                        InvitemSerializer())
     
     def encode(self, inv_msg):
         return (self.INV_ENCODER.encode(inv_msg.items))

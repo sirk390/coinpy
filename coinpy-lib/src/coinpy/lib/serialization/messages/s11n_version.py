@@ -5,20 +5,20 @@ Created on 13 Jun 2011
 @author: kris
 """
 from coinpy.lib.serialization.common.structure import Structure
-from coinpy.lib.serialization.structures.s11n_netaddrfield import NetAddrField
+from coinpy.lib.serialization.structures.s11n_netaddrfield import NetAddrSerializer
 from coinpy.lib.serialization.common.field import Field
-from coinpy.lib.serialization.structures.s11n_varstr import varstr_encoder
+from coinpy.lib.serialization.structures.s11n_varstr import VarstrSerializer
 from coinpy.model.protocol.messages.version import msg_version
-from coinpy.lib.serialization.common.encodable import Encoder
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class version_encoder(Encoder):
+class VersionMessageSerializer(Serializer):
     VERSION_STRUCT = Structure([Field("<I", "version"),
                             Field("<Q", "services"),
                             Field("<Q","timestamp"),
-                            NetAddrField("addr_me"),
-                            NetAddrField("addr_you"), 
+                            NetAddrSerializer("addr_me"),
+                            NetAddrSerializer("addr_you"), 
                             Field("<Q", "nonce"),
-                            varstr_encoder("sub_version_num"),
+                            VarstrSerializer("sub_version_num"),
                             Field("<I", "start_height")], "version_message")
     
     def encode(self, version_msg):

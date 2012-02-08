@@ -5,18 +5,8 @@ Created on 18 Jun 2011
 @author: kris
 """
 from coinpy.node.network.peerhandler import PeerHandler
-from coinpy.model.protocol.messages.version import msg_version
-from coinpy.model.protocol.services import SERVICES_NONE
-import time
-from coinpy.model.protocol.structures.netaddr import netaddr
-from coinpy.lib.serialization.messages.s11n_message import MessageEncoder
 from coinpy.lib.serialization.exceptions import MissingDataException
 from coinpy.tools.observer import Observable
-from coinpy.model.protocol.messages.verack import msg_verack
-from coinpy.model.protocol.messages.types import MSG_VERSION, MESSAGE_NAMES
-import traceback
-from coinpy.tools.hex import hexstr
-import cPickle
 
 class PeerConnection(PeerHandler):
     EVT_NEW_MESSAGE = Observable.createevent()

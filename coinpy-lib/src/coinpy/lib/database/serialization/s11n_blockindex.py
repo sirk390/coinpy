@@ -6,21 +6,20 @@ Created on 5 Jul 2011
 """
 from coinpy.lib.serialization.common.field import Field
 
-from coinpy.lib.serialization.common.varsizelist import varsizelist_encoder
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.model.protocol.structures.uint256 import uint256
-from coinpy.lib.serialization.structures.s11n_uint256 import uint256_encoder
-from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
+from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
+from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
 from coinpy.lib.database.objects.blockindex import DbBlockIndex
 
 
 class BlockIndexSerializer():
     BLOCKINDEX = Structure([Field("<I", "version"),
-                            uint256_encoder("hash_next"),
+                            Uint256Serializer("hash_next"),
                             Field("<I", "file"),
                             Field("<I", "blockpos"),
                             Field("<I", "height"),
-                            blockheader_serializer()], "txindex")
+                            BlockheaderSerializer()], "txindex")
     
     def __init__(self):
         pass

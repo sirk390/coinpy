@@ -4,7 +4,7 @@ Created on 10 Jan 2012
 
 @author: kris
 """
-from coinpy.lib.serialization.structures.s11n_tx import tx_encoder
+from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 from coinpy.model.constants.bitcoin import MAX_BLOCK_SIZE, is_money_range
 from coinpy.lib.serialization.scripts.serialize import ScriptSerializer
 
@@ -12,7 +12,7 @@ from coinpy.lib.serialization.scripts.serialize import ScriptSerializer
 class TxVerifier():
     def __init__(self, runmode):
         self.runmode = runmode
-        self.tx_serializer = tx_encoder()
+        self.tx_serializer = TxSerializer()
         self.script_serializer = ScriptSerializer()
     """
         basic_check: run tests that don't require any context.

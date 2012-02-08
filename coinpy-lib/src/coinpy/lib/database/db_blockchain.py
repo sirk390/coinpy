@@ -4,25 +4,22 @@ Created on 25 Jul 2011
 
 @author: kris
 """
-from bsddb.db import *
-import bsddb
-import os
+
 from coinpy.lib.database.block_storage import BlockStorage
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.database.objects.blockindex import DbBlockIndex
 from coinpy.model.protocol.runmode import MAIN
 from coinpy.lib.database.indexdb import IndexDB
-from coinpy.model.genesis import GENESIS
 from coinpy.lib.bitcoin.hash_block import hash_block
 from coinpy.model.blockchain.blockchain_database import BlockChainDatabase
 from coinpy.lib.database.db_blockhandle import DBBlockHandle
 from coinpy.lib.database.db_txhandle import DBTxHandle
-from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
-from coinpy.lib.serialization.structures.s11n_varint import varint_encoder
 from coinpy.lib.database.objects.txindex import DbTxIndex
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.lib.database.objects.disktxpos import DiskTxPos
-from coinpy.lib.serialization.structures.s11n_tx import tx_encoder
+from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
+from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
+from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 
 class BSDDbBlockChainDatabase(BlockChainDatabase):
     def __init__(self, log, runmode, directory="."):
@@ -140,9 +137,9 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         block_handle = self.get_block_handle(blockhash)
         #Add all transactions to the indexdb
         block = block_handle.get_block()
-        size_blockheader = blockheader_serializer().get_size(block.blockheader)
-        size_tx_size = varint_encoder().get_size(len(block.transactions))
-        tx_serializer = tx_encoder()
+        size_blockheader = BlockheaderSerializer().get_size(block.blockheader)
+        size_tx_size = VarintSerializer().get_size(len(block.transactions))
+        tx_serializer = TxSerializer()
         blockpos = block_handle.blockindex.blockpos
         txpos = block_handle.blockindex.blockpos + size_blockheader + size_tx_size 
         

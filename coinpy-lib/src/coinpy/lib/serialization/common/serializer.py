@@ -5,11 +5,12 @@ Created on 13 Jun 2011
 @author: kris
 """
 
-class Encoder(object):
+class Serializer(object):
     def __init__(self, desc=""):
         self.desc = desc
-    def encode(self, value):
+    def serialize(self, value):
         pass
-    def decode(self, data, cursor):
+    def deserialize(self, data, cursor):
         return ("", cursor)
-        
+    def get_size(self):
+        pass 

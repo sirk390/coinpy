@@ -4,7 +4,9 @@ Created on 25 Jun 2011
 
 @author: kris
 """
-class varsizelist_encoder():
+from coinpy.lib.serialization.common.serializer import Serializer
+
+class VarsizelistSerializer(Serializer):
     def __init__(self, count_encoder, element_encoder):
         self.count_encoder = count_encoder
         self.element_encoder = element_encoder

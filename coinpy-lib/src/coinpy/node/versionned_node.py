@@ -5,19 +5,12 @@ Created on 18 Jun 2011
 @author: kris
 """
 from coinpy.model.protocol.services import SERVICES_NONE, SERVICES_NODE_NETWORK
-from coinpy.node.network.connection_manager import ConnectionManager
 from coinpy.model.protocol.structures.netaddr import netaddr
-from coinpy.node.network.peerconnectionfactory import PeerConnectionFactory
-from coinpy.lib.serialization.messages.s11n_message import MessageEncoder
-from coinpy.node.network.peerconnection import PeerConnection
-from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_INV, MSG_TX, MSG_BLOCK,\
-    MSG_VERACK
+from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_VERACK
 from coinpy.model.protocol.messages.verack import msg_verack
 from coinpy.model.protocol.messages.version import msg_version
 import time
 from coinpy.tools.observer import Observable
-from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK
-from coinpy.model.protocol.messages.getdata import msg_getdata
 from coinpy.node.node import Node
 from coinpy.node.logic.status.version_status import VersionStatus
 

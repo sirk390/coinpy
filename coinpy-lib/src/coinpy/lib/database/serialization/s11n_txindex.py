@@ -5,8 +5,8 @@ Created on 25 Jun 2011
 @author: kris
 """
 from coinpy.lib.serialization.common.field import Field
-from coinpy.lib.serialization.structures.s11n_varint import varint_encoder
-from coinpy.lib.serialization.common.varsizelist import varsizelist_encoder
+from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
+from coinpy.lib.serialization.common.varsizelist import VarsizelistSerializer
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.database.serialization.s11n_disktxpos import DiskTxPosSerializer
 from coinpy.lib.database.objects.txindex import DbTxIndex
@@ -16,7 +16,7 @@ from coinpy.lib.database.objects.txindex import DbTxIndex
 class TxIndexSerializer():
     TXINDEX = Structure([Field("<I", "version"),
                          DiskTxPosSerializer(),
-                         varsizelist_encoder( varint_encoder(), DiskTxPosSerializer() )], "txindex")
+                         VarsizelistSerializer( VarintSerializer(), DiskTxPosSerializer() )], "txindex")
 
     def __init__(self):
         pass

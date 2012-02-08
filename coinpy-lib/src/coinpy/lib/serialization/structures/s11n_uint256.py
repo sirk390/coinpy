@@ -7,8 +7,9 @@ Created on 25 Jun 2011
 from coinpy.model.protocol.structures.uint256 import uint256
 import struct
 from coinpy.lib.serialization.exceptions import MissingDataException
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class uint256_encoder():
+class Uint256Serializer(Serializer):
     def __init__(self, desc):
         self.desc = desc
 

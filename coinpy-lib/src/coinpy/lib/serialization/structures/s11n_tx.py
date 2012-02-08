@@ -7,17 +7,17 @@ Created on 23 Jun 2011
 
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.common.field import Field
-from coinpy.lib.serialization.common.encodable import Encoder
-from coinpy.lib.serialization.structures.s11n_varint import varint_encoder
-from coinpy.lib.serialization.common.varsizelist import varsizelist_encoder
-from coinpy.lib.serialization.structures.s11n_tx_out import tx_out_encoder
-from coinpy.lib.serialization.structures.s11n_tx_in import tx_in_encoder
+from coinpy.lib.serialization.common.serializer import Serializer
+from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
+from coinpy.lib.serialization.common.varsizelist import VarsizelistSerializer
+from coinpy.lib.serialization.structures.s11n_tx_out import TxoutSerializer
+from coinpy.lib.serialization.structures.s11n_tx_in import TxinSerializer
 from coinpy.model.protocol.structures.tx import tx
 
-class tx_encoder(Encoder):
+class TxSerializer(Serializer):
     TX = Structure([Field("<I", "version"),              
-                    varsizelist_encoder(varint_encoder("txin_count"), tx_in_encoder()),
-                    varsizelist_encoder(varint_encoder("txout_count"), tx_out_encoder()),
+                    VarsizelistSerializer(VarintSerializer("txin_count"), TxinSerializer()),
+                    VarsizelistSerializer(VarintSerializer("txout_count"), TxoutSerializer()),
                     Field("<I", "lock_time")], "tx")
 
     def get_size(self, tx):

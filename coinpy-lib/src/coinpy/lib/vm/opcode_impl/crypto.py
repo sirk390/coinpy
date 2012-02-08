@@ -6,12 +6,12 @@ Created on 27 Jul 2011
 """
 from coinpy.tools.bitcoin.hash160 import hash160
 import copy
-from coinpy.lib.serialization.messages.s11n_tx import tx_encoder
 from coinpy.tools.bitcoin.sha256 import doublesha256
 from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
 from coinpy.model.scripts.script import Script
 from coinpy.lib.vm.stack_valtype import valtype_from_boolean, cast_to_number
 from coinpy.lib.vm.opcode_impl.flow import op_verify
+from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 
 def op_hash160(vm, instr):
     if not vm.stack:
@@ -34,7 +34,7 @@ def checksig(vm, sig, pubkey):
     #todo: blank out depending of hash_type (SIGHASH_NONE, SIGHASH_SINGLE, SIGHASH_ANYONECANPAY)
      
     #append hash type
-    enctx = tx_encoder().encode(tx_tmp) + b"\x01\x00\x00\x00"
+    enctx = TxSerializer().encode(tx_tmp) + b"\x01\x00\x00\x00"
     #get hash 
     hash = doublesha256(enctx)
     #verify

@@ -4,19 +4,12 @@ Created on 26 Jun 2011
 
 @author: kris
 """
-from coinpy.lib.serialization.common.structure import Structure
-from coinpy.lib.serialization.common.field import Field
-from coinpy.lib.serialization.common.encodable import Encoder
+from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.model.protocol.messages.block import msg_block
-from coinpy.lib.serialization.common.varsizelist import varsizelist_encoder
-from coinpy.lib.serialization.structures.s11n_varint import varint_encoder
-from coinpy.lib.serialization.messages.s11n_tx import tx_encoder
-from coinpy.lib.serialization.structures.s11n_uint256 import uint256_encoder
-from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
-from coinpy.lib.serialization.structures.s11n_block import block_encoder
+from coinpy.lib.serialization.structures.s11n_block import BlockSerializer
 
-class block_msg_encoder(Encoder):
-    block_encoder = block_encoder()
+class BlockMessageSerializer(Serializer):
+    block_encoder = BlockSerializer()
     
     def __init__(self):    
         pass     

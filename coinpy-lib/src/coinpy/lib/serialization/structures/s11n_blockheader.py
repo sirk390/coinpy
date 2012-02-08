@@ -5,18 +5,17 @@ Created on 6 Jul 2011
 @author: kris
 """
 from coinpy.lib.serialization.common.field import Field
-from coinpy.lib.serialization.common.varsizelist import varsizelist_encoder
 from coinpy.lib.serialization.common.structure import Structure
-from coinpy.model.protocol.structures.uint256 import uint256
-from coinpy.lib.serialization.structures.s11n_uint256 import uint256_encoder
+from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
 from coinpy.model.protocol.structures.blockheader import BlockHeader
+from coinpy.lib.serialization.common.serializer import Serializer
 
 
-class blockheader_serializer():
+class BlockheaderSerializer(Serializer):
     def __init__(self, flags=0):
         self.BLOCKHEADER = Structure([Field("<I", "version"),
-                                      uint256_encoder("hash_prev"),
-                                      uint256_encoder("hash_merkle"),
+                                      Uint256Serializer("hash_prev"),
+                                      Uint256Serializer("hash_merkle"),
                                       Field("<I", "time"),
                                       Field("<I", "bits"),
                                       Field("<I", "nonce")], "txindex")

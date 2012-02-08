@@ -16,7 +16,7 @@ from coinpy.tools.hex import decodehexstr
 from coinpy.model.scripts.script import Script
 from coinpy.model.protocol.structures.tx_out import tx_out
 from coinpy.tools.bitcoin.sha256 import doublesha256
-from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
+from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
 from coinpy.model.protocol.runmode import MAIN, TESTNET
 
 GENESIS_MAIN =  Block(

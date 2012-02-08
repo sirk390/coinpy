@@ -4,13 +4,14 @@ Created on 3 Jul 2011
 
 @author: kris
 """
-from coinpy.lib.serialization.structures.s11n_varstr import varstr_encoder
+from coinpy.lib.serialization.structures.s11n_varstr import VarstrSerializer
 from coinpy.lib.serialization.scripts.serialize import ScriptSerializer
+from coinpy.lib.serialization.common.serializer import Serializer
 
-class varstr_script_encoder():
+class VarstrScriptSerializer(Serializer):
     def __init__(self):
         self.serializer = ScriptSerializer()
-        self.strencoder = varstr_encoder()
+        self.strencoder = VarstrSerializer()
 
     def encode(self, script):
         scriptstr = self.serializer.serialize(script)
