@@ -14,9 +14,9 @@ class InvMessageSerializer(Serializer):
     INV_ENCODER = VarsizelistSerializer(VarintSerializer(), 
                                         InvitemSerializer())
     
-    def encode(self, inv_msg):
-        return (self.INV_ENCODER.encode(inv_msg.items))
+    def serialize(self, inv_msg):
+        return (self.INV_ENCODER.serialize(inv_msg.items))
     
-    def decode(self, data, cursor):
-        invitems, cursor = self.INV_ENCODER.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        invitems, cursor = self.INV_ENCODER.deserialize(data, cursor)
         return (msg_inv(invitems), cursor)

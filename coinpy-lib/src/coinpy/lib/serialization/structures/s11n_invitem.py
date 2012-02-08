@@ -18,11 +18,11 @@ class InvitemSerializer(Serializer):
     def get_size(self, invitem):
         return (self.INVITEM_ENC.get_size(invitem.type,
                                           invitem.hash))
-    def encode(self, invitem):
-        return (self.INVITEM_ENC.encode(invitem.type, invitem.hash))
+    def serialize(self, invitem):
+        return (self.INVITEM_ENC.serialize(invitem.type, invitem.hash))
 
-    def decode(self, data, cursor):
-        (type, hash), cursor = self.INVITEM_ENC.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        (type, hash), cursor = self.INVITEM_ENC.deserialize(data, cursor)
         if (type not in INV_ITEMS):
             raise FormatErrorException("Unknown inventory item")
         return (invitem(type, hash), cursor)

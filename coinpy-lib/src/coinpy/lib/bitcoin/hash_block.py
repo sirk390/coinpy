@@ -12,7 +12,7 @@ BLOCK_SERIALIZE = BlockheaderSerializer()
 
     
 def hash_blockheader(blockheader):
-    return (uint256.from_bytestr(doublesha256(BLOCK_SERIALIZE.encode(blockheader))))
+    return (uint256.from_bytestr(doublesha256(BLOCK_SERIALIZE.serialize(blockheader))))
     
 def hash_block(block):
     return (hash_blockheader(block.blockheader))

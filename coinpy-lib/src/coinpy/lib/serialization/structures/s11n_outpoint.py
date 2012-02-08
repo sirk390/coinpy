@@ -17,9 +17,9 @@ class OutpointSerializer(Serializer):
     def get_size(self, outpoint):
         return (self.OUTPOINT.get_size(outpoint.hash, outpoint.index))
     
-    def encode(self, outpoint):
-        return (self.OUTPOINT.encode(outpoint.hash, outpoint.index))
+    def serialize(self, outpoint):
+        return (self.OUTPOINT.serialize(outpoint.hash, outpoint.index))
 
-    def decode(self, data, cursor):
-        (hash, index), cursor = self.OUTPOINT.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        (hash, index), cursor = self.OUTPOINT.deserialize(data, cursor)
         return (outpoint(hash, index), cursor)

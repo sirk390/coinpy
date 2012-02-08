@@ -18,11 +18,11 @@ class NetAddrSerializer(Serializer):
                                   Field(">H", "port")], "netaddr")
         pass
 
-    def encode(self, a_netaddr):
-        data = self.NETADDR.encode(a_netaddr.services, a_netaddr.ip, a_netaddr.port)
+    def serialize(self, a_netaddr):
+        data = self.NETADDR.serialize(a_netaddr.services, a_netaddr.ip, a_netaddr.port)
         return (data)
 
-    def decode(self, data, cursor):
-        (services, ip, port), cursor = self.NETADDR.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        (services, ip, port), cursor = self.NETADDR.deserialize(data, cursor)
         return (netaddr(services, ip, port), cursor)
 

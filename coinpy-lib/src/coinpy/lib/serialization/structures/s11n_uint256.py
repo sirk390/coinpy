@@ -13,13 +13,13 @@ class Uint256Serializer(Serializer):
     def __init__(self, desc):
         self.desc = desc
 
-    def encode(self, uint256val):
+    def serialize(self, uint256val):
         return (struct.pack("32s", uint256val.to_bytestr()))
     
     def get_size(self, value):
         return (32)
     
-    def decode(self, data, cursor):
+    def deserialize(self, data, cursor):
         if (len(data) - cursor) < 32:
             raise MissingDataException("%s: Not enought data for uint256" % (self.desc))
         bytestr, = struct.unpack_from("32s", data, cursor)

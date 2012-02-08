@@ -14,11 +14,11 @@ class AddrMessageSerializer(Serializer):
     ADDR = VarsizelistSerializer(VarintSerializer("count"),
                                  TimenetaddrSerializer())
     
-    def encode(self, addr_msg):
-        return (self.ADDR.encode(addr_msg.addr_list))
+    def serialize(self, addr_msg):
+        return (self.ADDR.serialize(addr_msg.addr_list))
 
-    def decode(self, data, cursor):
-        addr_list, cursor = self.ADDR.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        addr_list, cursor = self.ADDR.deserialize(data, cursor)
         return (addr_msg(addr_list), cursor)
 
 

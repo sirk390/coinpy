@@ -14,11 +14,11 @@ class GetdataMessageSerializer(Serializer):
     GETDATA_ENC = VarsizelistSerializer(VarintSerializer(), 
                                         InvitemSerializer())
     
-    def encode(self, getdata_msg):
-        return (self.GETDATA_ENC.encode(getdata_msg.invitems))
+    def serialize(self, getdata_msg):
+        return (self.GETDATA_ENC.serialize(getdata_msg.invitems))
 
-    def decode(self, data, cursor):
-        invitems, cursor = self.GETDATA_ENC.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        invitems, cursor = self.GETDATA_ENC.deserialize(data, cursor)
         return (msg_getdata(invitems))
 
     

@@ -34,7 +34,7 @@ def checksig(vm, sig, pubkey):
     #todo: blank out depending of hash_type (SIGHASH_NONE, SIGHASH_SINGLE, SIGHASH_ANYONECANPAY)
      
     #append hash type
-    enctx = TxSerializer().encode(tx_tmp) + b"\x01\x00\x00\x00"
+    enctx = TxSerializer().serialize(tx_tmp) + b"\x01\x00\x00\x00"
     #get hash 
     hash = doublesha256(enctx)
     #verify

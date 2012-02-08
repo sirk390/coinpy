@@ -73,11 +73,11 @@ class IndexDB():
         txindex_data = self.db.get("\x02tx" + transaction_hash.to_bytestr(), txn=self.dbtxn)
         if not txindex_data:
             raise Exception("txindex not found: %s" % (str(transaction_hash)))
-        txindex, _ = self.txindexserialize.decode(txindex_data)
+        txindex, _ = self.txindexserialize.deserialize(txindex_data)
         return txindex
  
     def set_transactionindex(self, transaction_hash, txindex):
-        self.db.put("\x02tx" + transaction_hash.to_bytestr(), self.txindexserialize.encode(txindex), txn=self.dbtxn)
+        self.db.put("\x02tx" + transaction_hash.to_bytestr(), self.txindexserialize.serialize(txindex), txn=self.dbtxn)
 
     def del_transactionindex(self, transaction_hash):
         self.db.delete("\x02tx" + transaction_hash.to_bytestr(), txn=self.dbtxn)
@@ -86,7 +86,7 @@ class IndexDB():
         return (self.db.has_key("\x0Ablockindex" + block_hash.to_bytestr(), txn=self.dbtxn))    
 
     def set_blockindex(self, blockhash, blockindex):
-        blockindex_data = self.blockindex_ser.encode(blockindex)
+        blockindex_data = self.blockindex_ser.serialize(blockindex)
         self.db.put("\x0Ablockindex" + blockhash.to_bytestr(), blockindex_data, txn=self.dbtxn)
         #self.db.sync()
 
@@ -94,7 +94,7 @@ class IndexDB():
         blockindex_data = self.db.get("\x0Ablockindex" + blockhash.to_bytestr(), txn=self.dbtxn)
         if not blockindex_data:
             raise Exception("blockindex not found: %s" % (str(blockhash)))
-        blockindex, _ = self.blockindex_ser.decode(blockindex_data)
+        blockindex, _ = self.blockindex_ser.deserialize(blockindex_data)
         return blockindex
 
     def set_hashbestchain(self, hash):

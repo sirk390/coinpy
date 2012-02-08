@@ -24,16 +24,16 @@ class BlockIndexSerializer():
     def __init__(self):
         pass
         
-    def encode(self, blockindex_obj):
-        return (self.BLOCKINDEX.encode(blockindex_obj.version,
-                                       blockindex_obj.hash_next,
-                                       blockindex_obj.file,
-                                       blockindex_obj.blockpos,
-                                       blockindex_obj.height,
-                                       blockindex_obj.blockheader))
+    def serialize(self, blockindex_obj):
+        return (self.BLOCKINDEX.serialize(blockindex_obj.version,
+                                          blockindex_obj.hash_next,
+                                          blockindex_obj.file,
+                                          blockindex_obj.blockpos,
+                                          blockindex_obj.height,
+                                          blockindex_obj.blockheader))
 
-    def decode(self, data, cursor=0):
-        result, cursor = self.BLOCKINDEX.decode(data, cursor)
+    def deserialize(self, data, cursor=0):
+        result, cursor = self.BLOCKINDEX.deserialize(data, cursor)
         (version, hash_next, file, blockpos, height, blockheader) = result
         return (DbBlockIndex(version, hash_next, file, blockpos, height, blockheader), cursor)
 

@@ -13,11 +13,11 @@ class DiskTxPosSerializer():
                            Field("<I", "blockpos"),
                            Field("<I", "txpos")], "disktxpos")
 
-    def encode(self, disktxpos_obj):
-        return (self.DISKTXPOS.encode(disktxpos_obj.file,
-                                      disktxpos_obj.blockpos,
-                                      disktxpos_obj.txpos))
+    def serialize(self, disktxpos_obj):
+        return (self.DISKTXPOS.serialize(disktxpos_obj.file,
+                                         disktxpos_obj.blockpos,
+                                         disktxpos_obj.txpos))
 
-    def decode(self, data, cursor=0):
-        (file, nblockpos, ntxpos), cursor = self.DISKTXPOS.decode(data, cursor)
+    def deserialize(self, data, cursor=0):
+        (file, nblockpos, ntxpos), cursor = self.DISKTXPOS.deserialize(data, cursor)
         return (DiskTxPos(file, nblockpos, ntxpos), cursor)

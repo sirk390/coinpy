@@ -22,13 +22,13 @@ class TxinSerializer(Serializer):
     def get_size(self, txin):
         return (self.TXIN.get_size(txin.previous_output, txin.script, txin.sequence))
 
-    def encode(self, txin):
+    def serialize(self, txin):
         #Tmp FIXME
-        return (self.TXIN.encode(txin.previous_output, txin.script, txin.sequence))
+        return (self.TXIN.serialize(txin.previous_output, txin.script, txin.sequence))
         #return (self.TXIN2.encode(txin.previous_output, txin.script))
 
-    def decode(self, data, cursor):
-        (previous_output, script, sequence), cursor = self.TXIN.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        (previous_output, script, sequence), cursor = self.TXIN.deserialize(data, cursor)
         return (tx_in(previous_output, script, sequence), cursor)
 
 

@@ -16,12 +16,12 @@ class GetheadersMessageSerializer(Serializer):
                            Field("32s", "hash_start"),
                            Field("32s","hash_stop")], "getheaders")
 
-    def encode(self, getheaders_msg):
-        return (self.GETHEADERS.encode(getheaders_msg.version,
-                                       getheaders_msg.hash_start,
-                                       getheaders_msg.hash_stop))
+    def serialize(self, getheaders_msg):
+        return (self.GETHEADERS.serialize(getheaders_msg.version,
+                                          getheaders_msg.hash_start,
+                                          getheaders_msg.hash_stop))
 
-    def decode(self, data, cursor):
-        version, hash_start, hash_stop = self.GETHEADERS.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        version, hash_start, hash_stop = self.GETHEADERS.deserialize(data, cursor)
         return (msg_getheaders(version, hash_start, hash_stop), cursor)
 

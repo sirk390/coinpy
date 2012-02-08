@@ -21,18 +21,18 @@ class VersionMessageSerializer(Serializer):
                             VarstrSerializer("sub_version_num"),
                             Field("<I", "start_height")], "version_message")
     
-    def encode(self, version_msg):
-        return (self.VERSION_STRUCT.encode(version_msg.version,
-                                      version_msg.services,
-                                      version_msg.timestamp,
-                                      version_msg.addr_me,
-                                      version_msg.addr_you,
-                                      version_msg.nonce,
-                                      version_msg.sub_version_num,
-                                      version_msg.start_height))
+    def serialize(self, version_msg):
+        return (self.VERSION_STRUCT.serialize(version_msg.version,
+                                              version_msg.services,
+                                              version_msg.timestamp,
+                                              version_msg.addr_me,
+                                              version_msg.addr_you,
+                                              version_msg.nonce,
+                                              version_msg.sub_version_num,
+                                              version_msg.start_height))
     
-    def decode(self, data, cursor):
-        result, cursor = self.VERSION_STRUCT.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        result, cursor = self.VERSION_STRUCT.deserialize(data, cursor)
         return (msg_version(*result), cursor)
 
 

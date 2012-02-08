@@ -12,20 +12,20 @@ class Structure(Serializer):
         self.fields = fields
         self.flags = flags
 
-    def encode(self, *args):
+    def serialize(self, *args):
         result = ""
         for value, field in zip(args, self.fields):
-            enc = field.encode(value)
+            enc = field.serialize(value)
             result += enc
         return (result)
 
     def get_size(self, *args):
         return sum(field.get_size(value) for value, field in zip(args, self.fields))
     
-    def decode(self, data, cursor):
+    def deserialize(self, data, cursor):
         results = []
         for field in self.fields:
-            value, cursor = field.decode(data, cursor)
+            value, cursor = field.deserialize(data, cursor)
             results.append(value)
         return (results, cursor)
 

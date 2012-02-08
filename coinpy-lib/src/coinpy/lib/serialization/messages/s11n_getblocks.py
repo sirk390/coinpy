@@ -18,13 +18,13 @@ class GetBlocksMessageSerializer(Serializer):
                            VarsizelistSerializer(VarintSerializer("count"), Uint256Serializer("locator")),
                            Uint256Serializer("stop")], "getblocks")
     
-    def encode(self, getblocks_msg):
-        return (self.GETBLOCKS.encode(getblocks_msg.version,
-                                      getblocks_msg.block_locator,
-                                      getblocks_msg.hash_stop))
+    def serialize(self, getblocks_msg):
+        return (self.GETBLOCKS.serialize(getblocks_msg.version,
+                                         getblocks_msg.block_locator,
+                                         getblocks_msg.hash_stop))
 
-    def decode(self, data, cursor):
-        (version, block_locator, hash_stop), cursor = self.GETBLOCKS.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        (version, block_locator, hash_stop), cursor = self.GETBLOCKS.deserialize(data, cursor)
         return (msg_getblocks(version, block_locator, hash_stop), cursor)
 
 

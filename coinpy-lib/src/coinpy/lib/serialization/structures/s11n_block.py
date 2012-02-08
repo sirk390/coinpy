@@ -24,11 +24,11 @@ class BlockSerializer(Serializer):
         return (self.BLOCK.get_size(block.blockheader,
                                     block.transactions))
 
-    def encode(self, block):
-        return (self.BLOCK.encode(block.blockheader,
-                                  block.transactions))
+    def serialize(self, block):
+        return (self.BLOCK.serialize(block.blockheader,
+                                     block.transactions))
         
-    def decode(self, data, cursor):
-        (blockheader, transactions), cursor = self.BLOCK.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        (blockheader, transactions), cursor = self.BLOCK.deserialize(data, cursor)
         return (Block(blockheader, transactions), cursor)
 

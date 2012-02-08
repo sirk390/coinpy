@@ -16,10 +16,10 @@ class Field(Serializer):
     def get_size(self, value):
         return self.size
     
-    def encode(self, value):
+    def serialize(self, value):
         return (struct.pack(self.format, value))
 
-    def decode(self, data, cursor):
+    def deserialize(self, data, cursor):
         if (len(data) - cursor) < self.size:
             raise MissingDataException("Decoding error: not enough data for field %s (type: %s)" % (self.desc, self.format))
         return (struct.unpack_from(self.format, data, cursor)[0], cursor + self.size)

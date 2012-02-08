@@ -13,13 +13,13 @@ class VarstrSerializer(Serializer):
     def __init__(self, desc=""):
         self.lenfield = VarintSerializer()
 
-    def encode(self, str):
-        result = self.lenfield.encode(len(str))
+    def serialize(self, str):
+        result = self.lenfield.serialize(len(str))
         result += str
         return (result)
 
-    def decode(self, data, cursor):
-        length, newpos = self.lenfield.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        length, newpos = self.lenfield.deserialize(data, cursor)
         #data = data[newpos:]
         if (length > len(data) - newpos):
             raise MissingDataException("Decoding error: not enough data for varstring (expected:%d, got:%d)" % (length, len(data) - newpos))

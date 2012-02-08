@@ -8,10 +8,10 @@ from coinpy.model.protocol.messages.getaddr import msg_getaddr
 from coinpy.lib.serialization.common.serializer import Serializer
 
 class GetAddrMessageSerializer(Serializer):
-    def encode(self, getaddr):
+    def serialize(self, getaddr):
         return ("")
     
-    def decode(self, data, cursor):
+    def deserialize(self, data, cursor):
         return (msg_getaddr(), cursor)
 
 

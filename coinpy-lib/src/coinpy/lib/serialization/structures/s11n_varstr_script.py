@@ -13,15 +13,15 @@ class VarstrScriptSerializer(Serializer):
         self.serializer = ScriptSerializer()
         self.strencoder = VarstrSerializer()
 
-    def encode(self, script):
+    def serialize(self, script):
         scriptstr = self.serializer.serialize(script)
-        return (self.strencoder.encode(scriptstr))
+        return (self.strencoder.serialize(scriptstr))
 
     def get_size(self, script):
         #todo: fix algorithm
-        return len(self.encode(script))
+        return len(self.serialize(script))
 
-    def decode(self, data, cursor):
-        scriptstr, newcursor = self.strencoder.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        scriptstr, newcursor = self.strencoder.deserialize(data, cursor)
         return (self.serializer.deserialize(scriptstr), newcursor)
 

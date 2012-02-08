@@ -11,5 +11,5 @@ from coinpy.model.protocol.structures.uint256 import uint256
 TX_SERIALIZE = TxSerializer()
 
 def hash_tx(tx):
-    return (uint256.from_bytestr(doublesha256(TX_SERIALIZE.encode(tx))))
+    return (uint256.from_bytestr(doublesha256(TX_SERIALIZE.serialize(tx))))
 

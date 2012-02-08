@@ -28,16 +28,16 @@ class BlockheaderSerializer(Serializer):
                                           blockheader.bits,
                                           blockheader.nonce))
 
-    def encode(self, blockheader):
-        return (self.BLOCKHEADER.encode(blockheader.version,
-                                        blockheader.hash_prev,
-                                        blockheader.hash_merkle,
-                                        blockheader.time,
-                                        blockheader.bits,
-                                        blockheader.nonce))
+    def serialize(self, blockheader):
+        return (self.BLOCKHEADER.serialize(blockheader.version,
+                                           blockheader.hash_prev,
+                                           blockheader.hash_merkle,
+                                           blockheader.time,
+                                           blockheader.bits,
+                                           blockheader.nonce))
 
-    def decode(self, data, cursor=0):
-        (version, hash_prev, hash_merkle, time, bits, nonce), cursor = self.BLOCKHEADER.decode(data, cursor)
+    def deserialize(self, data, cursor=0):
+        (version, hash_prev, hash_merkle, time, bits, nonce), cursor = self.BLOCKHEADER.deserialize(data, cursor)
         return (BlockHeader(version, hash_prev, hash_merkle, time, bits, nonce), cursor)
 
         

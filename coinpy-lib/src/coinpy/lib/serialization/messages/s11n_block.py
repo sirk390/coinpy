@@ -9,15 +9,15 @@ from coinpy.model.protocol.messages.block import msg_block
 from coinpy.lib.serialization.structures.s11n_block import BlockSerializer
 
 class BlockMessageSerializer(Serializer):
-    block_encoder = BlockSerializer()
+    block_serializer = BlockSerializer()
     
     def __init__(self):    
         pass     
                                                       
-    def encode(self, block_msg):
-        return (self.block_encoder.encode(block_msg.block))
+    def serialize(self, block_msg):
+        return (self.block_serializer.serialize(block_msg.block))
         
-    def decode(self, data, cursor):
-        block, cursor = self.block_encoder.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        block, cursor = self.block_serializer.deserialize(data, cursor)
         return (msg_block(block), cursor)
 

@@ -21,12 +21,12 @@ class TxIndexSerializer():
     def __init__(self):
         pass
 
-    def encode(self, txindex_obj):
-        return (self.TXINDEX.encode(txindex_obj.version,
-                                    txindex_obj.pos,
-                                    txindex_obj.spent))
+    def serialize(self, txindex_obj):
+        return (self.TXINDEX.serialize(txindex_obj.version,
+                                       txindex_obj.pos,
+                                       txindex_obj.spent))
 
-    def decode(self, data, cursor=0):
-        (version, pos, spent), cursor = self.TXINDEX.decode(data, cursor)
+    def deserialize(self, data, cursor=0):
+        (version, pos, spent), cursor = self.TXINDEX.deserialize(data, cursor)
         return (DbTxIndex(version, pos, spent), cursor)
 

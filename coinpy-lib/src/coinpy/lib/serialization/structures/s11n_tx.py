@@ -23,10 +23,10 @@ class TxSerializer(Serializer):
     def get_size(self, tx):
         return (self.TX.get_size(tx.version, tx.in_list, tx.out_list, tx.locktime))
 
-    def encode(self, tx):
-        return (self.TX.encode(tx.version, tx.in_list, tx.out_list, tx.locktime))
+    def serialize(self, tx):
+        return (self.TX.serialize(tx.version, tx.in_list, tx.out_list, tx.locktime))
 
-    def decode(self, data, cursor=0):
-        (version, in_list, out_list, locktime), cursor = self.TX.decode(data, cursor)
+    def deserialize(self, data, cursor=0):
+        (version, in_list, out_list, locktime), cursor = self.TX.deserialize(data, cursor)
         return (tx(version, in_list, out_list, locktime), cursor)
 

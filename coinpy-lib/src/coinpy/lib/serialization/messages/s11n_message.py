@@ -46,21 +46,21 @@ class MessageSerializer(Serializer):
         self.runmode= runmode
         self.log = log
 
-    def encode(self, msg):
+    def serialize(self, msg):
         if (msg.type not in ENCODERS):
             raise Exception("Encoder not found for type: %d" % (msg.type))
-        payload = ENCODERS[msg.type].encode(msg)
-        result = self.MESSAGE_HEADER.encode(MAGICS[self.runmode],
-                                            COMMANDS[msg.type],
-                                            len(payload))
+        payload = ENCODERS[msg.type].serialize(msg)
+        result = self.MESSAGE_HEADER.serialize(MAGICS[self.runmode],
+                                               COMMANDS[msg.type],
+                                               len(payload))
         #MSG_VERSION, MSG_VERACK exception: no checksum
         if (msg.type != MSG_VERSION and msg.type != MSG_VERACK):
             result += sha256checksum(payload)
         result += payload
         return (result)
     
-    def decode(self, data, cursor=0):
-        result, cursor = self.MESSAGE_HEADER.decode(data, cursor)
+    def deserialize(self, data, cursor=0):
+        result, cursor = self.MESSAGE_HEADER.deserialize(data, cursor)
         magic, command, length = result
         pos = string.find(command, "\0")
         if (pos != -1):
@@ -81,7 +81,7 @@ class MessageSerializer(Serializer):
         if (len(data) - cursor < length):
             raise MissingDataException("Command incomplete: %s" % (command))
         #self.log.debug("Decoding: %s" % (command))
-        res, cursor = ENCODERS[COMMANDS_TYPES[command]].decode(data, cursor)
+        res, cursor = ENCODERS[COMMANDS_TYPES[command]].deserialize(data, cursor)
         #verify checksum after decoding (required to identify message boundaries)
         if (msg_type != MSG_VERSION and msg_type != MSG_VERACK):
             verify = sha256checksum(data[startplayload:cursor])

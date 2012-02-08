@@ -29,7 +29,7 @@ class BlockStorage:
         file = 1
         handle = self._gethandle(file)
         handle.seek(0, os.SEEK_END)
-        blockdata = self.blockserialize.encode(block)
+        blockdata = self.blockserialize.serialize(block)
         #Write index header
         handle.write(struct.pack("<I", MAGICS[self.runmode]))
         handle.write(struct.pack("<I", len(blockdata)))
@@ -63,7 +63,7 @@ class BlockStorage:
         block, data = None, self._read_data(handle, BLOCKHEADER_READSIZE)
         while (block is None):
             try:
-                block, _ = self.blockheaderserialize.decode(data, 0)
+                block, _ = self.blockheaderserialize.deserialize(data, 0)
             except MissingDataException:
                 #FIXME: infinite loop when end of file
                 data += self._read_data(handle, BLOCKHEADER_READSIZE)
@@ -75,7 +75,7 @@ class BlockStorage:
         block, data = None, self._read_data(handle, BLOCK_READSIZE)
         while (block is None):
             try:
-                block, _ = self.blockserialize.decode(data, 0)
+                block, _ = self.blockserialize.deserialize(data, 0)
             except MissingDataException:
                 data += self._read_data(handle, BLOCK_READSIZE)
         return (block)
@@ -86,7 +86,7 @@ class BlockStorage:
         tx, data = None, self._read_data(handle, TX_READSIZE)
         while (tx is None):
             try:
-                tx, _ = self.txserialize.decode(data, 0)
+                tx, _ = self.txserialize.deserialize(data, 0)
             except MissingDataException:
                 data += self._read_data(handle, TX_READSIZE)
         return (tx)

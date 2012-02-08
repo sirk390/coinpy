@@ -13,10 +13,10 @@ class TxMessageSerializer(Serializer):
     def __init__(self):    
         self.txencoder = TxSerializer()
      
-    def encode(self, txmsg):
-        return (self.txencoder.encode(txmsg.tx))
+    def serialize(self, txmsg):
+        return (self.txencoder.serialize(txmsg.tx))
 
-    def decode(self, data, cursor=0):
-        tx, cursor = self.txencoder.decode(data, cursor)
+    def deserialize(self, data, cursor=0):
+        tx, cursor = self.txencoder.deserialize(data, cursor)
         return (msg_tx(tx), cursor)
 

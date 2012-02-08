@@ -16,10 +16,10 @@ class IPAddrSerializer(Serializer):
     def get_size(self, ip):
         return (16)
     
-    def encode(self, ip):
+    def serialize(self, ip):
         return (self.IP6HEADER + struct.pack(">4B", *[int(b) for b in ip.split(".")]))
     
-    def decode(self, data, cursor):
+    def deserialize(self, data, cursor):
         if (len(data) - cursor < 16):
             raise MissingDataException("Decoding error: not enough data for ip address")
         if (data[cursor:cursor+12] != IPAddrSerializer.IP6HEADER):

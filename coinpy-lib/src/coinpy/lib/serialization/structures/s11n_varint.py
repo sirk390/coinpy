@@ -12,7 +12,7 @@ class VarintSerializer(Serializer):
     def __init__(self, desc=""):
         self.desc = desc
     
-    def encode(self, value):
+    def serialize(self, value):
         if (value < 0xfd):
             return (struct.pack("<B", value))
         if (value <= 0xffff):
@@ -30,7 +30,7 @@ class VarintSerializer(Serializer):
             return (5)
         return (9)
 
-    def decode(self, data, cursor):
+    def deserialize(self, data, cursor):
         if (len(data) - cursor < 1):
             raise MissingDataException("Decoding error: not enough data for varint")
         prefix = struct.unpack_from("<B", data, cursor)[0]

@@ -11,10 +11,10 @@ from coinpy.tools.observer import Observable
 class PeerConnection(PeerHandler):
     EVT_NEW_MESSAGE = Observable.createevent()
     #TODO: merge with PeerHandler?
-    def __init__(self, sockaddr, msg_encoder, sock, log):
+    def __init__(self, sockaddr, msg_serializer, sock, log):
         PeerHandler.__init__(self, sockaddr, sock)
         #self.subscribe(self.EVT_CONNECT, self.on_connect)
-        self.msg_encoder = msg_encoder
+        self.msg_serializer = msg_serializer
         self.incommingbuffer = ""
         self.log = log
 
@@ -26,7 +26,7 @@ class PeerConnection(PeerHandler):
         cursor = 0
         while cursor < len(self.incommingbuffer):
             try:
-                msg, cursor = self.msg_encoder.decode(self.incommingbuffer, cursor)
+                msg, cursor = self.msg_serializer.deserialize(self.incommingbuffer, cursor)
             except MissingDataException:
                 #print traceback.format_exc()
                 #self.log.warning("Read Incomplete")
@@ -38,7 +38,7 @@ class PeerConnection(PeerHandler):
         self.incommingbuffer = self.incommingbuffer[cursor:]
         
     def send_message(self, message):
-        self.send(self.msg_encoder.encode(message))
+        self.send(self.msg_serializer.serialize(message))
         
 """      
     def on_message(self, msg):

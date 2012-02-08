@@ -17,11 +17,11 @@ class TxoutSerializer(Serializer):
     def get_size(self, txout):
         return (self.TXOUT.get_size(txout.value, txout.script))
 
-    def encode(self, outpoint):
-        return (self.TXOUT.encode(outpoint.value, outpoint.script))
+    def serialize(self, outpoint):
+        return (self.TXOUT.serialize(outpoint.value, outpoint.script))
 
-    def decode(self, data, cursor):
-        (value, script), cursor = self.TXOUT.decode(data, cursor)
+    def deserialize(self, data, cursor):
+        (value, script), cursor = self.TXOUT.deserialize(data, cursor)
         return (tx_out(value, script), cursor)
 
 
