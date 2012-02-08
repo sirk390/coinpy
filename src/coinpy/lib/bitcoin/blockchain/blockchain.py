@@ -21,15 +21,13 @@ class Blockchain():
     def appendblock(self, blockhash, block):
         self.database.begin_updates()
         try:
-            brprev = self.get_branch(block.blockheader.hash_prev)
-            if (not brprev):
-                pass
-            if not brprev.is_mainchain():
-                mainchain_parent = brprev.mainchain_parent()
-                altchain = self.get_branch(mainchain_parent, brprev)
-                mainchain = self.get_branch(mainchain_parent, self.indexdb.hashbestchain())
+            prev = BlockIterator(self.database, block.blockheader.hash_prev)
+            if not prev.is_mainchain():
+                mainchain_parent = prev.mainchain_parent()
+                altchain = self.get_branch(mainchain_parent.hash, prev.hash)
+                mainchain = self.get_branch(mainchain_parent.hash, self.database.get_mainchain())
                 if (altchain.work() + block.blockheader.work() > mainchain.work()):
-                    self.database.set_mainchain(altchain)
+                    self.database.set_mainchain(altchain.lasthash)
                     for block in mainchain:
                         self._disconnect_block(block)
                     for block in altchain:

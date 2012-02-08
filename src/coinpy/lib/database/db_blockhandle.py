@@ -28,6 +28,6 @@ class DBBlockHandle(BlockHandle):
 
     def is_mainchain(self):
         return (self.blockindex.hash_next == uint256(0) or 
-                hash == self.indexdb.hashbestchain())
+                self.hash == self.indexdb.get_hashbestchain())
 
             

@@ -100,12 +100,12 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
     """    
     def _find_fork(self, altchainhash):
         hash = altchainhash
-        while hash != self.genesishash:
+        while hash != uint256(0):
             handle = self.get_block_handle(hash)
             if handle.is_mainchain():
                 return hash
             hash = handle.get_blockheader().hash_prev 
-        raise Exception("No block in mainchain")
+        return handle.hash
     
     # iterate backwards through [hashfirst-hashlast] blocks and set the 
     # hash_next pointer depending on ismainchain

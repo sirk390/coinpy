@@ -93,7 +93,7 @@ class IndexDB():
     def get_blockindex(self, blockhash):
         blockindex_data = self.db.get("\x0Ablockindex" + blockhash.to_bytestr(), txn=self.dbtxn)
         if not blockindex_data:
-            raise Exception("txindex not found: %s" % (str(blockhash)))
+            raise Exception("blockindex not found: %s" % (str(blockhash)))
         blockindex, _ = self.blockindex_ser.decode(blockindex_data)
         return blockindex
 

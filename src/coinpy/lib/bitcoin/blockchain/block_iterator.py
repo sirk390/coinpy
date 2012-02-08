@@ -19,6 +19,12 @@ class BlockIterator():
     def get_height(self):
         return self.handle.get_height()
 
+    def mainchain_parent(self):
+        it = BlockIterator(self.database, self.hash)
+        while not it.is_mainchain() and self.hasprev():
+            it.prev()
+        return it
+
     def is_mainchain(self):
         return self.handle.is_mainchain()
     
@@ -32,7 +38,7 @@ class BlockIterator():
         return self.handle.get_blockheader()
 
     def hasprev(self):
-        return (self.hash != self.database.genesis_hash)
+        return (self.hash != self.database.genesishash)
 
     def prev(self):
         self.hash = self.get_blockheader().hash_prev

@@ -23,17 +23,12 @@ class Branch():
     def work(self):
         return sum(blk.get_blockheader().work() for blk in self)
    
-    def mainchain_parent(self):
-        for blk in self:
-            if blk.is_mainchain():
-                return blk
-
     def get_height(self):
         return self.last.get_height()
             
     def backward_iterblocks(self):
         pos = BlockIterator(self.database, self.lasthash) 
-        while pos.hashprev() and pos.hash != self.firsthash:
+        while pos.hasprev() and pos.hash != self.firsthash:
             yield pos.get_handle()
             pos.prev()
         yield pos.get_handle()
