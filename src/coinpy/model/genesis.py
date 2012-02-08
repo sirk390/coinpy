@@ -17,8 +17,9 @@ from coinpy.model.scripts.script import Script
 from coinpy.model.protocol.structures.tx_out import tx_out
 from coinpy.tools.bitcoin.sha256 import doublesha256
 from coinpy.lib.serialization.structures.s11n_blockheader import blockheader_serializer
+from coinpy.model.protocol.runmode import MAIN, TESTNET
 
-GENESIS =  Block(
+GENESIS_MAIN =  Block(
     BlockHeader(1, 
                 uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), #hash_prev
                 uint256.from_hexstr("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"), #merkle
@@ -49,6 +50,8 @@ GENESIS_TESTNET =  Block(
                 Script([Instruction(OP_PUSHDATA, decodehexstr("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f")),Instruction(OP_CHECKSIG)]))],
                 0) #locktime         
      ])
+
+GENESIS = {MAIN : GENESIS_MAIN, TESTNET : GENESIS_TESTNET}
 
 if __name__ == '__main__':
     from coinpy.lib.serialization.messages.s11n_block import block_encoder
