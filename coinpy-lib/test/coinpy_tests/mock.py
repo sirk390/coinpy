@@ -12,11 +12,7 @@ class Mock():
     """
     def __init__(self, specs={}, accept_all_methods=False):
         self.accept_all_methods = accept_all_methods
-        self._methods = {}
-        for name, spec in specs.iteritems():
-            if type(spec) is not dict:
-                spec = {(): spec }
-            self._methods[name] = MockMethod(spec)
+        self._methods = dict((name, MockMethod(spec)) for name, spec in specs.iteritems())
 
     def __getattr__(self, name):
         if name in self._methods:
@@ -28,6 +24,9 @@ class Mock():
     
     def __str__(self):
         return "{Mock}"
+
+    def __hash__(self):
+        return id(self)
     
 class MockMethod():
     """
@@ -41,6 +40,9 @@ class MockMethod():
     def __init__(self, spec={}, accept_all_args=False):
         self.call_count = 0
         self.accept_all_args = accept_all_args
+        #allow for simple return_value arguments
+        if type(spec) is not dict:
+            spec = {(): spec }
         self._spec = {}
         for args, return_value in spec.iteritems():
             if (type(args) is not tuple) and (type(args) is not list):
@@ -55,6 +57,9 @@ class MockMethod():
             raise Exception("Mock result_value undefined for argument")
         return Mock()
     
+    def __hash__(self):
+        return id(self)
+    
     called = property(lambda self: self.call_count != 0)
     
 if __name__ == '__main__':
@@ -67,6 +72,7 @@ if __name__ == '__main__':
     a2 = Mock(specs={"xx": {"a":1, "b":2}}) #return value depends on parameter
     a3 = Mock(specs={"xx": {("a", 6) :1}})  #return value depends on multiple parameters
     a4 = Mock(accept_all_methods=True)      #accept any method
+    a5 = Mock(specs={"xx": {"x" :1}}, accept_all_methods=True)      #return value depends on parameters + accept any method
     
     a4.test("a")
     assert a4.test.called
