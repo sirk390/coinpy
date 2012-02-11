@@ -36,7 +36,7 @@ class VersionnedNode(Node):
         status.version_message = event.message
         if (not self.is_supported_version(event.message.version)):
             self.log.warning("version %d not supported" % (event.message.version))
-            self.node.remove_peer(event.source.addr)
+            self.remove_peer(event.source.sockaddr)
             return
         self.send_verack(event.source)
         if (not event.source.isoutbound):
