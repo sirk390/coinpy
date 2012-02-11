@@ -8,7 +8,6 @@ from copy import copy
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
 
-
 class Branch():
     def __init__(self, log, database, lasthash, firsthash=None):
         self.log = log
@@ -29,9 +28,9 @@ class Branch():
     def backward_iterblocks(self):
         pos = BlockIterator(self.database, self.lasthash) 
         while pos.hasprev() and pos.hash != self.firsthash:
-            yield pos.get_handle()
+            yield pos
             pos.prev()
-        yield pos.get_handle()
+        yield pos
             
     def foreward_iterblocks(self):
         #accumulate and reverse hash_prev links (TODO: add a chain length limit)

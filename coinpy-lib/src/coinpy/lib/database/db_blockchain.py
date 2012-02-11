@@ -129,6 +129,9 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         self._set_branch(hashfork, new_mainchain_hash, True)
         #set hashbestchain
         self.indexdb.set_hashbestchain(new_mainchain_hash)
+
+    def is_mainchain(self, hash):
+        pass
             
     def get_mainchain(self):
         return self.indexdb.get_hashbestchain()

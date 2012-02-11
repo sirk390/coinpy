@@ -11,7 +11,7 @@ class Block():
                  transactions):
         self.blockheader = blockheader
         self.transactions = transactions
-        
+    
     def __str__(self):
         return ("Block(%s, transactions(%d)[%s...])" % 
                     (str(self.blockheader), 

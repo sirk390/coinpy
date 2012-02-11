@@ -26,7 +26,7 @@ class BlockchainWithPools(Observable):
         self.orphantransactions = orphantransactions
         self.transactionpool = transactionpool
         self.log = log
-        self.runmode = self.blockchain.runmode
+        self.runmode = self.blockchain.database.runmode
         
         self.blockverifier = BlockVerifier(self.runmode)
         
