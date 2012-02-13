@@ -15,24 +15,30 @@ from log import createlogger
 from coinpy.model.genesis import GENESIS
 from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
 from coinpy.node.network.reactor import Reactor
-from coinpy.lib.database.db_blockchain import BSDDbBlockChainDatabase
+from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
 from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 from coinpy.node.network.sockaddr import SockAddr
+from coinpy.lib.bitcoin.wallet.wallet import Wallet
+from coinpy.lib.database.wallet.wallet_database import WalletDatabase
+from coinpy.lib.database.bsddb_env import BsdDbEnv
 
 class Bitcoin():
     def __init__(self, nodeparams, data_directory): 
         self.log = createlogger()
         self.nodeparams = nodeparams
-        
         self.reactor = Reactor(self.log)
-        self.bootstrapper = Bootstrapper(self.nodeparams.runmode, self.log)
-        
-        self.database = BSDDbBlockChainDatabase(self.log, self.nodeparams.runmode, directory=data_directory)
+        #blockchain database
+        self.bsddbenv = BsdDbEnv(directory=data_directory)
+        self.database = BSDDbBlockChainDatabase(self.log, self.bsddbenv, self.nodeparams.runmode, data_directory)
         self.database.open_or_create(GENESIS[self.nodeparams.runmode])
         self.blockchain = Blockchain(self.log, self.database)
         self.blockchain_with_pools = BlockchainWithPools(self.blockchain, self.log)
+        #wallet
+        self.wallet = Wallet(WalletDatabase(data_directory, "wallet.dat"), self.blockchain)
+        #bootstraper
+        self.bootstrapper = Bootstrapper(self.nodeparams.runmode, self.log)
+        #node
         self.node = BitcoinNode(self.reactor, self.blockchain_with_pools, self.nodeparams, self.log)
-        
         self.bootstrapper.subscribe(Bootstrapper.EVT_FOUND_PEER, self.on_found_peer)
         self.node.subscribe(BitcoinNode.EVT_NEED_BOOTSTRAP, self.on_need_peers)
         
@@ -53,11 +59,14 @@ class Bitcoin():
 
 
 if __name__ == '__main__':
-    nodeparams = NodeParams(runmode=TESTNET,
+    runmode = TESTNET
+    
+    
+    nodeparams = NodeParams(runmode=runmode,
                             port=8080,
-                            version=32200,
+                            version=60000,
                             enabledservices=SERVICES_NODE_NETWORK,
                             nonce=random.randint(0, 2**64),
-                            sub_version_num="coinpy")
-    bitcoin = Bitcoin(nodeparams, data_directory="data")
+                            sub_version_num="/coinpy:0.0.1/")
+    bitcoin = Bitcoin(nodeparams, data_directory=((runmode == TESTNET) and "data_testnet" or "data_main"))
     bitcoin.run()
