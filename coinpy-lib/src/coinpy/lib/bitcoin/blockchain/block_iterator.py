@@ -32,7 +32,7 @@ class BlockIterator():
         return self.handle.get_blockheader()
 
     def hasprev(self):
-        return (self.hash != self.database.genesishash)
+        return (self.handle.hasprev())
 
     def prev(self):
         self.hash = self.get_blockheader().hash_prev

@@ -8,6 +8,7 @@ import asyncore
 import collections
 import time
 import heapq
+import threading
 
 class Reactor():
     def __init__(self, log):
@@ -17,7 +18,8 @@ class Reactor():
         self.workqueue = collections.deque()
         self.scheduled_workqueue = [] # priority queue [ time_next_call, (fn, args, kwargs)) ]
         self.scheduled_tasks = {}     # { (fn, args, kwargs) => seconds }
-
+        self.thread = threading.Thread(target=self._run)
+        
     def call(self, fn, *args):
         item = (fn, args)
         self.workqueue.append(item)
@@ -29,7 +31,7 @@ class Reactor():
         heapq.heappush(self.scheduled_workqueue, (t + seconds, item)) 
         #self.log.info("scheduled notify_newhashes")
         
-    def run(self):
+    def _run(self):
         while not self.terminate:
             asyncore.loop(timeout=1, count=1)
             while (len(self.workqueue) > 0):
@@ -42,3 +44,9 @@ class Reactor():
                 fn, args = item
                 fn(*args)
                 heapq.heappush(self.scheduled_workqueue, (t + self.scheduled_tasks[item], item)) 
+    
+    def start(self):
+        self.thread.start()
+    def stop(self):
+        self.terminate = True
+        self.thread.join()

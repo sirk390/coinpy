@@ -21,13 +21,16 @@ class DBBlockHandle(BlockHandle):
         return (self.blockstorage.load_block(self.blockindex.file, self.blockindex.blockpos))
 
     def get_blockheader(self):
-        return (self.blockstorage.load_blockheader(self.blockindex.file, self.blockindex.blockpos))
+        return self.blockindex.blockheader
+        #return (self.blockstorage.load_blockheader(self.blockindex.file, self.blockindex.blockpos))
 
     def get_height(self):
         return self.blockindex.height
 
     def is_mainchain(self):
-        return (self.blockindex.hash_next == uint256(0) or 
+        return (self.blockindex.hash_next != uint256(0) or 
                 self.hash == self.indexdb.get_hashbestchain())
 
-            
+    def hasprev(self):
+        return self.blockindex.blockheader.hash_prev != uint256(0)
+    

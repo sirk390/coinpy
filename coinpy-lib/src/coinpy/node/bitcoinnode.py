@@ -4,7 +4,6 @@ Created on 17 Sep 2011
 
 @author: kris
 """
-from coinpy.node.versionned_node import VersionnedNode
 from coinpy.node.node import Node
 from coinpy.node.logic.blockchain_server import BlockchainServer
 from coinpy.node.logic.blockchain_downloader import BlockchainDownloader

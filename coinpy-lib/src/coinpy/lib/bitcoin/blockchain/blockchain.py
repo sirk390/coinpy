@@ -13,6 +13,8 @@ from coinpy.lib.bitcoin.blockchain.branch import Branch
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.bitcoin.difficulty import compact_difficulty
 from coinpy.tools.stat import median
+from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
+from coinpy.model.protocol.structures.blocklocator import BlockLocator
 
 class Blockchain():
     def __init__(self, log, database):
@@ -21,14 +23,14 @@ class Blockchain():
         self.vm = TxValidationVM()
 
     def get_branch(self, lasthash, firsthash=None):
-        return Branch(self.log, self.indexdb, self.blockstore, lasthash, firsthash)
+        return Branch(self.log, self.database, lasthash, firsthash)
            
     def appendblock(self, blockhash, block):
         self.database.begin_updates()
         try:
             prev = self.database.get_block_handle(block.blockheader.hash_prev)
             if not prev.is_mainchain():
-                mainchain_parent = self.get_mainchain_parent(prev)
+                mainchain_parent = self.get_mainchain_parent(prev.hash)
                 altchain = self.get_branch(mainchain_parent.hash, prev.hash)
                 mainchain = self.get_branch(mainchain_parent.hash, self.database.get_mainchain())
                 if (altchain.work() + block.blockheader.work() > mainchain.work()):
@@ -41,7 +43,7 @@ class Blockchain():
             block_handle = self.database.append_block(blockhash, block)
             self._connect_block(block_handle)
         except:
-            traceback.print_exc()
+            self.log.error(traceback.format_exc())
             self.database.cancel_updates()
             raise
         self.database.commit_updates()
@@ -78,8 +80,6 @@ class Blockchain():
                             raise Exception("#trying to spend unmatured coins.")
                     #verify scripts
                     if not self.vm.validate(tx, index, txprev.out_list[txin.previous_output.index].script, tx.in_list[index].script):
-                        print tx.in_list[index].script
-                        print txprev.out_list[txin.previous_output.index].script
                         raise Exception("input scritp/signature validation failed")
                     #check double-spend
                     if (txprev_handle.is_output_spent(txin.previous_output.index)):
@@ -88,10 +88,10 @@ class Blockchain():
                     txprev_handle.mark_spent(txin.previous_output.index, True, txhash)
                     self.log.info("txin %s:%d connected" % (str(txin.previous_output.hash), txin.previous_output.index))    
   
-    def get_mainchain_parent(self,blockhash):
-        handle = self.database.get_blockhandle(blockhash)
+    def get_mainchain_parent(self, blockhash):
+        handle = self.database.get_block_handle(blockhash)
         while not handle.is_mainchain() and handle.hasprev():
-            handle = handle.get_blockheader().hash_prev
+            handle = self.database.get_block_handle(handle.get_blockheader().hash_prev)
         return handle
     
     def get_block_locator(self):
@@ -107,7 +107,7 @@ class Blockchain():
             if stepsize >= 256:
                 break           
         block_locator.append(self.database.genesishash)
-        return (block_locator)
+        return BlockLocator(1, block_locator)
     
     def get_next_work_required(self):
         if ((self.get_height() + 1) % TARGET_INTERVAL):

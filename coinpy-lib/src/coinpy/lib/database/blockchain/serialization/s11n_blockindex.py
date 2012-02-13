@@ -10,7 +10,7 @@ from coinpy.lib.serialization.common.structure import Structure
 from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
 from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
-from coinpy.lib.database.objects.blockindex import DbBlockIndex
+from coinpy.lib.database.blockchain.objects.blockindex import DbBlockIndex
 
 
 class BlockIndexSerializer():

@@ -6,12 +6,12 @@ Created on 7 Dec 2011
 """
 from coinpy.node.node import Node
 from coinpy.model.protocol.messages.types import MESSAGE_TYPES, MSG_INV
-from coinpy.node.versionned_node import VersionnedNode
+from coinpy.node.version_exchange_node import VersionExchangeNode
 import heapq
 from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX
 import collections
 
-class MessageDispatcherNode(VersionnedNode):
+class MessageDispatcherNode(VersionExchangeNode):
     def __init__(self, reactor, get_blockchain_height, params, log):
         super(MessageDispatcherNode, self).__init__(reactor, lambda : 0, params, log)
         self.log = log

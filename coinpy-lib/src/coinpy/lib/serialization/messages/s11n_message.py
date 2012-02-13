@@ -20,6 +20,7 @@ from coinpy.model.protocol.runmode import MAIN
 from coinpy.tools.bitcoin.sha256 import sha256checksum
 from coinpy.lib.serialization.messages.s11n_block import BlockMessageSerializer
 from coinpy.lib.serialization.common.serializer import Serializer
+from coinpy.tools.hex import hexdump
 
 ENCODERS = {MSG_VERSION: VersionMessageSerializer(),
             MSG_VERACK: VerackMessageSerializer(),
@@ -73,7 +74,7 @@ class MessageSerializer(Serializer):
         if (msg_type != MSG_VERSION and msg_type != MSG_VERACK):
             checksum = data[cursor:cursor+4]
             cursor += 4
-            startplayload = cursor 
+        startplayload = cursor 
                 #raise FormatErrorException("Checksum error in command: %s %s != %s" % (command, hexdump1(checksum,""), hexdump1(verify,"")))
              
         if (magic != MAGICS[self.runmode]):
@@ -87,7 +88,7 @@ class MessageSerializer(Serializer):
             verify = sha256checksum(data[startplayload:cursor])
             if (checksum != verify):
                 #raise FormatErrorException("Checksum error in command: %s %s != %s" % (command, hexdump1(checksum,""), hexdump1(verify,"")))
-                self.log.warning( "Checksum error in command: %s %s != %s" % (command, hexdump1(checksum,""), hexdump1(verify,"")))
+                self.log.warning( "Checksum error in command: %s %s != %s" % (command, hexdump(checksum,""), hexdump(verify,"")))
         return (res, cursor)  
 
 if __name__ == '__main__':

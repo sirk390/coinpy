@@ -25,7 +25,7 @@ class IrcBootstrapper(Observable):
     def start(self):
         if (not self.running):
             self.running = True
-            self.irc_handler = IrcHandler(self.ircserver)
+            self.irc_handler = IrcHandler(self.log, self.ircserver)
             self.irc_handler.subscribe(IrcHandler.EVT_CONNECT, self.on_irc_connected)
             self.irc_handler.subscribe(IrcHandler.EVT_RECV_LINE, self.on_irc_recv_line)
             self.irc_handler.subscribe(IrcHandler.EVT_DISCONNECT, self.on_irc_disconnected)

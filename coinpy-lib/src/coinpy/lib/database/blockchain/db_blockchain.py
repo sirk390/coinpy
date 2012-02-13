@@ -5,27 +5,27 @@ Created on 25 Jul 2011
 @author: kris
 """
 
-from coinpy.lib.database.block_storage import BlockStorage
+from coinpy.lib.database.blockchain.block_storage import BlockStorage
 from coinpy.model.protocol.structures.uint256 import uint256
-from coinpy.lib.database.objects.blockindex import DbBlockIndex
+from coinpy.lib.database.blockchain.objects.blockindex import DbBlockIndex
 from coinpy.model.protocol.runmode import MAIN
-from coinpy.lib.database.indexdb import IndexDB
+from coinpy.lib.database.blockchain.indexdb import IndexDB
 from coinpy.lib.bitcoin.hash_block import hash_block
 from coinpy.model.blockchain.blockchain_database import BlockChainDatabase
-from coinpy.lib.database.db_blockhandle import DBBlockHandle
-from coinpy.lib.database.db_txhandle import DBTxHandle
-from coinpy.lib.database.objects.txindex import DbTxIndex
+from coinpy.lib.database.blockchain.db_blockhandle import DBBlockHandle
+from coinpy.lib.database.blockchain.db_txhandle import DBTxHandle
+from coinpy.lib.database.blockchain.objects.txindex import DbTxIndex
 from coinpy.lib.bitcoin.hash_tx import hash_tx
-from coinpy.lib.database.objects.disktxpos import DiskTxPos
+from coinpy.lib.database.blockchain.objects.disktxpos import DiskTxPos
 from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
 from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 
 class BSDDbBlockChainDatabase(BlockChainDatabase):
-    def __init__(self, log, runmode, directory="."):
+    def __init__(self, log, bdsdb_env, runmode, directory="."):
         self.log = log
         self.runmode = runmode
-        self.indexdb = IndexDB(runmode, directory)
+        self.indexdb = IndexDB(runmode, bdsdb_env)
         self.blockstore = BlockStorage(runmode, directory)
         self.version = 32200
         self.genesishash = None
@@ -43,6 +43,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         self.genesisblock = genesis_block
         self.genesishash = hash_block(genesis_block)
         file, blockpos = self.blockstore.saveblock(genesis_block)
+        self.blockstore.commit()
         genesis_index = DbBlockIndex(self.version, uint256(0), file, blockpos, 0, genesis_block.blockheader)
         self.indexdb.create(hash_block(genesis_block), genesis_index)
     
@@ -108,6 +109,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
     # hash_next pointer depending on ismainchain
     def _set_branch(self, hashfirst, hashlast, ismainchain=True):
         hash, nexthash = hashlast, uint256(0)
+        #fixme:buggy
         while (hash != hashfirst):
             if ismainchain:
                 blockindex = self.indexdb.get_blockindex(hash)

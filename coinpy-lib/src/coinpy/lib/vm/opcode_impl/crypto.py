@@ -69,7 +69,6 @@ def op_checkmultisig(vm, instr):
     if len(vm.stack) < 1:
         raise Exception("OP_CHECKMULTISIG: Stack too small for pubkey_count")
     pubkey_count = cast_to_number(vm.stack.pop())
-    print "pubkey_count", pubkey_count
     if len(vm.stack) < pubkey_count:
         raise Exception("OP_CHECKMULTISIG: Stack too small for pubkeys")
     pubkeys = vm.stack[-pubkey_count:]
@@ -77,7 +76,6 @@ def op_checkmultisig(vm, instr):
     if len(vm.stack) < 1:
         raise Exception("OP_CHECKMULTISIG: Stack too small for sig_count")
     sig_count = cast_to_number(vm.stack.pop())
-    print "sig_count", sig_count
     if len(vm.stack) < sig_count:
         raise Exception("OP_CHECKMULTISIG: Stack too small for sigs")
     sigs = vm.stack[-sig_count:]

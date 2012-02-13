@@ -27,7 +27,7 @@ class Branch():
             
     def backward_iterblocks(self):
         pos = BlockIterator(self.database, self.lasthash) 
-        while pos.hasprev() and pos.hash != self.firsthash:
+        while pos.hasprev() and pos.hash != self.firsthash and pos.hash != uint256(0):
             yield pos
             pos.prev()
         yield pos

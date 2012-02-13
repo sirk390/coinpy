@@ -6,34 +6,48 @@ Created on 7 Aug 2011
 """
 from bsddb.db import *
 import bsddb
-from coinpy.lib.database.serialization.s11n_txindex import TxIndexSerializer
-from coinpy.lib.database.serialization.s11n_blockindex import BlockIndexSerializer
+from coinpy.lib.database.blockchain.serialization.s11n_txindex import TxIndexSerializer
+from coinpy.lib.database.blockchain.serialization.s11n_blockindex import BlockIndexSerializer
 from coinpy.model.protocol.structures.uint256 import uint256
 import os
+from coinpy.lib.database.bsddb_env import BsdDbEnv
 
 class IndexDB():
-    def __init__(self, runmode, directory=".", filename="blkindex.dat"):
+    def __init__(self, runmode, bsddb_env, filename="blkindex.dat"):
         self.runmode = runmode
-        self.directory = directory
-        self.filename = filename
-        self.dbenv = bsddb.db.DBEnv()
-        
-        self.dbenv.set_lg_max(10000000)
-        self.dbenv.set_lk_max_locks(10000)
-        self.dbenv.set_lk_max_objects(10000)
-        self.dbenv.open(directory,
-                          DB_CREATE|DB_INIT_LOCK|DB_INIT_LOG|DB_INIT_MPOOL|
-                           DB_INIT_TXN|DB_THREAD|DB_RECOVER)
-        self.db = bsddb.db.DB(self.dbenv)
-        self.dbflags = bsddb.db.DB_THREAD
-        
         
         self.txindexserialize = TxIndexSerializer()
         self.blockindex_ser = BlockIndexSerializer()
         self.dbtxn = None
+        self.bsddb_env = bsddb_env
+        self.filename = filename
+        self.db = bsddb.db.DB(self.bsddb_env.dbenv)
+        self.dbflags = bsddb.db.DB_THREAD
+
+    def open(self):
+        dbtxn = self.bsddb_env.dbenv.txn_begin()
+        self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags, txn=dbtxn)
+        dbtxn.commit()
+        
+    def create(self, genesis_hash, genesis_index):
+        self.dbtxn = self.bsddb_env.dbenv.txn_begin()
+        self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags|bsddb.db.DB_CREATE, txn=self.dbtxn)
+        self.set_blockindex(genesis_hash, genesis_index)
+        self.set_hashbestchain(genesis_hash)
+        self.dbtxn.commit()
+
+    def exists(self):
+        #return (os.path.isfile(os.path.join(self.directory, self.filename)))
+        try:
+            db = bsddb.db.DB(self.bsddb_env.dbenv)
+            db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags)
+            db.close()
+            return True
+        except:
+            return False
         
     def begin_updates(self):
-        self.dbtxn = self.dbenv.txn_begin()
+        self.dbtxn = self.bsddb_env.dbenv.txn_begin()
         
     def commit_updates(self):
         self.dbtxn.commit()
@@ -43,28 +57,6 @@ class IndexDB():
     def abort_updates(self):
         self.dbtxn.abort()
         self.dbtxn = None
-
-    def open(self):
-        dbtxn = self.dbenv.txn_begin()
-        self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags, txn=dbtxn)
-        dbtxn.commit()
-        
-    def create(self, genesis_hash, genesis_index):
-        self.dbtxn = self.dbenv.txn_begin()
-        self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags|bsddb.db.DB_CREATE, txn=self.dbtxn)
-        self.set_blockindex(genesis_hash, genesis_index)
-        self.set_hashbestchain(genesis_hash)
-        self.dbtxn.commit()
-
-    def exists(self):
-        #return (os.path.isfile(os.path.join(self.directory, self.filename)))
-        try:
-            db = bsddb.db.DB(self.dbenv)
-            db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags)
-            db.close()
-            return True
-        except:
-            return False
         
     def contains_transaction(self, transaction_hash):
         return (self.db.has_key("\x02tx" + transaction_hash.to_bytestr(), txn=self.dbtxn))

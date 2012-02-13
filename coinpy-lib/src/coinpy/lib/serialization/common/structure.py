@@ -7,7 +7,7 @@ Created on 13 Jun 2011
 from coinpy.lib.serialization.common.serializer import Serializer
 
 class Structure(Serializer):
-    def __init__(self, fields, desc, flags=0):
+    def __init__(self, fields, desc="", flags=0):
         super(Structure, self).__init__(desc)
         self.fields = fields
         self.flags = flags

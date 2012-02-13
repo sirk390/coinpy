@@ -47,7 +47,7 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         self.known_peer_addresses.remove(addr)
 
     def handle_error(self):
-        traceback.print_exc()
+        self.log.error(traceback.format_exc())
              
     def reconnect_peers(self):
         for addr in self.known_peer_addresses:

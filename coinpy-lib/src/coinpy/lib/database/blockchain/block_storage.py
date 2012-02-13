@@ -42,14 +42,19 @@ class BlockStorage:
         #handle.flush()
         #os.fsync(handle.fileno())
         return (file, blockpos)
-       
+    
+    def commit(self):
+        for filenum, handle in self.openhandles.iteritems():
+            handle.flush()
+            os.fsync(handle.fileno())
+        
     def _gethandle(self, filenum):
-        if file not in self.openhandles:
+        if filenum not in self.openhandles:
             filename = os.path.join(self.directory, "blk%04d.dat" % (filenum))
             handle = open(filename, "a+b")
-            self.openhandles[file] = handle
+            self.openhandles[filenum] = handle
             return (handle)
-        return self.openhandles[file]
+        return self.openhandles[filenum]
     
     def _read_data(self, handle, size):
         data = handle.read(size)
