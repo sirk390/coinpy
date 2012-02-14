@@ -13,9 +13,10 @@ class GuiLogHandler(Handler):
                    INFO  : (0, 0, 0),
                    WARNING : (255, 128, 0),
                    ERROR  : (255, 0, 0)}
-    def __init__(self, richtextctrl):
+    def __init__(self, logpanel):
         Handler.__init__(self)
-        self.richtextctrl = richtextctrl
+        self.logpanel = logpanel
+        self.richtext = self.logpanel.richtext
         self.records = deque()
         
     def emit(self, record):
@@ -27,14 +28,14 @@ class GuiLogHandler(Handler):
             record = self.records.pop()
             
             message = record.getMessage()
-            self.richtextctrl.Freeze()
-            self.richtextctrl.BeginSuppressUndo()
-            self.richtextctrl.MoveEnd()
-            self.richtextctrl.BeginTextColour(self.LOG_STYLES[record.levelno])
-            self.richtextctrl.WriteText( message)
-            self.richtextctrl.EndTextColour()
-            self.richtextctrl.Newline()
-            self.richtextctrl.ShowPosition(self.richtextctrl.GetLastPosition())
-            self.richtextctrl.EndSuppressUndo()
-            self.richtextctrl.Thaw()
+            self.richtext.Freeze()
+            self.richtext.BeginSuppressUndo()
+            self.richtext.MoveEnd()
+            self.richtext.BeginTextColour(self.LOG_STYLES[record.levelno])
+            self.richtext.WriteText( message)
+            self.richtext.EndTextColour()
+            self.richtext.Newline()
+            self.richtext.ShowPosition(self.richtext.GetLastPosition())
+            self.richtext.EndSuppressUndo()
+            self.richtext.Thaw()
 

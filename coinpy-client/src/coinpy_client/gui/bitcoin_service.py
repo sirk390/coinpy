@@ -16,7 +16,7 @@ from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
 from coinpy.node.bitcoinnode import BitcoinNode
 import threading
 
-class BitcoinClient():
+class BitcoinService():
     def __init__(self, logger, nodeparams, data_directory): 
         self.log = logger
         self.nodeparams = nodeparams

@@ -6,7 +6,7 @@ Created on 13 Feb 2012
 """
 import wx
 import wx.aui
-from coinpy_client.gui.wallet.wallet_notebook import WalletNotebook
+from coinpy_client.gui.view.wallet.wallet_notebook import WalletNotebook
 from coinpy_client.gui.log.logpanel import LogPanel
 import logging
 from coinpy_client.gui.log.loghandler import GuiLogHandler

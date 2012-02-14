@@ -9,8 +9,8 @@ from coinpy.node.config.nodeparams import NodeParams
 from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 import random
 import wx
-from coinpy_client.gui.mainwindow import MainWindow
-from coinpy_client.gui.bitcoin_client import BitcoinClient
+from coinpy_client.gui.view.mainwindow import MainWindow
+from coinpy_client.gui.bitcoin_service import BitcoinService
 
 class CoinpyApp():
     def __init__(self, nodeparams, data_directory): 
@@ -19,18 +19,18 @@ class CoinpyApp():
         self.mainwindow.subscribe(MainWindow.EVT_EXIT_COMMAND, self.on_exit_command)
         self.mainwindow.subscribe(MainWindow.EVT_OPEN_WALLET, self.on_open_wallet)
         
-        self.bitcoin_client = BitcoinClient(self.mainwindow.get_logger(), nodeparams, data_directory)
+        self.service = BitcoinService(self.mainwindow.get_logger(), nodeparams, data_directory)
         
     def on_exit_command(self, event):
         self.mainwindow.Destroy()
-        self.bitcoin_client.stop()
+        self.service.stop()
         
     def on_open_wallet(self, event):
         print "Opened ", event.file
     
     def run(self):
         self.mainwindow.Show()
-        self.bitcoin_client.start()
+        self.service.start()
         self.app.MainLoop()
 
 if __name__ == '__main__':
