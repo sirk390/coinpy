@@ -53,8 +53,8 @@ class Bitcoin():
         self.log.info("Bootstraping...")
         self.bootstrapper.bootstrap()
         
-    def run(self):
-        self.reactor.run()
+    def start(self):
+        self.reactor.start()
            
 
 
@@ -69,4 +69,4 @@ if __name__ == '__main__':
                             nonce=random.randint(0, 2**64),
                             sub_version_num="/coinpy:0.0.1/")
     bitcoin = Bitcoin(nodeparams, data_directory=((runmode == TESTNET) and "data_testnet" or "data_main"))
-    bitcoin.run()
+    bitcoin.start()
