@@ -27,12 +27,12 @@ class GuiLogHandler(Handler):
         while len(self.records) > 0:
             record = self.records.pop()
             
-            message = record.getMessage()
+            message = self.format(record)
             self.richtext.Freeze()
             self.richtext.BeginSuppressUndo()
             self.richtext.MoveEnd()
             self.richtext.BeginTextColour(self.LOG_STYLES[record.levelno])
-            self.richtext.WriteText( message)
+            self.richtext.WriteText(message)
             self.richtext.EndTextColour()
             self.richtext.Newline()
             self.richtext.ShowPosition(self.richtext.GetLastPosition())

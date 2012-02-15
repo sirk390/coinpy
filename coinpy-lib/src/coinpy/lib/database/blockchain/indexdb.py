@@ -10,7 +10,7 @@ from coinpy.lib.database.blockchain.serialization.s11n_txindex import TxIndexSer
 from coinpy.lib.database.blockchain.serialization.s11n_blockindex import BlockIndexSerializer
 from coinpy.model.protocol.structures.uint256 import uint256
 import os
-from coinpy.lib.database.bsddb_env import BsdDbEnv
+from coinpy.lib.database.bsddb_env import BSDDBEnv
 
 class IndexDB():
     def __init__(self, runmode, bsddb_env, filename="blkindex.dat"):

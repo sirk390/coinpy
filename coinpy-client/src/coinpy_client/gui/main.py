@@ -10,27 +10,33 @@ from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 import random
 import wx
 from coinpy_client.gui.view.mainwindow import MainWindow
-from coinpy_client.gui.bitcoin_service import BitcoinService
+from coinpy_client.gui.bitcoin_client import BitcoinClient
 
 class CoinpyApp():
     def __init__(self, nodeparams, data_directory): 
         self.app = wx.App(False) #turn of graphical error console
-        self.mainwindow = MainWindow(None, wx.ID_ANY, "Coinpy", size=(750, 590))
-        self.mainwindow.subscribe(MainWindow.EVT_EXIT_COMMAND, self.on_exit_command)
-        self.mainwindow.subscribe(MainWindow.EVT_OPEN_WALLET, self.on_open_wallet)
+        self.mainwindow = MainWindow(None, wx.ID_ANY, "Coinpy", size=(1000, 650))
+        self.client = BitcoinClient(self.mainwindow.get_logger(), nodeparams, data_directory)
+
+        self.mainwindow.subscribe(MainWindow.EVT_CMD_EXIT, self.on_command_exit)
+        self.mainwindow.subscribe(MainWindow.EVT_CMD_OPEN_WALLET, self.on_command_open_wallet)
+        self.client.subscribe(BitcoinClient.EVT_WALLET_OPENED, self.on_wallet_opened)
         
-        self.service = BitcoinService(self.mainwindow.get_logger(), nodeparams, data_directory)
+        self.mainwindow.node_view.connect_to(self.client.node)
         
-    def on_exit_command(self, event):
+    def on_command_exit(self, event):
         self.mainwindow.Destroy()
-        self.service.stop()
+        self.client.stop()
         
-    def on_open_wallet(self, event):
-        print "Opened ", event.file
+    def on_command_open_wallet(self, event):
+        wallet = self.client.open_wallet(event.file)
     
+    def on_wallet_opened(self, event):
+        self.mainwindow.add_wallet(event.filename, event.wallet)
+        
     def run(self):
         self.mainwindow.Show()
-        self.service.start()
+        self.client.start()
         self.app.MainLoop()
 
 if __name__ == '__main__':

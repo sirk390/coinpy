@@ -9,6 +9,7 @@ from coinpy_client.gui.view.wallet.balance import BalancePanel
 from coinpy_client.gui.view.wallet.keys_panel import KeysPanel
 from coinpy_client.gui.view.wallet.address_book_panel import AddressBookPanel
 from coinpy_client.gui.view.wallet.transations_panel import TransactionsPanel
+from coinpy.tools.hex import hexstr
 
 class Wallet(wx.Panel):
     def __init__(self, parent):
@@ -24,7 +25,13 @@ class Wallet(wx.Panel):
         self.sizer.Add(self.address_book, 0, wx.EXPAND)
         self.sizer.Add(self.transactions, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
-        
+    
+    def load_wallet(self, wallet):
+        for k in wallet.get_keys().values():
+            index = self.keys.list.InsertStringItem(0, hexstr(k.public_key))
+            self.keys.list.SetStringItem(index, 1, hexstr(k.private_key))
+            #self.list.SetStringItem(index, 2, hexstr(k.private_key))
+            
 if __name__ == '__main__':
     app = wx.App(False)
     frame = wx.Frame(None)

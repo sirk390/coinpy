@@ -11,9 +11,10 @@ from coinpy.tools.observer import Observable
 class PeerConnection(PeerHandler):
     EVT_NEW_MESSAGE = Observable.createevent()
     #TODO: merge with PeerHandler?
-    def __init__(self, sockaddr, msg_serializer, sock, log):
+    def __init__(self, sockaddr, reactor, msg_serializer, sock, log):
         PeerHandler.__init__(self, sockaddr, sock)
         #self.subscribe(self.EVT_CONNECT, self.on_connect)
+        self.reactor = reactor
         self.msg_serializer = msg_serializer
         self.incommingbuffer = ""
         self.log = log
@@ -23,19 +24,26 @@ class PeerConnection(PeerHandler):
         
     def handle_read(self):
         self.incommingbuffer += self.recv(8192*10)
+        self._process_incomming_buffer()
+    
+    def clear_incomming_buffers(self):
+        self.incommingbuffer = []
+        
+    def _process_incomming_buffer(self):
         cursor = 0
-        while cursor < len(self.incommingbuffer):
-            try:
-                msg, cursor = self.msg_serializer.deserialize(self.incommingbuffer, cursor)
-            except MissingDataException:
-                #print traceback.format_exc()
-                #self.log.warning("Read Incomplete")
-                #print "cursor = %d:%s" % (cursor, traceback.format_exc())
-                break
-            #if this message cause peer to be banned, should we stop reading?
-            self.fire(self.EVT_NEW_MESSAGE, handler=self, message=msg)
-            #self.on_message(msg)
+        #while cursor < len(self.incommingbuffer):
+        try:
+            msg, cursor = self.msg_serializer.deserialize(self.incommingbuffer, cursor)
+        except MissingDataException:
+            #print traceback.format_exc()
+            #self.log.warning("Read Incomplete")
+            #print "cursor = %d:%s" % (cursor, traceback.format_exc())
+            return
+        self.fire(self.EVT_NEW_MESSAGE, handler=self, message=msg)
+        #self.on_message(msg)
         self.incommingbuffer = self.incommingbuffer[cursor:]
+        #call again for the rest of the message
+        self.reactor.call(self._process_incomming_buffer)
         
     def send_message(self, message):
         self.send(self.msg_serializer.serialize(message))

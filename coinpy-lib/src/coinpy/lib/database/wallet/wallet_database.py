@@ -4,7 +4,7 @@ Created on 11 Feb 2012
 
 @author: kris
 """
-from coinpy.lib.database.bsddb_env import BsdDbEnv
+from coinpy.lib.database.bsddb_env import BSDDBEnv
 from coinpy.model.wallet.wallet_tx import WalletTx
 from coinpy.model.wallet.wallet_keypair import WalletKeypair
 from coinpy.model.wallet.wallet_name import WalletName
@@ -14,17 +14,23 @@ from coinpy.model.wallet.wallet_poolkey import WalletPoolKey
 from coinpy.lib.serialization.structures.s11n_varstr import VarstrSerializer
 from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
+import bsddb
 
 class WalletDatabase():
     def __init__(self, bsddb_env, filename):
-       
+        self.bsddb_env = bsddb_env
+        self.filename = filename
         self.varstr_serializer = VarstrSerializer()
         self.uint256_serializer = Uint256Serializer("")
         self.tx_serializer = TxSerializer()
         self.reset_wallet()
+        self.db = bsddb.db.DB(self.bsddb_env.dbenv)
+        self.dbflags = bsddb.db.DB_THREAD
         
     def open(self):
-        #BsdDbBase.open(self)
+        dbtxn = self.bsddb_env.dbenv.txn_begin()
+        self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags, txn=dbtxn)
+        dbtxn.commit()
         self._read_wallet()
     
     def reset_wallet(self):

@@ -14,6 +14,7 @@ class ConnectionManager(asyncore.dispatcher, Observable):
     EVT_ADDED_HANDLER = Observable.createevent()
     EVT_REMOVED_HANDLER = Observable.createevent()
     EVT_CONNECTED_HANDLER = Observable.createevent()
+    EVT_CONNECTING_HANDLER = Observable.createevent()
     EVT_DISCONNECTED_HANDLER = Observable.createevent()
 
     def __init__(self, reactor, sockaddr, connection_factory, log):
@@ -41,6 +42,7 @@ class ConnectionManager(asyncore.dispatcher, Observable):
     def remove_peer(self, addr, close=True):
         if (close and (addr in self.peers)):
             handler = self.peers[addr]
+            handler.clear_incomming_buffers()
             handler.handle_close()
         #print self.known_peer_addresses.pop() == addr
         print addr
@@ -62,6 +64,7 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         self.peers[sockaddr] = handler
         self.connecting_peers.add(handler)
         self.fire(self.EVT_ADDED_HANDLER, handler=handler)
+        self.fire(self.EVT_CONNECTING_HANDLER, handler=handler)
 
        
     def on_peer_connected(self, event):

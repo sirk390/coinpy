@@ -20,7 +20,7 @@ from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.bitcoin.wallet.wallet import Wallet
 from coinpy.lib.database.wallet.wallet_database import WalletDatabase
-from coinpy.lib.database.bsddb_env import BsdDbEnv
+from coinpy.lib.database.bsddb_env import BSDDBEnv
 
 class Bitcoin():
     def __init__(self, nodeparams, data_directory): 
@@ -28,13 +28,13 @@ class Bitcoin():
         self.nodeparams = nodeparams
         self.reactor = Reactor(self.log)
         #blockchain database
-        self.bsddbenv = BsdDbEnv(directory=data_directory)
+        self.bsddbenv = BSDDBEnv(directory=data_directory)
         self.database = BSDDbBlockChainDatabase(self.log, self.bsddbenv, self.nodeparams.runmode, data_directory)
         self.database.open_or_create(GENESIS[self.nodeparams.runmode])
         self.blockchain = Blockchain(self.log, self.database)
         self.blockchain_with_pools = BlockchainWithPools(self.blockchain, self.log)
         #wallet
-        self.wallet = Wallet(WalletDatabase(data_directory, "wallet.dat"), self.blockchain)
+        #self.wallet = Wallet(WalletDatabase(data_directory, "wallet.dat"), self.blockchain)
         #bootstraper
         self.bootstrapper = Bootstrapper(self.nodeparams.runmode, self.log)
         #node

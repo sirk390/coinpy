@@ -7,15 +7,16 @@ Created on 13 Feb 2012
 import wx
 import wx.aui
 from coinpy_client.gui.view.wallet.wallet_notebook import WalletNotebook
-from coinpy_client.gui.log.logpanel import LogPanel
+from coinpy_client.gui.view.log.logpanel import LogPanel
 import logging
-from coinpy_client.gui.log.loghandler import GuiLogHandler
+from coinpy_client.gui.view.log.loghandler import GuiLogHandler
 from coinpy.tools.observer import Observable
 import os
+from coinpy_client.gui.view.node_view import NodeView
 
 class MainWindow(wx.Frame, Observable):
-    EVT_OPEN_WALLET = Observable.createevent()
-    EVT_EXIT_COMMAND = Observable.createevent()
+    EVT_CMD_OPEN_WALLET = Observable.createevent()
+    EVT_CMD_EXIT = Observable.createevent()
     
     def __init__(self, parent, id=-1, title="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE |
@@ -47,12 +48,16 @@ class MainWindow(wx.Frame, Observable):
         
         self.nb_wallet = WalletNotebook(self)
         self.log_panel = LogPanel(self)
+        self.node_view = NodeView(self)
         self._mgr.AddPane(self.nb_wallet, wx.aui.AuiPaneInfo().
                   Name("wallet_notebook").Caption("Wallet Notebook").
                   CenterPane())
         self._mgr.AddPane(self.log_panel, wx.aui.AuiPaneInfo().
                   Name("logs").Caption("Logs").
-                  CenterPane().Bottom())
+                  Bottom())
+        self._mgr.AddPane(self.node_view, wx.aui.AuiPaneInfo().
+                  Name("node").Caption("Connections").
+                  Right())
         self._mgr.Update()
         # create statusbar
         self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
@@ -77,12 +82,15 @@ class MainWindow(wx.Frame, Observable):
             wildcard="wallet.dat (*.dat)|*.dat|",
             style=wx.OPEN | wx.CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
-            self.fire(self.EVT_OPEN_WALLET, file=dlg.GetPaths())
-           
+            self.fire(self.EVT_CMD_OPEN_WALLET, file=dlg.GetPath())
+    
+    def add_wallet(self, filename, wallet):
+        self.nb_wallet.add_wallet(filename, wallet)
+    
     def on_exit(self, event):
         self.Close()   
         
     def on_close(self, event):
-        self.fire(self.EVT_EXIT_COMMAND)
+        self.fire(self.EVT_CMD_EXIT)
         
         

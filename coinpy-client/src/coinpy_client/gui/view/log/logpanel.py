@@ -13,6 +13,6 @@ class LogPanel(wx.Panel):
         self.richtext = wx.richtext.RichTextCtrl(self, style=wx.VSCROLL|wx.HSCROLL, size=wx.Size(50, 20))
         
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
-        self.sizer.Add(wx.StaticText(self, -1, "Logs: "), 0, wx.EXPAND)
+        #self.sizer.Add(wx.StaticText(self, -1, "Logs: "), 0, wx.EXPAND)
         self.sizer.Add(self.richtext, 1, wx.EXPAND)
         self.SetSizer(self.sizer)

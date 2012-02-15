@@ -15,8 +15,8 @@ class KeysPanel(wx.Panel):
         self.list.InsertColumn(1, "Private Key")
         self.list.InsertColumn(3, "Pool")
         self.list.InsertColumn(4, "Pool Time")
-        self.list.InsertColumn(1, "Address")
-        self.list.InsertColumn(1, "Name")
+        self.list.InsertColumn(5, "Address")
+        self.list.InsertColumn(6, "Name")
         
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
         self.sizer.Add(wx.StaticText(self, -1, "Keys: "))

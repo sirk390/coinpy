@@ -8,6 +8,7 @@ import wx
 import wx.aui
 from coinpy_client.gui.view.wallet.wallet import Wallet
 import wx.lib.scrolledpanel
+import os
 
 class WalletNoteBookPage(wx.lib.scrolledpanel.ScrolledPanel):
     def __init__(self, parent):
@@ -23,8 +24,12 @@ class WalletNotebook(wx.aui.AuiNotebook):
     def __init__(self, parent):
         super(WalletNotebook, self).__init__(parent, -1,  wx.DefaultPosition, wx.Size(400, 300))
         
-        page = WalletNoteBookPage(self)
-        self.AddPage(page, "wallet.dat 1")
+        #page = WalletNoteBookPage(self)
+        #self.AddPage(page, "wallet.dat 1")
             
-    def add_wallet(self, wallet):
-        pass
+
+    def add_wallet(self, filename, wallet):
+        
+        page = WalletNoteBookPage(self)
+        page.wallet.load_wallet(wallet)
+        self.AddPage(page, os.path.basename(filename))

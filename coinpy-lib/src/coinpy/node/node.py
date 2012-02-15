@@ -27,6 +27,8 @@ from coinpy.lib.serialization.messages.s11n_message import MessageSerializer
 class Node(Observable):
     EVT_NEED_BOOTSTRAP = Observable.createevent()
     EVT_MESSAGE = Observable.createevent()
+    EVT_ADDED_PEER = Observable.createevent()
+    EVT_REMOVED_PEER = Observable.createevent()
     EVT_CONNECTED = Observable.createevent()
     EVT_DISCONNECTED = Observable.createevent()
             
@@ -38,9 +40,11 @@ class Node(Observable):
         self.addr_me = netaddr(self.params.enabledservices, "192.168.1.1", 78)
         
         self.message_encoder = MessageSerializer(self.params.runmode, log)
-        self.connection_factory = PeerConnectionFactory(self.message_encoder, log)
+        self.connection_factory = PeerConnectionFactory(self.reactor, self.message_encoder, log)
         self.connection_manager = ConnectionManager(reactor, SockAddr('localhost', self.params.port), self.connection_factory, log)
         self.connection_manager.subscribe(ConnectionManager.EVT_CONNECTED_HANDLER, self.__on_connected)
+        self.connection_manager.subscribe(ConnectionManager.EVT_ADDED_HANDLER, self.on_added_peer)
+        self.connection_manager.subscribe(ConnectionManager.EVT_REMOVED_HANDLER, self.on_removed_peer)
         self.connection_manager.subscribe(ConnectionManager.EVT_DISCONNECTED_HANDLER, self.__on_disconnected)
         self.reactor.schedule_each(1, self.check_bootstrap)
 
@@ -54,6 +58,12 @@ class Node(Observable):
     def __on_message(self, event):
         #self.log.info("Message from %s : %s" % (event.handler, event.message))
         self.on_message(event)
+
+    def on_added_peer(self, event):
+        self.fire(self.EVT_ADDED_PEER, handler=event.handler)
+
+    def on_removed_peer(self, event):
+        self.fire(self.EVT_REMOVED_PEER, handler=event.handler)
 
     """ --- redefined in subclasses to filter messages """
     def on_connected(self, event):

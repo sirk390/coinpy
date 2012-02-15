@@ -20,7 +20,7 @@ class LinkedBlockList():
         self.blocks.append( (sender, block) )
     
     def append_list(self, blocklist):
-        self.endhash = blocklist.hash
+        self.endhash = blocklist.endhash
         self.blocks += blocklist.blocks
     
     def __len__(self):
