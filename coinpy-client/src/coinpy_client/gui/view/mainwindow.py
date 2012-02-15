@@ -79,7 +79,7 @@ class MainWindow(wx.Frame, Observable):
             self, message="Select a wallet.dat file",
             defaultDir=os.getcwd(), 
             defaultFile="",
-            wildcard="wallet.dat (*.dat)|*.dat|",
+            wildcard="wallet.dat (*.dat)|*.dat",
             style=wx.OPEN | wx.CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
             self.fire(self.EVT_CMD_OPEN_WALLET, file=dlg.GetPath())

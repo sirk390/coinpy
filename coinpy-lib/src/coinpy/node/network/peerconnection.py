@@ -39,9 +39,9 @@ class PeerConnection(PeerHandler):
             #self.log.warning("Read Incomplete")
             #print "cursor = %d:%s" % (cursor, traceback.format_exc())
             return
+        self.incommingbuffer = self.incommingbuffer[cursor:]
         self.fire(self.EVT_NEW_MESSAGE, handler=self, message=msg)
         #self.on_message(msg)
-        self.incommingbuffer = self.incommingbuffer[cursor:]
         #call again for the rest of the message
         self.reactor.call(self._process_incomming_buffer)
         

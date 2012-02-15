@@ -95,7 +95,7 @@ class BlockchainDownloader():
         self.requested_blocks[peer].remove(hash)
         self.blockchain_with_pools.add_block(peer, hash, message.block, self._blockadded_callback, (peer,))
         
-    def _blockadded_callback(self, peer, error):
+    def _blockadded_callback(self, peer, error=None):
         if error:
             self.log.error(error)
             self.node.misbehaving(peer, str(error))

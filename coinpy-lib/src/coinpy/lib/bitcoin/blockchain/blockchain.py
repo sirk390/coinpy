@@ -25,14 +25,14 @@ class Blockchain():
     def get_branch(self, lasthash, firsthash=None):
         return Branch(self.log, self.database, lasthash, firsthash)
            
-    def appendblock(self, blockhash, block):
+    def appendblock(self, blockhash, block, callback, args):
         self.database.begin_updates()
         try:
             prev = self.database.get_block_handle(block.blockheader.hash_prev)
             if not prev.is_mainchain():
                 mainchain_parent = self.get_mainchain_parent(prev.hash)
-                altchain = self.get_branch(mainchain_parent.hash, prev.hash)
-                mainchain = self.get_branch(mainchain_parent.hash, self.database.get_mainchain())
+                altchain = self.get_branch(prev.hash, mainchain_parent.hash)
+                mainchain = self.get_branch(self.database.get_mainchain(), mainchain_parent.hash)
                 if (altchain.work() + block.blockheader.work() > mainchain.work()):
                     self.database.set_mainchain(prev.hash)
                     for block in mainchain:
@@ -42,12 +42,12 @@ class Blockchain():
                     
             block_handle = self.database.append_block(blockhash, block)
             self._connect_block(block_handle)
-        except:
+        except Exception as err:
             self.log.error(traceback.format_exc())
             self.database.cancel_updates()
-            raise
+            callback(*args, error=err)
         self.database.commit_updates()
-        return block_handle
+        callback(*(args +(block_handle,)))
     
     def contains_transaction(self, txhash):
         return self.database.contains_transaction(txhash)
@@ -66,28 +66,33 @@ class Blockchain():
                 tx.mark_spent(txin.prevout.n, False)
 
     def _connect_block(self, block_handle):
+        self.log.info("Connecting block : %d (%d transactions)" % (block_handle.get_height(), len(block_handle.get_block().transactions)))    
         for tx in block_handle.get_block().transactions:
             if not tx.iscoinbase():
                 txhash = hash_tx(tx)
-                for index, txin in enumerate(tx.in_list):
-                    #fetch inputs
-                    txprev_handle = self.database.get_transaction_handle(txin.previous_output.hash)
-                    txprev = txprev_handle.get_transaction()
-                    #check matured coinbase.
-                    if (txprev.iscoinbase()):
-                        blockprev = txprev_handle.get_block()
-                        if (block_handle.get_height() - blockprev.get_height() < COINBASE_MATURITY):
-                            raise Exception("#trying to spend unmatured coins.")
-                    #verify scripts
-                    if not self.vm.validate(tx, index, txprev.out_list[txin.previous_output.index].script, tx.in_list[index].script):
-                        raise Exception("input scritp/signature validation failed")
-                    #check double-spend
-                    if (txprev_handle.is_output_spent(txin.previous_output.index)):
-                        raise Exception( "output allready spent")
-                    #mark spent
-                    txprev_handle.mark_spent(txin.previous_output.index, True, txhash)
-                    self.log.info("txin %s:%d connected" % (str(txin.previous_output.hash), txin.previous_output.index))    
-  
+                for index in range(len(tx.in_list)):
+                    self._connect_txin(tx, txhash, index, block_handle)
+                    
+    def _connect_txin(self, tx, txhash, index, block_handle):
+        txin = tx.in_list[index]
+        #fetch inputs
+        txprev_handle = self.database.get_transaction_handle(txin.previous_output.hash)
+        txprev = txprev_handle.get_transaction()
+        #check matured coinbase.
+        if (txprev.iscoinbase()):
+            blockprev = txprev_handle.get_block()
+            if (block_handle.get_height() - blockprev.get_height() < COINBASE_MATURITY):
+                raise Exception("#trying to spend unmatured coins.")
+        #verify scripts
+        if not self.vm.validate(tx, index, txprev.out_list[txin.previous_output.index].script, tx.in_list[index].script):
+            raise Exception("input scritp/signature validation failed")
+        #check double-spend
+        if (txprev_handle.is_output_spent(txin.previous_output.index)):
+            raise Exception( "output allready spent")
+        #mark spent
+        txprev_handle.mark_spent(txin.previous_output.index, True, txhash)
+        #self.log.info("txin %s:%d connected" % (str(txin.previous_output.hash), txin.previous_output.index))    
+
     def get_mainchain_parent(self, blockhash):
         handle = self.database.get_block_handle(blockhash)
         while not handle.is_mainchain() and handle.hasprev():
