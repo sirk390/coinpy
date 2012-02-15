@@ -25,12 +25,12 @@ class BlockIndexSerializer():
         pass
         
     def serialize(self, blockindex_obj):
-        return (self.BLOCKINDEX.serialize(blockindex_obj.version,
-                                          blockindex_obj.hash_next,
-                                          blockindex_obj.file,
-                                          blockindex_obj.blockpos,
-                                          blockindex_obj.height,
-                                          blockindex_obj.blockheader))
+        return (self.BLOCKINDEX.serialize([blockindex_obj.version,
+                                           blockindex_obj.hash_next,
+                                           blockindex_obj.file,
+                                           blockindex_obj.blockpos,
+                                           blockindex_obj.height,
+                                           blockindex_obj.blockheader]))
 
     def deserialize(self, data, cursor=0):
         result, cursor = self.BLOCKINDEX.deserialize(data, cursor)

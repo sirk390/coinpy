@@ -22,14 +22,14 @@ class VersionMessageSerializer(Serializer):
                             Field("<I", "start_height")], "version_message")
     
     def serialize(self, version_msg):
-        return (self.VERSION_STRUCT.serialize(version_msg.version,
-                                              version_msg.services,
-                                              version_msg.timestamp,
-                                              version_msg.addr_me,
-                                              version_msg.addr_you,
-                                              version_msg.nonce,
-                                              version_msg.sub_version_num,
-                                              version_msg.start_height))
+        return (self.VERSION_STRUCT.serialize([version_msg.version,
+                                               version_msg.services,
+                                               version_msg.timestamp,
+                                               version_msg.addr_me,
+                                               version_msg.addr_you,
+                                               version_msg.nonce,
+                                               version_msg.sub_version_num,
+                                               version_msg.start_height]))
     
     def deserialize(self, data, cursor):
         result, cursor = self.VERSION_STRUCT.deserialize(data, cursor)

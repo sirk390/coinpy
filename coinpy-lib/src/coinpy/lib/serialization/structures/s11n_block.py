@@ -21,12 +21,12 @@ class BlockSerializer(Serializer):
                                 VarsizelistSerializer(VarintSerializer("txn_count"), TxSerializer())], "block")
 
     def get_size(self, block):
-        return (self.BLOCK.get_size(block.blockheader,
-                                    block.transactions))
+        return (self.BLOCK.get_size([block.blockheader,
+                                     block.transactions]))
 
     def serialize(self, block):
-        return (self.BLOCK.serialize(block.blockheader,
-                                     block.transactions))
+        return (self.BLOCK.serialize([block.blockheader,
+                                      block.transactions]))
         
     def deserialize(self, data, cursor):
         (blockheader, transactions), cursor = self.BLOCK.deserialize(data, cursor)

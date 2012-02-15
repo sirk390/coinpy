@@ -12,7 +12,7 @@ class Structure(Serializer):
         self.fields = fields
         self.flags = flags
 
-    def serialize(self, *args):
+    def serialize(self, args):
         result = ""
         for value, field in zip(args, self.fields):
             enc = field.serialize(value)

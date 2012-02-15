@@ -19,7 +19,7 @@ class NetAddrSerializer(Serializer):
         pass
 
     def serialize(self, a_netaddr):
-        data = self.NETADDR.serialize(a_netaddr.services, a_netaddr.ip, a_netaddr.port)
+        data = self.NETADDR.serialize([a_netaddr.services, a_netaddr.ip, a_netaddr.port])
         return (data)
 
     def deserialize(self, data, cursor):

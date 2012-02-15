@@ -17,8 +17,8 @@ class GetBlocksMessageSerializer(Serializer):
                            Uint256Serializer("stop")], "getblocks")
     
     def serialize(self, getblocks_msg):
-        return (self.GETBLOCKS.serialize(getblocks_msg.block_locator,
-                                         getblocks_msg.hash_stop))
+        return (self.GETBLOCKS.serialize([getblocks_msg.block_locator,
+                                          getblocks_msg.hash_stop]))
 
     def deserialize(self, data, cursor):
         (block_locator, hash_stop), cursor = self.GETBLOCKS.deserialize(data, cursor)

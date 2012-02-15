@@ -19,7 +19,7 @@ class InvitemSerializer(Serializer):
         return (self.INVITEM_ENC.get_size(invitem.type,
                                           invitem.hash))
     def serialize(self, invitem):
-        return (self.INVITEM_ENC.serialize(invitem.type, invitem.hash))
+        return (self.INVITEM_ENC.serialize([invitem.type, invitem.hash]))
 
     def deserialize(self, data, cursor):
         (type, hash), cursor = self.INVITEM_ENC.deserialize(data, cursor)

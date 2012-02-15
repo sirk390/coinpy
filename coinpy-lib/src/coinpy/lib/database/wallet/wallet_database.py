@@ -120,8 +120,10 @@ class WalletDatabase():
         return "Wallet\n  keys:\n" + keys_str +  "pool:\n" + pool_keys_str + "\n  names:\n" + names_str + "\n  txs:\n" + tx_str
         
 if __name__ == '__main__':
-    wallet = WalletDatabase("D:\\repositories\\coinpy\\coinpy-client\\src\\data\\testnet\\", "wallet_testnet.dat")
+    dbenv = BSDDBEnv("D:\\repositories\\coinpy\\coinpy-client\\src\\data\\testnet\\")
+    wallet = WalletDatabase(dbenv, "wallet_testnet.dat")
     wallet.open()
+    
     print wallet
     print wallet.get_version()
     print wallet.get_blocklocator()

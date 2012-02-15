@@ -15,10 +15,10 @@ class TxoutSerializer(Serializer):
                        VarstrScriptSerializer()], "outpoint")
 
     def get_size(self, txout):
-        return (self.TXOUT.get_size(txout.value, txout.script))
+        return (self.TXOUT.get_size([txout.value, txout.script]))
 
     def serialize(self, outpoint):
-        return (self.TXOUT.serialize(outpoint.value, outpoint.script))
+        return (self.TXOUT.serialize([outpoint.value, outpoint.script]))
 
     def deserialize(self, data, cursor):
         (value, script), cursor = self.TXOUT.deserialize(data, cursor)

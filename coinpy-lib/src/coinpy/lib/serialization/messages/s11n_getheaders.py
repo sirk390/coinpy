@@ -17,9 +17,9 @@ class GetheadersMessageSerializer(Serializer):
                            Field("32s","hash_stop")], "getheaders")
 
     def serialize(self, getheaders_msg):
-        return (self.GETHEADERS.serialize(getheaders_msg.version,
-                                          getheaders_msg.hash_start,
-                                          getheaders_msg.hash_stop))
+        return (self.GETHEADERS.serialize([getheaders_msg.version,
+                                           getheaders_msg.hash_start,
+                                           getheaders_msg.hash_stop]))
 
     def deserialize(self, data, cursor):
         version, hash_start, hash_stop = self.GETHEADERS.deserialize(data, cursor)

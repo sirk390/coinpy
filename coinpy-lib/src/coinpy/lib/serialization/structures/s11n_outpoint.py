@@ -15,10 +15,10 @@ class OutpointSerializer(Serializer):
                           Field("<I","index")], "outpoint")
 
     def get_size(self, outpoint):
-        return (self.OUTPOINT.get_size(outpoint.hash, outpoint.index))
+        return (self.OUTPOINT.get_size([outpoint.hash, outpoint.index]))
     
     def serialize(self, outpoint):
-        return (self.OUTPOINT.serialize(outpoint.hash, outpoint.index))
+        return (self.OUTPOINT.serialize([outpoint.hash, outpoint.index]))
 
     def deserialize(self, data, cursor):
         (hash, index), cursor = self.OUTPOINT.deserialize(data, cursor)

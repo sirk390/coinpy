@@ -8,7 +8,7 @@ from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.exceptions import MissingDataException
 
 class Field(Serializer):
-    def __init__(self, format, desc, options=0):
+    def __init__(self, format, desc="", options=0):
         super(Field, self).__init__(desc)
         self.format = format
         self.size = struct.calcsize(format)

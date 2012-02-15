@@ -15,7 +15,7 @@ class TimenetaddrSerializer(Serializer):
                               NetAddrSerializer("addr")], "timestamped_netaddr")
 
     def serialize(self, timenetaddr):
-        return (self.TIME_NETADDR.serialize(timenetaddr.timestamp, timenetaddr.netaddr))
+        return (self.TIME_NETADDR.serialize([timenetaddr.timestamp, timenetaddr.netaddr]))
 
     def deserialize(self, data, cursor):
         (timestamp, netaddr), cursor = self.TIME_NETADDR.deserialize(data, cursor)

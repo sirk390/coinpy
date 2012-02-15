@@ -51,9 +51,9 @@ class MessageSerializer(Serializer):
         if (msg.type not in ENCODERS):
             raise Exception("Encoder not found for type: %d" % (msg.type))
         payload = ENCODERS[msg.type].serialize(msg)
-        result = self.MESSAGE_HEADER.serialize(MAGICS[self.runmode],
-                                               COMMANDS[msg.type],
-                                               len(payload))
+        result = self.MESSAGE_HEADER.serialize([MAGICS[self.runmode],
+                                                COMMANDS[msg.type],
+                                                len(payload)])
         #MSG_VERSION, MSG_VERACK exception: no checksum
         if (msg.type != MSG_VERSION and msg.type != MSG_VERACK):
             result += sha256checksum(payload)

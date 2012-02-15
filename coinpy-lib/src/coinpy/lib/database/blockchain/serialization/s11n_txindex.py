@@ -22,9 +22,9 @@ class TxIndexSerializer():
         pass
 
     def serialize(self, txindex_obj):
-        return (self.TXINDEX.serialize(txindex_obj.version,
-                                       txindex_obj.pos,
-                                       txindex_obj.spent))
+        return (self.TXINDEX.serialize([txindex_obj.version,
+                                        txindex_obj.pos,
+                                        txindex_obj.spent]))
 
     def deserialize(self, data, cursor=0):
         (version, pos, spent), cursor = self.TXINDEX.deserialize(data, cursor)
