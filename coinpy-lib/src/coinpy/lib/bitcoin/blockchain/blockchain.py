@@ -46,6 +46,7 @@ class Blockchain():
             self.log.error(traceback.format_exc())
             self.database.cancel_updates()
             callback(*args, error=err)
+            return
         self.database.commit_updates()
         callback(*(args +(block_handle,)))
     

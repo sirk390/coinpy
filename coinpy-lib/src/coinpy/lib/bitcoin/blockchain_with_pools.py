@@ -58,9 +58,10 @@ class BlockchainWithPools(Observable):
         #return error("CheckBlock() : block timestamp too far in the future");       
         blockhandle = self.blockchain.appendblock(hash, block, self._appendblock_done, (callback, args))
         
-    def _appendblock_done(self, callback, args, blockhandle, error=None):
+    def _appendblock_done(self, callback, args, blockhandle=None, error=None):
         #if blockhandle.get_height() % 1 == 0:
-        self.log.info("Appended block %d prev:%s, hash=%s" % (blockhandle.get_height(), str(blockhandle.get_blockheader().hash_prev), str(blockhandle.hash)))
+        if not error:
+            self.log.info("Appended block %d prev:%s, hash=%s" % (blockhandle.get_height(), str(blockhandle.get_blockheader().hash_prev), str(blockhandle.hash)))
         callback(*args, error=error)
         
     def contains_transaction(self, hash):

@@ -21,20 +21,20 @@ class BlockheaderSerializer(Serializer):
                                       Field("<I", "nonce")], "txindex")
 
     def get_size(self, blockheader):
-        return (self.BLOCKHEADER.get_size(blockheader.version,
-                                          blockheader.hash_prev,
-                                          blockheader.hash_merkle,
-                                          blockheader.time,
-                                          blockheader.bits,
-                                          blockheader.nonce))
-
-    def serialize(self, blockheader):
-        return (self.BLOCKHEADER.serialize(blockheader.version,
+        return (self.BLOCKHEADER.get_size([blockheader.version,
                                            blockheader.hash_prev,
                                            blockheader.hash_merkle,
                                            blockheader.time,
                                            blockheader.bits,
-                                           blockheader.nonce))
+                                           blockheader.nonce]))
+
+    def serialize(self, blockheader):
+        return (self.BLOCKHEADER.serialize([blockheader.version,
+                                            blockheader.hash_prev,
+                                            blockheader.hash_merkle,
+                                            blockheader.time,
+                                            blockheader.bits,
+                                            blockheader.nonce]))
 
     def deserialize(self, data, cursor=0):
         (version, hash_prev, hash_merkle, time, bits, nonce), cursor = self.BLOCKHEADER.deserialize(data, cursor)

@@ -57,7 +57,7 @@ class BlockchainDownloader():
 
     def on_inv_tx(self, peer, item):
         #self.log.info("Inventory: on_inv_tx")
-        if not self.blockchain_with_pools.has_transaction(item.hash):
+        if not self.blockchain_with_pools.contains_transaction(item.hash):
             self.required_items.setdefault(peer, [])
             self.required_items[peer].append(item)
         
