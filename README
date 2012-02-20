@@ -1,0 +1,46 @@
+VERSION
+--------------
+    Coinpy version 0.01
+    
+    
+DESCRIPTION
+--------------
+    Coinpy is a python bitcoin library and client. See http://www.bitcoin.org
+    
+    
+OBJECTIVES
+--------------
+    Coinpy's main objectives are modularity, decoupling, code readability and minimum dependencies.
+    Performance is only a secondary objective.
+    
+    Long term objectives include experimenting with the following features:
+        - SQL blockchain database.
+        - Parallel transaction verifications & serialisation.
+        - JSON blockchain transport.
+        - Header only client.
+        - Different wallet format.
+        - Support of IronPython, Pypi
+        - Contracts.
+        
+        
+DIRECTORIES
+--------------
+    coinpy-lib/src/coinpy
+        lib            Libraries for bitcoin domains (e.g. serialisation, blockchain, scripting, bootstrapping...) 
+        model        Object model
+        tools        Extra tools not specific to bitcoin.
+        node        Implementation of a bitcoin heivy weight node using lib+model+tools.
+        
+    coinpy-client/src/gui/
+        Bitcoin client using wxpython + coinpylib
+        
+REQUIREMENTS
+--------------
+    python2.6, wxpython2.8
+    
+    
+CONTACTS
+--------------
+
+    christian.bodt.removethis@gmail.com
+    
