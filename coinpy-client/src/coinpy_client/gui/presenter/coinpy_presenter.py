@@ -1,0 +1,87 @@
+# -*- coding:utf-8 -*-
+"""
+Created on 13 Feb 2012
+
+@author: kris
+"""
+from coinpy.tools.reactor.reactor import Reactor
+from coinpy.lib.database.bsddb_env import BSDDBEnv
+from coinpy.model.genesis import GENESIS
+from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
+from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
+from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
+from coinpy.lib.bitcoin.wallet.wallet import Wallet
+from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
+from coinpy.node.bitcoinnode import BitcoinNode
+import threading
+import os
+from coinpy.tools.observer import Observable
+from coinpy.node.network.sockaddr import SockAddr
+from coinpy.node.network.bitcoin_port import BITCOIN_PORT
+from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
+from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
+import wx
+from coinpy_client.gui.view.coinpy_gui import CoinpyGUI
+from coinpy_client.gui.coinpy_service import CoinpyService
+from coinpy_client.gui.presenter.mainwindow_presenter import MainWindowPresenter
+
+class CoinpyPresenter():
+    def __init__(self, nodeparams, data_directory, view=CoinpyGUI()): 
+        self.dbenv_handles = {}
+
+        self.view = view
+        self.log = self.view.get_logger()
+        self.service = CoinpyService(self.log, nodeparams, self.get_dbenv_handle(data_directory), data_directory)
+        self.view.subscribe(self.view.EVT_CMD_CLOSE, self.on_command_close)
+        self.view.mainwindow.subscribe(self.view.mainwindow.EVT_CMD_OPEN_WALLET, self.on_open_wallet)
+        
+        self.mainwindow_presenter = MainWindowPresenter(self.service, view.mainwindow)
+        
+    def get_dbenv_handle(self, directory):
+        normdir = os.path.normcase(os.path.normpath(os.path.abspath(directory)))
+        if normdir not in self.dbenv_handles:
+            self.dbenv_handles[normdir] = BSDDBEnv(normdir)
+        return self.dbenv_handles[normdir]
+        
+    def on_command_close(self, event):
+        self.service.stop(self.on_service_exited)
+        
+    def on_service_exited(self):
+        self.view.stop()
+        
+    def on_open_wallet(self, event):
+        print "opening: %s" % (str(event.file))
+        directory, basename = os.path.split(event.file)
+        self.mainwindow_presenter.open_wallet(self.get_dbenv_handle(directory), basename)
+
+    def run(self):
+        self.service.start()
+        self.view.mainloop()
+       
+if __name__ == '__main__':
+    from coinpy.model.protocol.runmode import MAIN, TESTNET
+    from coinpy.node.config.nodeparams import NodeParams
+    from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
+    import random
+         
+    runmode = TESTNET
+    
+    
+    nodeparams = NodeParams(runmode=runmode,
+                            port=8080,
+                            version=60000,
+                            enabledservices=SERVICES_NODE_NETWORK,
+                            nonce=random.randint(0, 2**64),
+                            sub_version_num="/coinpy:0.0.1/")
+    presenter = CoinpyPresenter(nodeparams, ((runmode == TESTNET) and "data_testnet" or "data_main"))
+    presenter.run()
+
+
+
+
+        #self.mainwindow.subscribe(MainWindow.EVT_CMD_OPEN_WALLET, self.on_command_open_wallet)
+        #self.client.subscribe(BitcoinClient.EVT_WALLET_OPENED, self.on_wallet_opened)
+        
+        #self.mainwindow.node_view.connect_to(self.client.node)
+        
+        #self.app.MainLoop()

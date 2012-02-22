@@ -34,7 +34,7 @@ class VersionExchangeNode(Node):
         status = self.version_statuses[event.source]
         status.version_received = True
         status.version_message = event.message
-        self.log.warning("received version (%s: %d)" % (str(event.source), event.message.version))
+        self.log.info("received version (%s: %d)" % (str(event.source), event.message.version))
         if (not self.is_supported_version(event.message.version)):
             self.log.warning("version %d not supported" % (event.message.version))
             self.remove_peer(event.source.sockaddr)
@@ -45,7 +45,7 @@ class VersionExchangeNode(Node):
         self.check_version_exchanged(event.source)
         
     def __on_verack(self, event):
-        self.log.warning("received verack (%s)" % (str(event.source)))
+        self.log.info("received verack (%s)" % (str(event.source)))
         status = self.version_statuses[event.source]
         #if (not status.sent_version or status.verack_received):
         #    event.source.handle_close()
@@ -93,3 +93,5 @@ class VersionExchangeNode(Node):
          
     def is_supported_version(self, version):
         return (version >= 32000) #or 32200?
+
+

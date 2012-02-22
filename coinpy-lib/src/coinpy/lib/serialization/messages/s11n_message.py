@@ -21,6 +21,8 @@ from coinpy.tools.bitcoin.sha256 import sha256checksum
 from coinpy.lib.serialization.messages.s11n_block import BlockMessageSerializer
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.tools.hex import hexdump
+from coinpy.lib.serialization.messages.s11n_alert import AlertMessageSerializer
+from coinpy.lib.serialization.messages.s11n_ping import PingMessageSerializer
 
 ENCODERS = {MSG_VERSION: VersionMessageSerializer(),
             MSG_VERACK: VerackMessageSerializer(),
@@ -36,8 +38,8 @@ ENCODERS = {MSG_VERSION: VersionMessageSerializer(),
             MSG_CHECKORDER: None,
             MSG_SUBMITORDER: None,
             MSG_REPLY: None,
-            MSG_PING: None,
-            MSG_ALERT: None}
+            MSG_PING: PingMessageSerializer(),
+            MSG_ALERT: AlertMessageSerializer()}
 
 class MessageSerializer(Serializer):
     MESSAGE_HEADER = Structure([Field("<I",  "magic"),
@@ -54,9 +56,7 @@ class MessageSerializer(Serializer):
         result = self.MESSAGE_HEADER.serialize([MAGICS[self.runmode],
                                                 COMMANDS[msg.type],
                                                 len(payload)])
-        #MSG_VERSION, MSG_VERACK exception: no checksum
-        if (msg.type != MSG_VERSION and msg.type != MSG_VERACK):
-            result += sha256checksum(payload)
+        result += sha256checksum(payload)
         result += payload
         return (result)
     
@@ -71,9 +71,9 @@ class MessageSerializer(Serializer):
         if ( ENCODERS[COMMANDS_TYPES[command]] == None):
             raise Exception("Error: Unsupported command : %s" % (command))
         msg_type = COMMANDS_TYPES[command]
-        if (msg_type != MSG_VERSION and msg_type != MSG_VERACK):
-            checksum = data[cursor:cursor+4]
-            cursor += 4
+        #if (msg_type != MSG_VERSION and msg_type != MSG_VERACK):
+        checksum = data[cursor:cursor+4]
+        cursor += 4
         startplayload = cursor 
                 #raise FormatErrorException("Checksum error in command: %s %s != %s" % (command, hexdump1(checksum,""), hexdump1(verify,"")))
              
@@ -84,11 +84,11 @@ class MessageSerializer(Serializer):
         #self.log.debug("Decoding: %s" % (command))
         res, cursor = ENCODERS[COMMANDS_TYPES[command]].deserialize(data, cursor)
         #verify checksum after decoding (required to identify message boundaries)
-        if (msg_type != MSG_VERSION and msg_type != MSG_VERACK):
-            verify = sha256checksum(data[startplayload:cursor])
-            if (checksum != verify):
-                #raise FormatErrorException("Checksum error in command: %s %s != %s" % (command, hexdump1(checksum,""), hexdump1(verify,"")))
-                self.log.warning( "Checksum error in command: %s %s != %s" % (command, hexdump(checksum,""), hexdump(verify,"")))
+        #if (msg_type != MSG_VERSION and msg_type != MSG_VERACK):
+        verify = sha256checksum(data[startplayload:cursor])
+        if (checksum != verify):
+            #raise FormatErrorException("Checksum error in command: %s %s != %s" % (command, hexdump1(checksum,""), hexdump1(verify,"")))
+            self.log.warning( "Checksum error in command: %s %s != %s" % (command, hexdump(checksum,""), hexdump(verify,"")))
         return (res, cursor)  
 
 if __name__ == '__main__':

@@ -103,7 +103,7 @@ class BlockVerifier():
         #Check that all transactions are finalized (can this be done somewhere else?)
         for tx in block.transactions:
             if not tx.isfinal(height, block.blockheader.time):
-                return CheckError("transaction is not final: %s" % str(hash_tx(tx)))
+                raise Exception("transaction is not final: %s" % str(hash_tx(tx)))
     
     def check_checkpoints(self, prevblockiter, hash, block):
         height = prevblockiter.get_height()+1

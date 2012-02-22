@@ -46,7 +46,7 @@ class Node(Observable):
         self.connection_manager.subscribe(ConnectionManager.EVT_ADDED_HANDLER, self.on_added_peer)
         self.connection_manager.subscribe(ConnectionManager.EVT_REMOVED_HANDLER, self.on_removed_peer)
         self.connection_manager.subscribe(ConnectionManager.EVT_DISCONNECTED_HANDLER, self.__on_disconnected)
-        self.reactor.schedule_each(1, self.check_bootstrap)
+        self.reactor.schedule_each(5, self.check_bootstrap)
 
     def __on_connected(self, event):
         event.handler.subscribe(PeerConnection.EVT_NEW_MESSAGE, self.__on_message)

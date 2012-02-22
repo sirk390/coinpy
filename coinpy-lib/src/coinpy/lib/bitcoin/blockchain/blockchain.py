@@ -15,41 +15,76 @@ from coinpy.lib.bitcoin.difficulty import compact_difficulty
 from coinpy.tools.stat import median
 from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
 from coinpy.model.protocol.structures.blocklocator import BlockLocator
+from coinpy.tools.reactor.asynch import asynch_method
+from coinpy.tools.observer import Observable
 
-class Blockchain():
+class Blockchain(Observable):
+    EVT_APPENDED_BLOCK = Observable.createevent()
+    EVT_CONNECTED_BLOCK = Observable.createevent()
+    EVT_DISCONNECTED_BLOCK = Observable.createevent()
+    EVT_SPENT_OUTPUT = Observable.createevent()
+    EVT_UNSPENT_OUTPUT = Observable.createevent()
+    EVT_REORGANIZE = Observable.createevent()
+    EVT_NEW_HIGHEST_BLOCK = Observable.createevent()
+    
     def __init__(self, log, database):
+        super(Blockchain, self).__init__()
         self.log = log
         self.database = database
         self.vm = TxValidationVM()
-
+    
+    def contains_transaction(self, transaction_hash):
+        return self.database.contains_transaction(transaction_hash)
+        
+    def get_transaction_handle(self, transaction_hash):
+        return self.database.get_transaction_handle(transaction_hash)
+    
     def get_branch(self, lasthash, firsthash=None):
         return Branch(self.log, self.database, lasthash, firsthash)
-           
-    def appendblock(self, blockhash, block, callback, args):
+     
+    @asynch_method      
+    def appendblock(self, blockhash, block):
         self.database.begin_updates()
         try:
             prev = self.database.get_block_handle(block.blockheader.hash_prev)
-            if not prev.is_mainchain():
+            append_altbranch, reorganize = not prev.is_mainchain(), False
+            if append_altbranch:
                 mainchain_parent = self.get_mainchain_parent(prev.hash)
                 altchain = self.get_branch(prev.hash, mainchain_parent.hash)
                 mainchain = self.get_branch(self.database.get_mainchain(), mainchain_parent.hash)
                 if (altchain.work() + block.blockheader.work() > mainchain.work()):
+                    reorganize = True
                     self.database.set_mainchain(prev.hash)
                     for block in mainchain:
                         self._disconnect_block(block)
                     for block in altchain:
-                        self._connect_block(block)
+                        yield self._connect_block(block)
                     
             block_handle = self.database.append_block(blockhash, block)
-            self._connect_block(block_handle)
+            yield self._connect_block(block_handle)
         except Exception as err:
             self.log.error(traceback.format_exc())
             self.database.cancel_updates()
-            callback(*args, error=err)
-            return
+            raise
         self.database.commit_updates()
-        callback(*(args +(block_handle,)))
-    
+        # fire events after commit
+        if (reorganize):
+            self.fire(self.EVT_REORGANIZE)
+        if not append_altbranch:
+            self.fire(self.EVT_APPENDED_BLOCK, block=block, blockhash=blockhash)
+            self._fire_connect_block_events(block, blockhash)
+        self.fire(self.EVT_NEW_HIGHEST_BLOCK, block=block, blockhash=blockhash, height=block_handle.get_height())
+        yield block_handle
+        
+    def _fire_connect_block_events(self, block, blockhash):
+        self.fire(self.EVT_CONNECTED_BLOCK, block=block, blockhash=blockhash)
+        for tx in block.transactions:
+            if not tx.iscoinbase():
+                for index in range(len(tx.in_list)):
+                    #txhash = hash_tx(tx)
+                    handle = self.database.get_transaction_handle(tx.in_list[index].previous_output.hash)
+                    self.fire(self.EVT_SPENT_OUTPUT, txhash=handle.hash, index=index)
+        
     def contains_transaction(self, txhash):
         return self.database.contains_transaction(txhash)
     
@@ -66,14 +101,16 @@ class Blockchain():
                 tx = self.database.get_transaction_handle(txin.previous_output.hash)
                 tx.mark_spent(txin.prevout.n, False)
 
+    @asynch_method      
     def _connect_block(self, block_handle):
-        self.log.info("Connecting block : %d (%d transactions)" % (block_handle.get_height(), len(block_handle.get_block().transactions)))    
+        #self.log.info("Connecting block : %d (%d transactions)" % (block_handle.get_height(), len(block_handle.get_block().transactions)))    
         for tx in block_handle.get_block().transactions:
             if not tx.iscoinbase():
                 txhash = hash_tx(tx)
                 for index in range(len(tx.in_list)):
-                    self._connect_txin(tx, txhash, index, block_handle)
+                    yield self._connect_txin(tx, txhash, index, block_handle)
                     
+    @asynch_method      
     def _connect_txin(self, tx, txhash, index, block_handle):
         txin = tx.in_list[index]
         #fetch inputs
@@ -93,7 +130,8 @@ class Blockchain():
         #mark spent
         txprev_handle.mark_spent(txin.previous_output.index, True, txhash)
         #self.log.info("txin %s:%d connected" % (str(txin.previous_output.hash), txin.previous_output.index))    
-
+        yield None
+        
     def get_mainchain_parent(self, blockhash):
         handle = self.database.get_block_handle(blockhash)
         while not handle.is_mainchain() and handle.hasprev():

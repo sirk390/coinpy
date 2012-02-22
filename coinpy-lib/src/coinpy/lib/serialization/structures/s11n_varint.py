@@ -37,7 +37,7 @@ class VarintSerializer(Serializer):
         cursor += 1
         if (prefix < 0xFD):
             return (prefix, cursor)
-        if (len(data) - cursor < {0xFD: 2, 0xFD: 4, 0xFD: 8}[prefix]):
+        if (len(data) - cursor < {0xFD: 2, 0xFE: 4, 0xFF: 8}[prefix]):
             raise MissingDataException("Decoding error: not enough data for varint of type : %d" % (prefix))
         if (prefix == 0xFD):
             return (struct.unpack_from("<H", data, cursor)[0], cursor + 2)

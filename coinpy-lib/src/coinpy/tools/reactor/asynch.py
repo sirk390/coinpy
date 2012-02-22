@@ -5,55 +5,92 @@ Created on 16 Feb 2012
 @author: kris
 """
 import types
+import traceback
 
-class Asynch():
-    def __init__(self, coroutine, arg = None):
-        self.coroutine = [coroutine()]
-        self.args = [arg]
-        self.iscompleted = False
+class Asynch(object):
+    def __init__(self, coroutine, callback=None, callback_args=[]):
+        self.coroutine = coroutine
+        self.stack = [self.coroutine]
+        self.value = None
+        self.completed = False
         self.return_value = None
+        self.callback = callback
+        self.callback_args = callback_args
         
     def run(self):
         try:
-            result = self.coroutine[-1].send(self.args[-1])
-            if type(result) is types.GeneratorType:
-                self.coroutine.append(result)
-                self.args.append(None)
+            result = self.stack[-1].send(self.value)
+            if type(result) is Asynch:
+                self.stack.append(result.coroutine)
+                self.value = None
             else:
-                self.args[-1] = result  
+                self.value = result  
                 
         except StopIteration as e:
-            if (len(self.coroutine) == 1):
-                self.iscompleted = True
-                self.return_value = self.args[-1]
+            if (len(self.stack) == 1):
+                self.completed = True
+                self.return_value = self.value
+                if self.callback:
+                    self.callback(result=self.return_value, *self.callback_args)
             else:
-                self.coroutine.pop()
-                result = self.args.pop()
-                self.args[-1] = result
-                            
-    def completed(self):
-        return self.iscompleted
-
+                self.stack.pop()
+        except Exception as e:
+            if self.callback:
+                self.callback(error=e, *self.callback_args)
+            else:
+                raise
+    def run_synchronously(self):
+        while not self.completed:
+            self.run()
+        return self.return_value
+    
+def asynch_method(method):
+    """Decorator for async methods"""
+    def new_method(*args):
+        return Asynch(method(*args))
+    return new_method
 
 if __name__ == '__main__':
-    #Example usage
+    #Example 
     def slow_func_0_1(x):
+        print "slow_func_0_1"
         return x + 1
     def slow_func_0_2(x):
+        print "slow_func_0_2"
         return x + 1
+    
+    @asynch_method
     def slow_func1(x):
+        print "slow_func1"
         x = yield slow_func_0_1(x)
         x = yield slow_func_0_2(x)
         yield x
+
+    @asynch_method
     def slow_func2(x):
-        yield x * 2
-    def asynch_func1():
-        a = yield slow_func1(1)
-        b = yield slow_func2(a)
-        yield b
+        print "slow_func2"
+        raise Exception("test")
     
-    a = Asynch(asynch_func1)
-    while not a.completed():
+    @asynch_method
+    def asynch_func1(a):
+        print "asynch_func1"
+        b = yield slow_func1(a)
+        b = 9
+        try:
+            c = yield slow_func2(b)
+        except:
+            print "error"
+            c = 9
+        yield c
+        
+    def print_result_callback(result=None, error=None):
+        if error:
+            raise error
+        print "result", result
+
+    a = asynch_func1(1)
+    a.callback = print_result_callback
+    while not a.completed:
         a.run()
     print a.return_value
     

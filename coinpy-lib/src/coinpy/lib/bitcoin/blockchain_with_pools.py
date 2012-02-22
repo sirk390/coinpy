@@ -11,6 +11,8 @@ from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK
 from coinpy.lib.bitcoin.pools.blockpool import BlockPool
 
 from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
+from coinpy.tools.reactor.asynch import asynch_method
+from collections import deque
 
 class BlockchainWithPools(Observable):
     EVT_MISSING_BLOCK = Observable.createevent()
@@ -30,18 +32,21 @@ class BlockchainWithPools(Observable):
         
         self.blockverifier = BlockVerifier(self.runmode)
         
+        self.add_blockchain_queue = deque()
+        
     def verified_add_tx(self, item):
         self.log.info("Adding tx %s" % str(item))
 
     
     """
+        Asynch method: send to reactor.call_asych( )
         Adds a block to the BlockchainWithPools
             returns: tuple(missing_blocks, errorneous_blocks)
     """
-    def add_block(self, sender, hash, block, callback, args):
+    @asynch_method
+    def add_block(self, sender, hash, block):
         if self.contains_block(hash):
-            callback(*args, error =  Exception("Block allready added : %s" % (str(hash))))
-            return
+            raise Exception("Block allready added : %s" % (str(hash)))
         #Checks-1 (done before finding the parent block) (main.cpp:1392)
         self.blockverifier.basic_checks(hash, block)
         #Find parent block in blockchain or declare orphan.
@@ -50,19 +55,15 @@ class BlockchainWithPools(Observable):
             self.orphanblocks.add_block(sender, hash, block)
             sender, missing_hash = self.orphanblocks.get_missing_root()
             self.fire(self.EVT_MISSING_BLOCK, peer=sender, missing_hash=missing_hash)
-            callback(*args)
             return
         #Checks-2 (done after finding the parent block)
         #TODO: Check timestamp
         #if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
-        #return error("CheckBlock() : block timestamp too far in the future");       
-        blockhandle = self.blockchain.appendblock(hash, block, self._appendblock_done, (callback, args))
-        
-    def _appendblock_done(self, callback, args, blockhandle=None, error=None):
-        #if blockhandle.get_height() % 1 == 0:
-        if not error:
-            self.log.info("Appended block %d prev:%s, hash=%s" % (blockhandle.get_height(), str(blockhandle.get_blockheader().hash_prev), str(blockhandle.hash)))
-        callback(*args, error=error)
+        #return error("CheckBlock() : block timestamp too far in the future");     
+        #yield self.add_blockchain_queue.append([hash, block])
+        yield self.blockchain.appendblock(hash, block)
+        #self.log.info("Appended block %d prev:%s, hash=%s" % (blockhandle.get_height(), str(blockhandle.get_blockheader().hash_prev), str(blockhandle.hash)))
+        #yield blockhandle
         
     def contains_transaction(self, hash):
         return (self.blockchain.contains_transaction(hash) or 
@@ -82,4 +83,3 @@ class BlockchainWithPools(Observable):
         if (item.type == INV_BLOCK):
             return (self.has_block(item.hash))
         raise ("Unkwnow item type")
-

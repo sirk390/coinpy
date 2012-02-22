@@ -39,7 +39,7 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         self.names = {}
         self.settings = []
         self.txs = {}
-        self.pool = {}
+        self.poolkeys = {}
     
     def _read_entries(self, label):
         for key, value in self.db.items():
@@ -70,8 +70,8 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
             poolnum, = struct.unpack_from("<I", key, key_cursor)
             version, = struct.unpack_from("<I", value, 0)
             time, = struct.unpack_from("<q", value, 4)
-            hash, _ = self.uint256_serializer.deserialize(value, 12)
-            self.pool[poolnum] = WalletPoolKey(poolnum, version, time, hash)
+            public_key, _ = self.varstr_serializer.deserialize(value, 12)
+            self.poolkeys[poolnum] = WalletPoolKey(poolnum, version, time, public_key)
         
     def _read_wallet(self):
         self.reset_wallet()
@@ -88,6 +88,9 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
 
     def get_names(self):
         return self.names
+    
+    def get_poolkeys(self):
+        return self.poolkeys
     
     def begin_updates(self):
         pass

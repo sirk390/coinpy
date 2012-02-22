@@ -9,6 +9,7 @@ import collections
 import time
 import heapq
 import threading
+import sys
 
 
 
@@ -37,7 +38,7 @@ class Reactor():
         item = (fn, args)
         self.workqueue.append(item)
     
-    def run_asynch(self, asynch):
+    def call_asynch(self, asynch):
         self.asynchs.append(asynch)
         
     def schedule_each(self, seconds, fn, *args):
@@ -51,7 +52,7 @@ class Reactor():
         work_completed = True
         while not self.terminate:
             #process asyncore network loop
-            asyncore.loop(timeout=(work_completed and 1 or 0), count=1)
+            asyncore.loop(timeout=(1 if work_completed else 0.001), count=1)
             #process all workqueue items
             while (len(self.workqueue) > 0):
                 fn, args = self.workqueue.popleft()
@@ -62,11 +63,15 @@ class Reactor():
             while (len(self.asynchs) > 0 and (t <= (start_time + 0.2)) ): 
                 task = self.asynchs.popleft()
                 task.run()
-                if not task.completed():
+                if not task.completed:
                     self.asynchs.append(task)
                 nbiterate += 1
-                if nbiterate % 1000 == 0:
+                if nbiterate % 10 == 0:
                     t = time.time()
+            
+            #if nbiterate > 1:
+            #    print "reactor executed %d asynch tasks" % (nbiterate)
+            #print nbiterate
             work_completed = len(self.asynchs) == 0
             #process scheduled items
             t = time.time()
@@ -75,12 +80,16 @@ class Reactor():
                 fn, args = item
                 fn(*args)
                 heapq.heappush(self.scheduled_workqueue, (t + self.scheduled_tasks[item], item)) 
-    
+            
+        if self.stopped_callback:
+            self.stopped_callback()
+              
     def start(self):
         self.thread.start()
-    def stop(self):
+        
+    def stop(self, stopped_callback):
         self.terminate = True
-        self.thread.join()
+        self.stopped_callback = stopped_callback
 
 
 if __name__ == '__main__':
@@ -101,7 +110,7 @@ if __name__ == '__main__':
         yield b
     reactor = Reactor()
     a = Asynch(asynch_func1)
-    reactor.run_asynch(a)
+    reactor.call_asych(a)
     
     reactor.start()
     while not a.completed():

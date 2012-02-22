@@ -34,7 +34,7 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         
         self.connection_factory = connection_factory
         self.reactor = reactor
-        self.reactor.schedule_each(1, self.reconnect_peers)
+        self.reactor.schedule_each(PEER_RECONNECT_INTERVAL, self.reconnect_peers)
        
     def add_peer_address(self, addr):
         self.known_peer_addresses.add(addr)

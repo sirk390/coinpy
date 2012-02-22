@@ -19,3 +19,8 @@ def decode_base58check(data):
         raise Exception("base58check: checksum error %s != %s", (check, digest2))
     return (content)
 
+def encode_base58check(content):
+    digest1 = SHA256.new(content).digest()
+    digest2 = SHA256.new(digest1).digest()
+    return (b58encode(content + digest2[:4]))
+
