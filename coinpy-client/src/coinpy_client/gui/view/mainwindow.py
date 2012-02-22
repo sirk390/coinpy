@@ -16,7 +16,7 @@ from coinpy_client.gui.view.node_view import NodeView
 
 class MainWindow(wx.Frame, Observable):
     EVT_CMD_OPEN_WALLET = Observable.createevent()
-    EVT_CMD_EXIT = Observable.createevent()
+    EVT_CMD_CLOSE = Observable.createevent()
     
     def __init__(self, parent, id=-1, title="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE |
@@ -32,7 +32,7 @@ class MainWindow(wx.Frame, Observable):
         file_menu.Append(wx.ID_OPEN, "Open")
         self.Bind(wx.EVT_MENU, self.on_open_wallet, id=wx.ID_OPEN)
         file_menu.Append(wx.ID_EXIT, "Exit")
-        self.Bind(wx.EVT_MENU, self.on_exit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_MENU, self.on_exit_menu, id=wx.ID_EXIT)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
         window_menu = wx.Menu()
@@ -83,14 +83,25 @@ class MainWindow(wx.Frame, Observable):
             style=wx.OPEN | wx.CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
             self.fire(self.EVT_CMD_OPEN_WALLET, file=dlg.GetPath())
-    
-    def add_wallet(self, filename, wallet):
-        self.nb_wallet.add_wallet(filename, wallet)
-    
-    def on_exit(self, event):
+    """    
+    def add_wallet(self, filename, wallet, balance):
+        self.nb_wallet.add_wallet(filename, wallet, balance)
+    """
+
+    def on_exit_menu(self, event):
         self.Close()   
         
     def on_close(self, event):
-        self.fire(self.EVT_CMD_EXIT)
+        #self.Destroy()
+        self.fire(self.EVT_CMD_CLOSE)
         
+
+
+#self.app = wx.App(False) #turn of graphical error console
         
+if __name__ == '__main__':
+    app = wx.App(False)
+    mainwindow = MainWindow(None)
+    mainwindow.Show()
+    app.MainLoop()
+       

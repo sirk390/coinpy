@@ -8,7 +8,7 @@ import wx
 
 class AddressBookPanel(wx.Panel):
     def __init__(self, parent):
-        super(AddressBookPanel, self).__init__(parent, style=wx.SIMPLE_BORDER)
+        super(AddressBookPanel, self).__init__(parent) #, style=wx.SIMPLE_BORDER
         
         self.list = wx.ListCtrl(self,style=wx.LC_REPORT, size=(400,100))
         self.list.InsertColumn(0, "Name")

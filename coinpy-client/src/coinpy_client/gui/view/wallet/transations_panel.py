@@ -8,7 +8,7 @@ import wx
 
 class TransactionsPanel(wx.Panel):
     def __init__(self, parent):
-        super(TransactionsPanel, self).__init__(parent, style=wx.SIMPLE_BORDER)
+        super(TransactionsPanel, self).__init__(parent) #, style=wx.SIMPLE_BORDER
         
         self.list = wx.ListCtrl(self,style=wx.LC_REPORT, size=(400,100))
         self.list.InsertColumn(0, "Date")
@@ -17,6 +17,6 @@ class TransactionsPanel(wx.Panel):
         
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
         self.sizer.Add(wx.StaticText(self, -1, "Transactions: "))
-        self.sizer.Add(self.list, 0, wx.EXPAND)
+        self.sizer.Add(self.list, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
         
