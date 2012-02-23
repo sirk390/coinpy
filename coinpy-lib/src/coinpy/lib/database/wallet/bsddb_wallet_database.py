@@ -5,7 +5,6 @@ Created on 11 Feb 2012
 @author: kris
 """
 from coinpy.lib.database.bsddb_env import BSDDBEnv
-from coinpy.model.wallet.wallet_tx import WalletTx
 from coinpy.model.wallet.wallet_keypair import WalletKeypair
 from coinpy.model.wallet.wallet_name import WalletName
 import struct
@@ -120,10 +119,10 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         self.db["\x09bestblock"] = serializer.serialize(blocklocator)  
     
     def __str__(self):
-        keys_str = "\n".join("    " + str(k) for k in self.keys.values())
-        pool_keys_str = "\n".join("    " + str(k) for k in self.pool.values())
-        names_str = "\n".join("    " + str(k) for k in self.names.values())
-        tx_str = "\n".join("    " + str(k) for k in self.txs.values())
+        keys_str = "\n".join("    " + str(k) for k in self.get_keypairs())
+        pool_keys_str = "\n".join("    " + str(k) for k in self.get_poolkeys())
+        names_str = "\n".join("    " + str(k) for k in self.get_names())
+        tx_str = "\n".join("    " + str(k) for k in self.get_wallet_txs())
         return "Wallet\n  keys:\n" + keys_str +  "pool:\n" + pool_keys_str + "\n  names:\n" + names_str + "\n  txs:\n" + tx_str
         
 if __name__ == '__main__':
