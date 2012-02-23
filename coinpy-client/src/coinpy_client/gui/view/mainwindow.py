@@ -14,6 +14,9 @@ from coinpy.tools.observer import Observable
 import os
 from coinpy_client.gui.view.node_view import NodeView
 
+
+
+
 class MainWindow(wx.Frame, Observable):
     EVT_CMD_OPEN_WALLET = Observable.createevent()
     EVT_CMD_CLOSE = Observable.createevent()
@@ -25,30 +28,40 @@ class MainWindow(wx.Frame, Observable):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
         Observable.__init__(self)
     
-        # create menus
+        # Create Menu
         mb = wx.MenuBar()
 
+        # File
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, "Open")
         self.Bind(wx.EVT_MENU, self.on_open_wallet, id=wx.ID_OPEN)
         file_menu.Append(wx.ID_EXIT, "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit_menu, id=wx.ID_EXIT)
         self.Bind(wx.EVT_CLOSE, self.on_close)
-
+        
+        # Window
+        ID_MENU_SHOWHIDE_CONNECTIONS = wx.NewId()
+        ID_MENU_SHOWHIDE_LOGS = wx.NewId()
         window_menu = wx.Menu()
+        self.mi_showhide_connections = window_menu.Append(ID_MENU_SHOWHIDE_CONNECTIONS, "Connections", kind=wx.ITEM_CHECK)
+        self.mi_showhide_connections.Check(True)
+        self.mi_showhide_logs = window_menu.Append(ID_MENU_SHOWHIDE_LOGS, "Logs", kind=wx.ITEM_CHECK)
+        self.mi_showhide_logs.Check(True)
         mb.Append(file_menu, "File")
         mb.Append(window_menu, "Window")
-        
         self.SetMenuBar(mb)
+        self.Bind(wx.EVT_MENU, self.on_showhide_connections, id=ID_MENU_SHOWHIDE_CONNECTIONS)
+        self.Bind(wx.EVT_MENU, self.on_showhide_logs, id=ID_MENU_SHOWHIDE_LOGS)
 
         
-        # create child windows
+        # Create Child Windows
         self._mgr = wx.aui.AuiManager()
         self._mgr.SetManagedWindow(self)
         
         self.nb_wallet = WalletNotebook(self)
         self.log_panel = LogPanel(self)
         self.node_view = NodeView(self)
+        
         self._mgr.AddPane(self.nb_wallet, wx.aui.AuiPaneInfo().
                   Name("wallet_notebook").Caption("Wallet Notebook").
                   CenterPane())
@@ -58,10 +71,20 @@ class MainWindow(wx.Frame, Observable):
         self._mgr.AddPane(self.node_view, wx.aui.AuiPaneInfo().
                   Name("node").Caption("Connections").
                   Right())
+        
+        self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self.on_close_pane)
         self._mgr.Update()
-        # create statusbar
+        #Statusbar
         self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
-    
+        
+        
+    def add_child_frame(self, childclass, title):
+        child_frame = wx.aui.AuiMDIChildFrame(self, -1, title=title)
+        child_inst = childclass()
+        sizer = wx.BoxSizer()
+        sizer.Add(child_inst, 1, wx.EXPAND)
+        child_frame.SetSizer(sizer)
+        
     def get_logger(self):
         logger = logging.getLogger(name="coinpy")
         logger.setLevel(logging.DEBUG)
@@ -94,8 +117,31 @@ class MainWindow(wx.Frame, Observable):
     def on_close(self, event):
         #self.Destroy()
         self.fire(self.EVT_CMD_CLOSE)
+    
+    def on_close_pane(self, event):
+        pane = event.GetPane()
+        if pane.name == 'node':
+            self.mi_showhide_connections.Check(False)
+        if pane.name == 'logs':
+            self.mi_showhide_logs.Check(False)
+    
+    def showhide_pane(self, pane_name, menuitem):
+        pane = self._mgr.GetPane(pane_name)
+        isvisible = pane.IsShown()
+        if (isvisible):
+            pane.Hide()
+            menuitem.Check(False)
+        else:
+            pane.Show()
+            menuitem.Check(True)
+        self._mgr.Update()
         
-
+    def on_showhide_connections(self, event):
+        self.showhide_pane("node", self.mi_showhide_connections)
+        
+    def on_showhide_logs(self, event):
+        self.showhide_pane("logs", self.mi_showhide_logs)
+    
 
 #self.app = wx.App(False) #turn of graphical error console
         
