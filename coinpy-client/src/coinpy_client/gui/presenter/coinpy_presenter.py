@@ -26,23 +26,14 @@ from coinpy_client.gui.coinpy_service import CoinpyService
 from coinpy_client.gui.presenter.mainwindow_presenter import MainWindowPresenter
 
 class CoinpyPresenter():
-    def __init__(self, nodeparams, data_directory, view=CoinpyGUI()): 
-        self.dbenv_handles = {}
-
+    def __init__(self, service, view): 
+        self.service = service
         self.view = view
-        self.log = self.view.get_logger()
-        self.service = CoinpyService(self.log, nodeparams, self.get_dbenv_handle(data_directory), data_directory)
         self.view.subscribe(self.view.EVT_CMD_CLOSE, self.on_command_close)
         self.view.mainwindow.subscribe(self.view.mainwindow.EVT_CMD_OPEN_WALLET, self.on_open_wallet)
         
         self.mainwindow_presenter = MainWindowPresenter(self.service, view.mainwindow)
-        
-    def get_dbenv_handle(self, directory):
-        normdir = os.path.normcase(os.path.normpath(os.path.abspath(directory)))
-        if normdir not in self.dbenv_handles:
-            self.dbenv_handles[normdir] = BSDDBEnv(normdir)
-        return self.dbenv_handles[normdir]
-        
+      
     def on_command_close(self, event):
         self.service.stop(self.on_service_exited)
         
@@ -52,7 +43,7 @@ class CoinpyPresenter():
     def on_open_wallet(self, event):
         print "opening: %s" % (str(event.file))
         directory, basename = os.path.split(event.file)
-        self.mainwindow_presenter.open_wallet(self.get_dbenv_handle(directory), basename)
+        self.mainwindow_presenter.open_wallet(self.service.get_dbenv_handle(directory), basename)
 
     def run(self):
         self.service.start()

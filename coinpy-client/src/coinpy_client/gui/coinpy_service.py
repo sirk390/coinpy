@@ -17,12 +17,14 @@ from coinpy.lib.database.bsddb_env import BSDDBEnv
 import os
 
 class CoinpyService():
-    def __init__(self, log, nodeparams, dbenv, data_directory): 
+    def __init__(self, log, nodeparams, data_directory): 
         self.nodeparams = nodeparams
         self.log = log
         self.reactor = Reactor()
+        self.dbenv_handles = {}
+        self.dbenv = self.get_dbenv_handle(data_directory)
         #blockchain database
-        self.database = BSDDbBlockChainDatabase(self.log, dbenv, self.nodeparams.runmode, data_directory)
+        self.database = BSDDbBlockChainDatabase(self.log, self.dbenv, self.nodeparams.runmode, data_directory)
         self.database.open_or_create(GENESIS[self.nodeparams.runmode])
         self.blockchain = Blockchain(self.log, self.database)
         self.blockchain_with_pools = BlockchainWithPools(self.blockchain, self.log)
@@ -34,7 +36,13 @@ class CoinpyService():
         self.node.subscribe(BitcoinNode.EVT_NEED_BOOTSTRAP, self.on_need_peers)
         #TMP: Add seed peer
         self.node.add_peer_address(SockAddr("127.0.0.1", BITCOIN_PORT[self.nodeparams.runmode]))
-            
+
+    def get_dbenv_handle(self, directory):
+        normdir = os.path.normcase(os.path.normpath(os.path.abspath(directory)))
+        if normdir not in self.dbenv_handles:
+            self.dbenv_handles[normdir] = BSDDBEnv(normdir)
+        return self.dbenv_handles[normdir]
+              
     def on_found_peer(self, event):
         #self.log.info("Found peers: %s" % (str(event.peeraddress)))
         self.node.add_peer_address(event.peeraddress)
