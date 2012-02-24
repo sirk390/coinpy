@@ -12,19 +12,23 @@ import random
 from coinpy_client.gui.presenter.coinpy_presenter import CoinpyPresenter
 from coinpy_client.gui.view.coinpy_gui import CoinpyGUI
 from coinpy_client.gui.coinpy_service import CoinpyService
+    
+def main(runmode):
+    data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
+    nodeparams = NodeParams(runmode=runmode,
+                            port=8080,
+                            version=60000,
+                            enabledservices=SERVICES_NODE_NETWORK,
+                            nonce=random.randint(0, 2**64),
+                            sub_version_num="/coinpy:0.0.1/")
+    
+    view = CoinpyGUI()
+    
+    service = CoinpyService(view.get_logger(), nodeparams, data_directory)
      
-runmode = TESTNET
-data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
-nodeparams = NodeParams(runmode=runmode,
-                        port=8080,
-                        version=60000,
-                        enabledservices=SERVICES_NODE_NETWORK,
-                        nonce=random.randint(0, 2**64),
-                        sub_version_num="/coinpy:0.0.1/")
+    presenter = CoinpyPresenter(service, view)
+    presenter.run()
 
-view = CoinpyGUI()
-
-service = CoinpyService(view.get_logger(), nodeparams, data_directory)
- 
-presenter = CoinpyPresenter(service, view)
-presenter.run()
+if __name__ == '__main__':
+    main(runmode=TESTNET)
+    
