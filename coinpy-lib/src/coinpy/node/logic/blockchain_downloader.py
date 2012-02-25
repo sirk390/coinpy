@@ -49,7 +49,7 @@ class BlockchainDownloader():
         peer_heigth = event.version_message.start_height
         my_height = self.blockchain_with_pools.blockchain.get_height()
         if (peer_heigth > my_height and self.firstrequest):
-            self.push_getblocks(event.handler, uint256(0))
+            self.push_getblocks(event.handler, uint256.zero())
             self.firstrequest = False
 
     """def on_inv(self, peer, item):
@@ -142,5 +142,4 @@ class BlockchainDownloader():
                 self.requested_tx.add(item.hash)
             if (item.type == INV_BLOCK):
                 self.requested_blocks.add(item.hash)
-
 

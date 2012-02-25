@@ -13,7 +13,7 @@ class msg_getblocks()
 Example:
     getblocks = msg_getblocks(32200, 
               [uint256.from_hexstr("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")], #genesis
-              uint256(0),
+               uint256.zero(),
               )
     peer.send_message(getblocks)
 '''

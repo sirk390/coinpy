@@ -28,8 +28,8 @@ MAX_BLOCK_SIZE = 1000000
 #MAX_BLOCK_SIZE
 
 
-PROOF_OF_WORK_LIMIT = {MAIN:     uint256((1 << (256 - 32)) - 1),     #~uint256(0) >> 32
-                       TESTNET : uint256((1 << (256 - 28)) - 1)} #~uint256(0) >> 28
+PROOF_OF_WORK_LIMIT = {MAIN:     uint256.from_bignum((1 << (256 - 32)) - 1), #~uint256(0) >> 32
+                       TESTNET : uint256.from_bignum((1 << (256 - 28)) - 1)} #~uint256(0) >> 28
 
 def is_money_range(value):
     return (value >= 0 and value <= MAX_MONEY)

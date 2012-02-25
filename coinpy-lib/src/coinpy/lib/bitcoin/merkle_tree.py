@@ -9,7 +9,7 @@ from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.model.protocol.structures.uint256 import uint256
 
 """
-    hashes: list of byte string hashes ( use uint256.to_bytestr() )
+    hashes: list of byte string hashes ( use uint256.get_bytestr() )
 """
 def next_merkle_level(hashes):
     n = len(hashes)
@@ -25,7 +25,7 @@ def next_merkle_level(hashes):
         
 
 def compute_merkle_root(block):
-    hashes = [hash_tx(tx).to_bytestr() for tx in block.transactions]
+    hashes = [hash_tx(tx).get_bytestr() for tx in block.transactions]
     while (len(hashes) != 1):
         hashes = next_merkle_level(hashes)
 

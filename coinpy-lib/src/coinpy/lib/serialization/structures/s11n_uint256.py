@@ -14,7 +14,7 @@ class Uint256Serializer(Serializer):
         self.desc = desc
 
     def serialize(self, uint256val):
-        return (struct.pack("32s", uint256val.to_bytestr()))
+        return (struct.pack("32s", uint256val.get_bytestr()))
     
     def get_size(self, value):
         return (32)

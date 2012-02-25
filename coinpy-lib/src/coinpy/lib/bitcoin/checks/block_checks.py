@@ -40,7 +40,7 @@ class BlockVerifier():
     
     def check_proof_of_work(self, hash, block):
         target = block.blockheader.target()
-        if (target <= uint256(0) or target > PROOF_OF_WORK_LIMIT[self.runmode]):
+        if (target <= uint256.zero() or target > PROOF_OF_WORK_LIMIT[self.runmode]):
             raise Exception("proof of work: value out of range : %x" % (block.blockheader.bits))
         if (hash > target):
             raise Exception("proof of work: hash doesn't match target hash:%s, target:%s" % (hash, target))

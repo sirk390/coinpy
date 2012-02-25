@@ -13,7 +13,7 @@ class outpoint():
         self.hash = hash  
         self.index = index          
     def is_null(self):
-        return (self.hash == uint256(0) and self.index == NULL_OUTPOINT_INDEX)
+        return (self.hash == uint256.zero() and self.index == NULL_OUTPOINT_INDEX)
     def __eq__(self, other):
         return (self.hash == other.hash and self.index == other.index)
     

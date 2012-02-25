@@ -15,7 +15,7 @@ class BlockHeader():
 
     def target(self):
         exp, value = self.bits >> 24, self.bits & 0xFFFFFF
-        return uint256(value * 2**(8*(exp - 3)))
+        return uint256.from_bignum(value * 2**(8*(exp - 3)))
                             
     def work(self):
         return ((1 << 256) / (self.target().value + 1))

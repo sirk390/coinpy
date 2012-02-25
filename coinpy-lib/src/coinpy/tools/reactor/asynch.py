@@ -36,7 +36,7 @@ class Asynch(object):
                 self.stack.pop()
         except Exception as e:
             if self.callback:
-                self.callback(error=e, *self.callback_args)
+                self.callback(error=traceback.format_exc(), *self.callback_args)
             else:
                 raise
     def run_synchronously(self):
