@@ -20,28 +20,35 @@ def op_hash160(vm, instr):
 
 def checksig(vm, sig, pubkey):
     transaction, inputindex, unspent_script = vm.checksig_data
-    #hash type is the last byte of the signature
+    #Hash type is the last byte of the signature
     hash_type, sig = sig[-1], sig[:-1]
-    #Make a copy of the current transaction
-    tx_tmp = copy.deepcopy(transaction)
-    #blank out inputs
-    for txin in tx_tmp.in_list:
+   
+    # For performance reasons no full copy is made of the transaction
+    # although it would be simpler to understand.
+    # e.g. tx_tmp = copy.deepcopy(transaction)
+    # The input scripts are saved and then restored.
+
+    #Save input scripts to restore them later
+    inscripts = [txin.script for txin in transaction.in_list]
+    #Blank out inputs
+    #TODO: blank out depending of hash_type (SIGHASH_NONE, SIGHASH_SINGLE, SIGHASH_ANYONECANPAY)
+    for txin in transaction.in_list:
         txin.script = Script([])
     #except the current one that is replaced by the unspent_script
-    
-    
-    tx_tmp.in_list[inputindex].script =  unspent_script
-    #todo: blank out depending of hash_type (SIGHASH_NONE, SIGHASH_SINGLE, SIGHASH_ANYONECANPAY)
-     
-    #append hash type
-    enctx = TxSerializer().serialize(tx_tmp) + b"\x01\x00\x00\x00"
-    #get hash 
+    transaction.in_list[inputindex].script =  unspent_script
+    #Serialize and append hash type
+    enctx = TxSerializer().serialize(transaction) + b"\x01\x00\x00\x00"
+    #Get hash 
     hash = doublesha256(enctx)
-    #verify
+    #Verify
     key = KEY()
     key.set_pubkey(pubkey)
     #ECDSA_verify: 1 = OK, 0=NOK, -1=ERROR
-    return (key.verify(hash, sig) == 1)
+    result = key.verify(hash, sig) == 1
+    #Restore transaction scripts
+    for txin, script in zip(transaction.in_list,inscripts):    
+        txin.script = script
+    return (result)
 
 def check_multisig(vm, sigs, pubkeys):
     while len(sigs) > 0:
