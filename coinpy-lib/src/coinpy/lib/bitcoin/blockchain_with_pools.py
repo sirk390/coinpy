@@ -41,7 +41,6 @@ class BlockchainWithPools(Observable):
     """
         Asynch method: send to reactor.call_asych( )
         Adds a block to the BlockchainWithPools
-            returns: tuple(missing_blocks, errorneous_blocks)
     """
     @asynch_method
     def add_block(self, sender, hash, block):
@@ -60,10 +59,8 @@ class BlockchainWithPools(Observable):
         #TODO: Check timestamp
         #if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
         #return error("CheckBlock() : block timestamp too far in the future");     
-        #yield self.add_blockchain_queue.append([hash, block])
         yield self.blockchain.appendblock(hash, block)
         #self.log.info("Appended block %d prev:%s, hash=%s" % (blockhandle.get_height(), str(blockhandle.get_blockheader().hash_prev), str(blockhandle.hash)))
-        #yield blockhandle
         
     def contains_transaction(self, hash):
         return (self.blockchain.contains_transaction(hash) or 
