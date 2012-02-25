@@ -37,7 +37,9 @@ class BlockheaderSerializer(Serializer):
                                             blockheader.nonce]))
 
     def deserialize(self, data, cursor=0):
-        (version, hash_prev, hash_merkle, time, bits, nonce), cursor = self.BLOCKHEADER.deserialize(data, cursor)
-        return (BlockHeader(version, hash_prev, hash_merkle, time, bits, nonce), cursor)
+        (version, hash_prev, hash_merkle, time, bits, nonce), new_cursor = self.BLOCKHEADER.deserialize(data, cursor)
+        blockheader = BlockHeader(version, hash_prev, hash_merkle, time, bits, nonce)
+        blockheader.rawdata = data[cursor:new_cursor]
+        return (blockheader, new_cursor)
 
         

@@ -6,7 +6,7 @@ Created on 22 Jun 2011
 """
 from coinpy.model.constants.bitcoin import COIN
 
-class tx_out():
+class TxOut():
     def __init__(self, value, script):
         self.value = value  
         self.script = script          

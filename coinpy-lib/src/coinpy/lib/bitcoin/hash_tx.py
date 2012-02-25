@@ -11,5 +11,10 @@ from coinpy.model.protocol.structures.uint256 import uint256
 TX_SERIALIZE = TxSerializer()
 
 def hash_tx(tx):
-    return (uint256.from_bytestr(doublesha256(TX_SERIALIZE.serialize(tx))))
+    if tx.hash:
+        return tx.hash
+    if not tx.rawdata:
+        tx.rawdata = TX_SERIALIZE.serialize(tx)
+    tx.hash = uint256.from_bytestr(doublesha256(tx.rawdata))
+    return tx.hash
 

@@ -7,14 +7,14 @@ Created on 7 Aug 2011
 from coinpy.model.protocol.structures.block import Block
 from coinpy.model.protocol.structures.blockheader import BlockHeader
 from coinpy.model.protocol.structures.uint256 import uint256
-from coinpy.model.protocol.structures.tx_in import tx_in
-from coinpy.model.protocol.structures.tx import tx
+from coinpy.model.protocol.structures.tx_in import TxIn
+from coinpy.model.protocol.structures.tx import Tx
 from coinpy.model.protocol.structures.outpoint import outpoint
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.model.scripts.opcodes import OP_PUSHDATA, OP_CHECKSIG
 from coinpy.tools.hex import decodehexstr
 from coinpy.model.scripts.script import Script
-from coinpy.model.protocol.structures.tx_out import tx_out
+from coinpy.model.protocol.structures.tx_out import TxOut
 from coinpy.model.protocol.runmode import MAIN, TESTNET
 
 GENESIS_MAIN =  Block(
@@ -24,11 +24,11 @@ GENESIS_MAIN =  Block(
                 1231006505,  #time
                 486604799,   #bits
                 2083236893), #nonce
-    [tx(1, #version
-        [tx_in(outpoint(uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), 4294967295),     
-               Script([Instruction(OP_PUSHDATA, decodehexstr("ffff001d")),Instruction(OP_PUSHDATA, decodehexstr("04")),Instruction(OP_PUSHDATA, "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")]), #script
-               4294967295) ], #inlist
-        [tx_out(5000000000, #value
+    [Tx(1, #version
+        [TxIn(outpoint(uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), 4294967295),     
+                Script([Instruction(OP_PUSHDATA, decodehexstr("ffff001d")),Instruction(OP_PUSHDATA, decodehexstr("04")),Instruction(OP_PUSHDATA, "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")]), #script
+                4294967295) ], #inlist
+        [TxOut(5000000000, #value
                 Script([Instruction(OP_PUSHDATA, decodehexstr("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f")),Instruction(OP_CHECKSIG)]))],
                 0) #locktime         
      ])
@@ -40,11 +40,11 @@ GENESIS_TESTNET =  Block(
                 1296688602,  #time
                 487063544,   #bits
                 384568319), #nonce
-    [tx(1, #version
-        [tx_in(outpoint(uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), 4294967295),     
-               Script([Instruction(OP_PUSHDATA, decodehexstr("ffff001d")),Instruction(OP_PUSHDATA, decodehexstr("04")),Instruction(OP_PUSHDATA, "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")]), #script
-               4294967295) ], #inlist
-        [tx_out(5000000000, #value
+    [Tx(1, #version
+        [TxIn(outpoint(uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), 4294967295),     
+                Script([Instruction(OP_PUSHDATA, decodehexstr("ffff001d")),Instruction(OP_PUSHDATA, decodehexstr("04")),Instruction(OP_PUSHDATA, "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")]), #script
+                4294967295) ], #inlist
+        [TxOut(5000000000, #value
                 Script([Instruction(OP_PUSHDATA, decodehexstr("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f")),Instruction(OP_CHECKSIG)]))],
                 0) #locktime         
      ])

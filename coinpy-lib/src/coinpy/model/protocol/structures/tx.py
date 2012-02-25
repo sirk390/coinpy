@@ -6,7 +6,7 @@ Created on 22 Jun 2011
 """
 from coinpy.model.constants.bitcoin import is_money_range, LOCKTIME_THRESHOLD
 
-class tx():
+class Tx():
     LOCKTIME_HEIGHT, LOCKTIME_BLOCKTIME = LOCKTIME_TYPES = range(2)
     
     def __init__(self, version, in_list, out_list, locktime):
@@ -14,36 +14,17 @@ class tx():
         self.in_list = in_list          
         self.out_list = out_list        
         self.locktime = locktime
-        self.basic_check()
+        # optional extra fields used to cache the hash value once computed
+        self.hash = None
+        self.rawdata = None
         
-    #todo in serialisation:   size < MAX_BLOCK_SIZE
-    #                         coinbase  => scriptsize
-    #                         !coinbase => prevout!=null
     def output_count(self):
         return (len(self.out_list))
     
-    def basic_check(self):
-        assert self.in_list and self.out_list
-        for txout in self.out_list:
-            assert is_money_range(txout.value)
-        assert is_money_range(sum(txout.value for txout in self.out_list))
-        
     def iscoinbase(self):
         return ((len(self.in_list) == 1) and 
                 (self.in_list[0].previous_output.is_null()))
-    
-    def iterscripts(self):
-        for txin in self.in_list:
-            yield (txin.script)
-        for txout in self.out_list:
-            yield (txout.script)
-        
-    def max_script_sig_op_count(self):
-        return (max(script.sig_op_count() for script in self.iterscripts()))
-
-    def max_script_multisig_op_count(self):
-        return (max(script.multisig_op_count() for script in self.iterscripts()))
-    
+       
     def isstandard(self):
         if any(not script.ispushonly() for script in self.in_list):
             return (False)

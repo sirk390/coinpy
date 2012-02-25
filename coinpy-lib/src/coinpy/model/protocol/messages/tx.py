@@ -6,7 +6,6 @@ Created on 2 Jul 2011
 """
 from coinpy.model.protocol.messages.types import MSG_TX
 from coinpy.model.protocol.messages.message import message
-from coinpy.model.protocol.structures.tx import tx
 
 class msg_tx(message):
     def __init__(self, tx):

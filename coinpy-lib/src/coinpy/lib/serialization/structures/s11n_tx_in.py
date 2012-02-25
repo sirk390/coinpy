@@ -6,7 +6,7 @@ Created on 2 Jul 2011
 """
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
-from coinpy.model.protocol.structures.tx_in import tx_in
+from coinpy.model.protocol.structures.tx_in import TxIn
 from coinpy.lib.serialization.structures.s11n_outpoint import OutpointSerializer
 from coinpy.lib.serialization.structures.s11n_varstr_script import VarstrScriptSerializer
 from coinpy.lib.serialization.common.serializer import Serializer
@@ -29,6 +29,6 @@ class TxinSerializer(Serializer):
 
     def deserialize(self, data, cursor):
         (previous_output, script, sequence), cursor = self.TXIN.deserialize(data, cursor)
-        return (tx_in(previous_output, script, sequence), cursor)
+        return (TxIn(previous_output, script, sequence), cursor)
 
 

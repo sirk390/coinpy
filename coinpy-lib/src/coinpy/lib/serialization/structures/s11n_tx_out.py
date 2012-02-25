@@ -6,7 +6,7 @@ Created on 2 Jul 2011
 """
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
-from coinpy.model.protocol.structures.tx_out import tx_out
+from coinpy.model.protocol.structures.tx_out import TxOut
 from coinpy.lib.serialization.structures.s11n_varstr_script import VarstrScriptSerializer
 from coinpy.lib.serialization.common.serializer import Serializer
 
@@ -22,6 +22,6 @@ class TxoutSerializer(Serializer):
 
     def deserialize(self, data, cursor):
         (value, script), cursor = self.TXOUT.deserialize(data, cursor)
-        return (tx_out(value, script), cursor)
+        return (TxOut(value, script), cursor)
 
 
