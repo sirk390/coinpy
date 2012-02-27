@@ -30,8 +30,19 @@ class IntructionSerializer(Serializer):
             return (chr(instr.opcode) + base256encode(len(instr.data), pad=2) + instr.data)
         if instr.opcode == OP_PUSHDATA4:
             return (chr(instr.opcode) + base256encode(len(instr.data), pad=4) + instr.data)
-        raise Exception("Script file too large")
+        raise Exception("Unknown PUSHDATA opcode")
     
+    def _get_size_pushdata(self, instr):
+        if (OP_PUSHDATA1_75_MIN <= instr.opcode <= OP_PUSHDATA1_75_MAX):
+            return (1 + instr.opcode)
+        if instr.opcode == OP_PUSHDATA1: 
+            return (1 + 1 + len(instr.data))
+        if instr.opcode == OP_PUSHDATA2:
+            return (1 + 2+ len(instr.data))
+        if instr.opcode == OP_PUSHDATA4:
+            return (1 + 4+ len(instr.data))
+        raise Exception("Unknown PUSHDATA opcode")
+        
     def _deserialize_pushdata_data(self, op, datalength, data, pos):
         if (len(data) < pos + datalength):
             raise MissingDataException("pushdata data")
@@ -51,13 +62,19 @@ class IntructionSerializer(Serializer):
             instr, pos = self._deserialize_pushdata_data(op, op, data, pos)
         if (op == OP_PUSHDATA1 or op == OP_PUSHDATA2 or op == OP_PUSHDATA4):
             instr, pos = self._deserialize_pushdata_length_and_data(op, data, pos)
-        return (instr, pos)        
+        return (instr, pos)
+       
     
     def serialize(self, instr):
         if is_pushdata(instr.opcode):
             return self.serialize_pushdata(instr)
         return chr(instr.opcode)
-
+    
+    def get_size(self, instr):
+        if is_pushdata(instr.opcode):
+            return self._get_size_pushdata(instr)
+        return 1
+    
     def deserialize(self, data, cursor):
         op = ord(data[cursor])
         if is_pushdata(op):
@@ -75,7 +92,12 @@ class ScriptSerializer():
         for i in script.instructions:
             result += self.iser.serialize(i)
         return (result)
-
+    
+    def get_size(self, script):
+        if type(script) is RawScript:
+            return len(script.data)
+        return sum(self.iser.get_size(i) for i in script.instructions)
+    
     def deserialize(self, data, pos=0):
         try:
             l = len(data)

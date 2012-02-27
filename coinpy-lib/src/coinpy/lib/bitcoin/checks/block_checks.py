@@ -35,7 +35,9 @@ class BlockVerifier():
     def check_size_limit(self, hash, block):
         #FIXME: don't serialize the block here (add get_serialize_size() in serialize objects
         #or cache previoulsy serialized block)
-        if (len(self.block_serializer.serialize(block)) > MAX_BLOCK_SIZE):
+        if (not block.rawdata):
+            block.rawdata = self.block_serializer.serialize(block)
+        if len(block.rawdata) > MAX_BLOCK_SIZE:
             raise Exception("block size limit exceeded")
     
     def check_proof_of_work(self, hash, block):

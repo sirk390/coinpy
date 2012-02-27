@@ -27,9 +27,10 @@ class TxVerifier():
         self.check_null_inputs(tx)
     
     def check_size_limit(self, tx):
-        data = self.tx_serializer.serialize(tx)
-        if len(data) > MAX_BLOCK_SIZE:
-            raise Exception("Transaction too large : %d bytes" % (len(data)))
+        if not tx.rawdata:
+            tx.rawdata = self.tx_serializer.serialize(tx)
+        if len(tx.rawdata) > MAX_BLOCK_SIZE:
+            raise Exception("Transaction too large : %d bytes" % (len(tx.rawdata)))
     
     def check_vin_empty(self, tx):
         if (not tx.in_list):

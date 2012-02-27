@@ -15,6 +15,9 @@ from coinpy.node.network.bitcoin_port import BITCOIN_PORT
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 import os
+from coinpy.node.addrpool import AddrPool
+from coinpy.node.addrpool_filler import AddPoolFiller
+from coinpy.node.peer_reconnector import PeerReconnector
 
 class CoinpyService():
     def __init__(self, log, nodeparams, data_directory): 
@@ -32,25 +35,22 @@ class CoinpyService():
         self.bootstrapper = Bootstrapper(self.nodeparams.runmode, self.log)
         #node
         self.node = BitcoinNode(self.reactor, self.blockchain_with_pools, self.nodeparams, self.log)
-        self.bootstrapper.subscribe(Bootstrapper.EVT_FOUND_PEER, self.on_found_peer)
-        self.node.subscribe(BitcoinNode.EVT_NEED_BOOTSTRAP, self.on_need_peers)
+        self.addr_pool = AddrPool()
+        self.addr_pool_filler = AddPoolFiller(self.bootstrapper, self.node, self.addr_pool)
+        self.peer_reconnector = PeerReconnector(self.addr_pool, self.node, min_connections=4)
+        #self.node.add_peer_address(SockAddr("127.0.0.1", BITCOIN_PORT[self.nodeparams.runmode]))
+        
+        self.addr_pool.addpeer(SockAddr("127.0.0.1", BITCOIN_PORT[self.nodeparams.runmode]))
         #TMP: Add seed peer
-        self.node.add_peer_address(SockAddr("127.0.0.1", BITCOIN_PORT[self.nodeparams.runmode]))
+        #self.node.add_peer_address(SockAddr("127.0.0.1", BITCOIN_PORT[self.nodeparams.runmode]))
 
     def get_dbenv_handle(self, directory):
         normdir = os.path.normcase(os.path.normpath(os.path.abspath(directory)))
         if normdir not in self.dbenv_handles:
             self.dbenv_handles[normdir] = BSDDBEnv(normdir)
         return self.dbenv_handles[normdir]
-              
-    def on_found_peer(self, event):
-        #self.log.info("Found peers: %s" % (str(event.peeraddress)))
-        self.node.add_peer_address(event.peeraddress)
-        
-    def on_need_peers(self, event):
-        self.log.info("Bootstraping...")
-        self.bootstrapper.bootstrap()
-
+           
+   
     def start(self):
         self.reactor.start()
 

@@ -32,7 +32,7 @@ class Reactor():
         self.workqueue = collections.deque()
         self.scheduled_workqueue = [] # priority queue [ time_next_call, (fn, args, kwargs)) ]
         self.scheduled_tasks = {}     # { (fn, args, kwargs) => seconds }
-        self.thread = threading.Thread(target=self._run)
+        self.thread = threading.Thread(target=self.run)
         
     def call(self, fn, *args):
         item = (fn, args)
@@ -48,7 +48,7 @@ class Reactor():
         heapq.heappush(self.scheduled_workqueue, (t + seconds, item)) 
         #self.log.info("scheduled notify_newhashes")
         
-    def _run(self):
+    def run(self):
         work_completed = True
         while not self.terminate:
             #process asyncore network loop

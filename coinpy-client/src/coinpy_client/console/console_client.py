@@ -14,19 +14,21 @@ import asyncore
 from log import createlogger
 from coinpy.model.genesis import GENESIS
 from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
-from coinpy.node.network.reactor import Reactor
 from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
 from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.bitcoin.wallet.wallet import Wallet
-from coinpy.lib.database.wallet.wallet_database import WalletDatabase
 from coinpy.lib.database.bsddb_env import BSDDBEnv
+from coinpy.node.addrpool import AddrPool
+from coinpy.node.peer_reconnector import PeerReconnector
+from coinpy.node.addrpool_filler import AddPoolFiller
+from coinpy.tools.reactor.reactor import Reactor
 
 class Bitcoin():
     def __init__(self, nodeparams, data_directory): 
         self.log = createlogger()
         self.nodeparams = nodeparams
-        self.reactor = Reactor(self.log)
+        self.reactor = Reactor()
         #blockchain database
         self.bsddbenv = BSDDBEnv(directory=data_directory)
         self.database = BSDDbBlockChainDatabase(self.log, self.bsddbenv, self.nodeparams.runmode, data_directory)
@@ -39,20 +41,11 @@ class Bitcoin():
         self.bootstrapper = Bootstrapper(self.nodeparams.runmode, self.log)
         #node
         self.node = BitcoinNode(self.reactor, self.blockchain_with_pools, self.nodeparams, self.log)
-        self.bootstrapper.subscribe(Bootstrapper.EVT_FOUND_PEER, self.on_found_peer)
-        self.node.subscribe(BitcoinNode.EVT_NEED_BOOTSTRAP, self.on_need_peers)
-        
+        #self.node.subscribe(BitcoinNode.EVT_NEED_PEERS, self.on_need_peers)
+        self.addr_pool = AddrPool()
+        self.addr_pool_filler = AddPoolFiller(self.bootstrapper, self.node, self.addr_pool)
+        self.peer_reconnector = PeerReconnector(self.addr_pool, self.node)
          
-        self.terminate = False
-        
-    def on_found_peer(self, event):
-        self.log.info("Found peers: %s" % (str(event.peeraddress)))
-        self.node.add_peer_address(event.peeraddress)
-        
-    def on_need_peers(self, event):
-        self.log.info("Bootstraping...")
-        self.bootstrapper.bootstrap()
-        
     def start(self):
         self.reactor.start()
            

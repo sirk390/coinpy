@@ -10,12 +10,13 @@ from coinpy.node.network.sockaddr import SockAddr
 
 PEER_RECONNECT_INTERVAL = 5
 
+# Abstraction for tcp/ip socket tranport
 class ConnectionManager(asyncore.dispatcher, Observable):
-    EVT_ADDED_HANDLER = Observable.createevent()
-    EVT_REMOVED_HANDLER = Observable.createevent()
-    EVT_CONNECTED_HANDLER = Observable.createevent()
-    EVT_CONNECTING_HANDLER = Observable.createevent()
-    EVT_DISCONNECTED_HANDLER = Observable.createevent()
+    #EVT_ADDED_HANDLER = Observable.createevent()
+    #EVT_REMOVED_HANDLER = Observable.createevent()
+    EVT_CONNECTED_PEER = Observable.createevent()
+    EVT_CONNECTING_PEER = Observable.createevent()
+    EVT_DISCONNECTED_PEER = Observable.createevent()
 
     def __init__(self, reactor, sockaddr, connection_factory, log):
         Observable.__init__(self)
@@ -26,7 +27,7 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         self.bind((sockaddr.ip, sockaddr.port))
         self.listen(5)
         
-        self.known_peer_addresses = set()
+        #self.known_peer_addresses = set()
         
         self.peers = {}               # addr => handler
         self.connecting_peers = set() # set(handler,...)
@@ -34,54 +35,44 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         
         self.connection_factory = connection_factory
         self.reactor = reactor
-        self.reactor.schedule_each(PEER_RECONNECT_INTERVAL, self.reconnect_peers)
-       
-    def add_peer_address(self, addr):
-        self.known_peer_addresses.add(addr)
             
-    def remove_peer(self, addr, close=True):
-        if (close and (addr in self.peers)):
-            handler = self.peers[addr]
-            handler.clear_incomming_buffers()
-            handler.handle_close()
-        #print self.known_peer_addresses.pop() == addr
-        print addr
-        self.known_peer_addresses.remove(addr)
+    def disconnect_peer(self, addr):
+        handler = self.peers[addr]
+        handler.clear_incomming_buffers()
+        handler.handle_close()
 
+    def connected_peer_count(self):
+        return (len(self.connected_peers))
+    
     def handle_error(self):
         self.log.error(traceback.format_exc())
              
-    def reconnect_peers(self):
-        for addr in self.known_peer_addresses:
-            if addr not in self.peers:
-                self._connect_peer(addr)
             
-    def _connect_peer(self, sockaddr):
+    def connect_peer(self, sockaddr):
         self.log.info("Connecting: %s" % (str(sockaddr)))
         handler = self.connection_factory.create_connection(sockaddr)        
         handler.subscribe(handler.EVT_CONNECT, self.on_peer_connected)
         handler.subscribe(handler.EVT_DISCONNECT, self.on_peer_disconnected)
         self.peers[sockaddr] = handler
         self.connecting_peers.add(handler)
-        self.fire(self.EVT_ADDED_HANDLER, handler=handler)
-        self.fire(self.EVT_CONNECTING_HANDLER, handler=handler)
-
+        self.fire(self.EVT_CONNECTING_PEER, handler=handler)
+        
        
     def on_peer_connected(self, event):
         self.connecting_peers.remove(event.source)
         self.connected_peers.add(event.source)
         self.log.info("Peer Connected(%s) (peers:%d)" % ( event.source.sockaddr, len(self.connected_peers))) 
-        self.fire(self.EVT_CONNECTED_HANDLER, handler=event.source, outbound=True)
+        self.fire(self.EVT_CONNECTED_PEER, handler=event.source, outbound=True)
 
     def on_peer_disconnected(self, event):
         if event.source in self.connected_peers:
             self.connected_peers.remove(event.source)
-            self.fire(self.EVT_DISCONNECTED_HANDLER, handler=event.source)
+            self.log.info("Peer Disconnected(%s) (peers:%d)" % (str(event.source.sockaddr), len(self.connected_peers))) 
         if event.source in self.connecting_peers:
-            self.connecting_peers.remove(event.source)       
+            self.connecting_peers.remove(event.source)
+            self.log.info("Connection Failed(%s)" % (str(event.source.sockaddr))) 
+        self.fire(self.EVT_DISCONNECTED_PEER, handler=event.source)     
         del self.peers[event.source.sockaddr]
-        self.log.info("Peer Disconnected(%s) (peers:%d)" % (str(event.source.sockaddr), len(self.connected_peers))) 
-        self.fire(self.EVT_REMOVED_HANDLER, handler=event.source)
         
     def handle_accept(self):
         pair = self.accept()

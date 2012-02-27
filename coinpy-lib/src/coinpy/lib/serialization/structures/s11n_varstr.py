@@ -17,7 +17,10 @@ class VarstrSerializer(Serializer):
         result = self.lenfield.serialize(len(str))
         result += str
         return (result)
-
+    
+    def get_size_for_len(self, i):
+        return self.lenfield.get_size(i) + i
+    
     def deserialize(self, data, cursor):
         length, newpos = self.lenfield.deserialize(data, cursor)
         #data = data[newpos:]

@@ -19,10 +19,11 @@ class uint256():
     @staticmethod
     def from_bytestr(bytestr):
         return uint256(bytestr=bytestr)
-
+    
+    #input big endian hexstr
     @staticmethod
     def from_hexstr(hexstr):
-        return (uint256(decodehexstr(hexstr)))
+        return (uint256(decodehexstr(hexstr)[::-1]))
 
     @staticmethod
     def from_bignum(value):

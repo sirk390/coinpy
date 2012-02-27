@@ -29,13 +29,14 @@ class BlockStorage:
         file = 1
         handle = self._gethandle(file)
         handle.seek(0, os.SEEK_END)
-        blockdata = self.blockserialize.serialize(block)
+        if not block.rawdata:
+            block.rawdata = self.blockserialize.serialize(block)
         #Write index header
         handle.write(struct.pack("<I", MAGICS[self.runmode]))
-        handle.write(struct.pack("<I", len(blockdata)))
+        handle.write(struct.pack("<I", len(block.rawdata)))
         blockpos = handle.tell()
         #Write block
-        handle.write(blockdata)
+        handle.write(block.rawdata)
         #Flush and commit to disk
         
         #FIXME?

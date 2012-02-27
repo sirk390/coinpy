@@ -69,6 +69,7 @@ class VersionExchangeNode(Node):
         if self.version_statuses[handler].versions_exchanged():
             self.log.info("Accepted new peer: %s" % (handler))
             self.version_exchanged_nodes.add(handler)
+            #todo: replace 'handler' by 'peer'
             self.fire(self.EVT_VERSION_EXCHANGED, handler=handler, version_message=self.version_statuses[handler].version_message)
           
     def send_version(self, handler):

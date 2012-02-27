@@ -18,8 +18,7 @@ class VarstrScriptSerializer(Serializer):
         return (self.strencoder.serialize(scriptstr))
 
     def get_size(self, script):
-        #todo: fix algorithm
-        return len(self.serialize(script))
+        return self.strencoder.get_size_for_len(self.serializer.get_size(script))
 
     def deserialize(self, data, cursor):
         scriptstr, newcursor = self.strencoder.deserialize(data, cursor)

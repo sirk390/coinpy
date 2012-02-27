@@ -13,9 +13,16 @@ from coinpy.lib.bitcoin.pools.blockpool import BlockPool
 from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
 from coinpy.tools.reactor.asynch import asynch_method
 from collections import deque
+from coinpy.lib.bitcoin.hash_tx import hash_tx
 
 class BlockchainWithPools(Observable):
     EVT_MISSING_BLOCK = Observable.createevent()
+    EVT_ADDED_ORPHAN_TX = Observable.createevent()
+    EVT_REMOVED_ORPHAN_TX = Observable.createevent()
+    EVT_ADDED_ORPHAN_BLOCK = Observable.createevent()
+    EVT_REMOVED_ORPHAN_BLOCK = Observable.createevent()
+    EVT_ADDED_TX = Observable.createevent()
+    EVT_REMOVED_TX = Observable.createevent()
     
     def __init__(self, 
                  blockchain, 
@@ -34,8 +41,9 @@ class BlockchainWithPools(Observable):
         
         self.add_blockchain_queue = deque()
         
-    def verified_add_tx(self, item):
-        self.log.info("Adding tx %s" % str(item))
+    def verified_add_tx(self, tx):
+        self.fire(self.EVT_ADDED_TX, hash = hash_tx(tx))
+        self.log.info("Adding tx %s" % str(tx))
 
     
     """
@@ -51,9 +59,11 @@ class BlockchainWithPools(Observable):
         #Find parent block in blockchain or declare orphan.
         if (not self.blockchain.contains_block(block.blockheader.hash_prev)):
             #Add to orphan blockpool
+            self.log.info("Adding ophan block: %s" % (str( hash)))
             self.orphanblocks.add_block(sender, hash, block)
             sender, missing_hash = self.orphanblocks.get_missing_root()
             self.fire(self.EVT_MISSING_BLOCK, peer=sender, missing_hash=missing_hash)
+            self.fire(self.EVT_ADDED_ORPHAN_BLOCK, hash=hash)
             return
         #Checks-2 (done after finding the parent block)
         #TODO: Check timestamp
@@ -80,3 +90,4 @@ class BlockchainWithPools(Observable):
         if (item.type == INV_BLOCK):
             return (self.has_block(item.hash))
         raise ("Unkwnow item type")
+

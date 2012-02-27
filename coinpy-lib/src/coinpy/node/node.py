@@ -25,15 +25,15 @@ from coinpy.lib.serialization.messages.s11n_message import MessageSerializer
     https://en.bitcoin.it/wiki/Protocol_specification
 """
 class Node(Observable):
-    EVT_NEED_BOOTSTRAP = Observable.createevent()
+    EVT_NEED_PEERS = Observable.createevent()
     EVT_MESSAGE = Observable.createevent()
-    EVT_ADDED_PEER = Observable.createevent()
-    EVT_REMOVED_PEER = Observable.createevent()
+    EVT_CONNECTING = Observable.createevent()
     EVT_CONNECTED = Observable.createevent()
     EVT_DISCONNECTED = Observable.createevent()
             
-    def __init__(self, reactor, params, log):
+    def __init__(self, reactor, params, log, min_connection_count=5):
         super(Node, self).__init__()
+        self.min_connection_count = min_connection_count
         self.reactor = reactor
         self.params = params
         self.log = log
@@ -42,15 +42,17 @@ class Node(Observable):
         self.message_encoder = MessageSerializer(self.params.runmode, log)
         self.connection_factory = PeerConnectionFactory(self.reactor, self.message_encoder, log)
         self.connection_manager = ConnectionManager(reactor, SockAddr('localhost', self.params.port), self.connection_factory, log)
-        self.connection_manager.subscribe(ConnectionManager.EVT_CONNECTED_HANDLER, self.__on_connected)
-        self.connection_manager.subscribe(ConnectionManager.EVT_ADDED_HANDLER, self.on_added_peer)
-        self.connection_manager.subscribe(ConnectionManager.EVT_REMOVED_HANDLER, self.on_removed_peer)
-        self.connection_manager.subscribe(ConnectionManager.EVT_DISCONNECTED_HANDLER, self.__on_disconnected)
-        self.reactor.schedule_each(5, self.check_bootstrap)
+        self.connection_manager.subscribe(ConnectionManager.EVT_CONNECTED_PEER, self.__on_connected)
+        self.connection_manager.subscribe(ConnectionManager.EVT_CONNECTING_PEER, self.__on_connecting)
+        self.connection_manager.subscribe(ConnectionManager.EVT_DISCONNECTED_PEER, self.__on_disconnected)
 
     def __on_connected(self, event):
         event.handler.subscribe(PeerConnection.EVT_NEW_MESSAGE, self.__on_message)
         self.on_connected(event)
+        
+    def __on_connecting(self, event):
+        print "Node.EVT_CONNECTING_PEER"
+        self.fire(self.EVT_CONNECTING, handler=event.handler)
         
     def __on_disconnected(self, event):
         self.on_disconnected(event)
@@ -58,12 +60,6 @@ class Node(Observable):
     def __on_message(self, event):
         #self.log.info("Message from %s : %s" % (event.handler, event.message))
         self.on_message(event)
-
-    def on_added_peer(self, event):
-        self.fire(self.EVT_ADDED_PEER, handler=event.handler)
-
-    def on_removed_peer(self, event):
-        self.fire(self.EVT_REMOVED_PEER, handler=event.handler)
 
     """ --- redefined in subclasses to filter messages """
     def on_connected(self, event):
@@ -78,22 +74,20 @@ class Node(Observable):
     """ --- """
     def fire_message_event(self, handler, message):
         self.fire(self.EVT_MESSAGE, message=message, handler=handler)
+        self.fire((self.EVT_MESSAGE, message.type), message=message, handler=handler)
       
-    def check_bootstrap(self):
-        if len(self.connection_manager.known_peer_addresses) == 0:
-            self.fire(self.EVT_NEED_BOOTSTRAP)
-        #self.connection_manager.loop_iteration()
+    #def check_bootstrap(self):
+    #    if len(self.connection_manager.known_peer_addresses) == 0:
+    #        self.fire(self.EVT_NEED_BOOTSTRAP)
+    #self.connection_manager.loop_iteration()
         
-    def remove_peer(self, addr):
-        self.connection_manager.remove_peer(addr)
-        
-    def add_peer_address(self, address):
-        self.connection_manager.add_peer_address(address)
+    def connect_peer(self, addr):
+        self.connection_manager.connect_peer(addr)
           
     def send_message(self, peer, message):
         peer.send_message(message)
          
     def misbehaving(self, peer, reason):
         self.log.warning("peer misbehaving: %s" % reason)
-        self.remove_peer(peer.sockaddr)
-    
+    #    self.remove_peer(peer.sockaddr)
+

@@ -84,10 +84,10 @@ class WalletPanel(wx.Panel):
         self.txhistory_list.SetStringItem(index, 1, address)
         self.txhistory_list.SetStringItem(index, 2, label)
         self.txhistory_list.SetStringItem(index, 3, str(amount * 1.0 / COIN ))
-        if (amount < 0):
-            self.txhistory_list.SetItemBackgroundColour(index, (255, 200, 200))
-        else:
-            self.txhistory_list.SetItemBackgroundColour(index, (200, 255, 200))
+        #if (amount < 0):
+        #    self.txhistory_list.SetItemBackgroundColour(index, (255, 200, 200))
+        #else:
+        #    self.txhistory_list.SetItemBackgroundColour(index, (200, 255, 200))
             
     def private_key_mask(self, private_key):
         return (private_key if self.show_private_keys else "***" )

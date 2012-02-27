@@ -12,11 +12,18 @@ class NodePresenter():
         self.view = view
         #FIXME: background thread updates the GUI here
         node.subscribe(node.EVT_CONNECTED, self.on_connected)
-        node.subscribe(node.EVT_ADDED_PEER, self.on_added_peer)
-        node.subscribe(node.EVT_REMOVED_PEER, self.on_removed_peer)
+        node.subscribe(node.EVT_CONNECTING, self.on_connecting_peer)
+        node.subscribe(node.EVT_DISCONNECTED, self.on_disconnected_peer)
         node.subscribe(node.EVT_VERSION_EXCHANGED, self.on_version_exchange)
-
-    def on_added_peer(self, event):    
+        #
+        for peer in self.node.connection_manager.connecting_peers:
+            self.view.add_peer(peer.sockaddr)
+        for peer in self.node.connection_manager.connected_peers:
+            self.view.add_peer(peer.sockaddr)
+            self.view.set_peer_status(peer.sockaddr, "Connected", (230, 255, 230))
+        
+    def on_connecting_peer(self, event):    
+        print "on_connecting_peer.add_peer"
         self.view.add_peer(event.handler.sockaddr)
       
     def on_connected(self, event):
@@ -29,7 +36,7 @@ class NodePresenter():
         self.view.set_peer_status(event.handler.sockaddr, "VersionExchanged", (192, 255, 192))
         self.view.set_peer_version(event.handler.sockaddr, displayversion)
         
-    def on_removed_peer(self, event):    
+    def on_disconnected_peer(self, event):    
         self.view.remove_peer(event.handler.sockaddr)
  
 if __name__ == '__main__':

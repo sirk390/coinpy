@@ -13,11 +13,7 @@ class Structure(Serializer):
         self.flags = flags
 
     def serialize(self, args):
-        result = ""
-        for value, field in zip(args, self.fields):
-            enc = field.serialize(value)
-            result += enc
-        return (result)
+        return ("".join(field.serialize(value) for value, field in zip(args, self.fields)))
 
     def get_size(self, args):
         return sum(field.get_size(value) for value, field in zip(args, self.fields))

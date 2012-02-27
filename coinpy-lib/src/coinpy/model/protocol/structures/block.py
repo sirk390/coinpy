@@ -11,6 +11,7 @@ class Block():
                  transactions):
         self.blockheader = blockheader
         self.transactions = transactions
+        self.rawdata = None
     
     def __str__(self):
         return ("Block(%s, transactions(%d)[%s...])" % 

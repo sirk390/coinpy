@@ -90,7 +90,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
             prevblock.blockindex.hash_next = blockhash
             self.indexdb.set_blockindex(prevblock.hash, prevblock.blockindex)
             self.indexdb.set_hashbestchain(blockhash)
-            self._index_transactions(blockhash)
+            self._index_transactions(blockhash, block)
         return DBBlockHandle(self.log, self.indexdb, self.blockstore, blockhash, block=block)
 
     """
@@ -138,10 +138,11 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
     def get_mainchain(self):
         return self.indexdb.get_hashbestchain()
     
-    def _index_transactions(self, blockhash):
+    def _index_transactions(self, blockhash, block=None):
         block_handle = self.get_block_handle(blockhash)
         #Add all transactions to the indexdb
-        block = block_handle.get_block()
+        if not block:
+            block = block_handle.get_block()
         size_blockheader = BlockheaderSerializer().get_size(block.blockheader)
         size_tx_size = VarintSerializer().get_size(len(block.transactions))
         tx_serializer = TxSerializer()
@@ -152,7 +153,10 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
             txindex = DbTxIndex(1, DiskTxPos(1, blockpos, txpos), [DiskTxPos() for _ in range(tx.output_count())])
             self.indexdb.set_transactionindex(hash_tx(tx), txindex)
             #TODO: speed this up...
-            txpos += tx_serializer.get_size(tx)
+            if tx.rawdata:
+                txpos += len(tx.rawdata)
+            else:
+                txpos += tx_serializer.get_size(tx)
 
     def _unindex_transactions(self, blockhash):
         block_handle = self.get_block_handle(blockhash)

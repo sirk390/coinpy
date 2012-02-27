@@ -85,9 +85,6 @@ class Blockchain(Observable):
                     handle = self.database.get_transaction_handle(tx.in_list[index].previous_output.hash)
                     self.fire(self.EVT_SPENT_OUTPUT, txhash=handle.hash, index=index)
         
-    def contains_transaction(self, txhash):
-        return self.database.contains_transaction(txhash)
-    
     def contains_block(self, blockhash):
         return self.database.contains_block(blockhash)
 
@@ -173,7 +170,7 @@ class Blockchain(Observable):
             actual_timespan = TARGET_TIMESPAN*4;
     
         # Retarget
-        new_target = uint256(header_blocknow.target().value * actual_timespan / TARGET_TIMESPAN)
+        new_target = uint256.from_bignum(header_blocknow.target().get_bignum() * actual_timespan / TARGET_TIMESPAN)
         if new_target > PROOF_OF_WORK_LIMIT[self.indexdb.runmode]:
             new_target = PROOF_OF_WORK_LIMIT[self.indexdb.runmode]
         new_bits = compact_difficulty(new_target)
@@ -189,4 +186,4 @@ class Blockchain(Observable):
             block_times.append(iter.get_blockheader().time)
             if (not iter.prev()):
                 break;
-        return median(block_times)  
+        return median(block_times)
