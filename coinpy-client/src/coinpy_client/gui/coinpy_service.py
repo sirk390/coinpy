@@ -16,7 +16,7 @@ from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 import os
 from coinpy.node.addrpool import AddrPool
-from coinpy.node.addrpool_filler import AddPoolFiller
+from coinpy.node.addrpool_filler import AddrPoolFiller
 from coinpy.node.peer_reconnector import PeerReconnector
 
 class CoinpyService():
@@ -36,7 +36,7 @@ class CoinpyService():
         #node
         self.node = BitcoinNode(self.reactor, self.blockchain_with_pools, self.nodeparams, self.log)
         self.addr_pool = AddrPool()
-        self.addr_pool_filler = AddPoolFiller(self.bootstrapper, self.node, self.addr_pool)
+        self.addr_pool_filler = AddrPoolFiller(self.bootstrapper, self.node, self.addr_pool)
         self.peer_reconnector = PeerReconnector(self.addr_pool, self.node, min_connections=4)
         #self.node.add_peer_address(SockAddr("127.0.0.1", BITCOIN_PORT[self.nodeparams.runmode]))
         

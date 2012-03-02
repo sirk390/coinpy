@@ -15,11 +15,12 @@ from coinpy_client.gui.presenter.wallet_presenter import WalletPresenter
         #self.dbenv_handles = {}     # directory => DBEnv
 
 class WalletBookPresenter():
-    def __init__(self, service, walletbook_view): 
+    def __init__(self, service, walletbook_view, messages_view): 
         self.service = service
         self.walletbook_view = walletbook_view
         self.wallets = []           # id => Wallet
         self.wallet_filenames = {}  # id => Wallet
+        self.messages_view = messages_view
     
     def open_wallet(self, dbenv, filename):
         wallet_db = BSDDBWalletDatabase(dbenv, filename)
@@ -30,4 +31,4 @@ class WalletBookPresenter():
         # add a view for the wallet
         wallet_view = self.walletbook_view.add_wallet_view(filename)
         # present it
-        wallet_presenter = WalletPresenter(wallet, wallet_balance, wallet_view)
+        wallet_presenter = WalletPresenter(wallet, wallet_balance, wallet_view, self.messages_view)

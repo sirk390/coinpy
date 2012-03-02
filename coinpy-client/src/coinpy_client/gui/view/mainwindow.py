@@ -14,6 +14,7 @@ from coinpy.tools.observer import Observable
 import os
 from coinpy_client.gui.view.node_view import NodeView
 from coinpy_client.gui.view.pools_panel import PoolsPanel
+from coinpy_client.gui.view.message_view import MessageView
 
 
 
@@ -85,6 +86,8 @@ class MainWindow(wx.Frame, Observable):
         self._mgr.Update()
         #Statusbar
         self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
+        #MessageBoxes
+        self.messages_view = MessageView(self)
         
         
     def add_child_frame(self, childclass, title):

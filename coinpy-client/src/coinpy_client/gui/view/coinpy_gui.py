@@ -8,6 +8,7 @@ from coinpy_client.gui.view.mainwindow import MainWindow
 import wx
 import threading
 from coinpy.tools.observer import Observable
+from coinpy_client.gui.view.message_view import MessageView
 
 class CoinpyGUI(Observable):
     EVT_CMD_CLOSE = Observable.createevent()
@@ -17,6 +18,7 @@ class CoinpyGUI(Observable):
         self.app = wx.App(False)
         self.mainwindow = MainWindow(None, wx.ID_ANY, "Coinpy", size=(1000, 650))
         self.mainwindow.subscribe(MainWindow.EVT_CMD_CLOSE, self.on_exit)
+        self.messages_view = MessageView(self.mainwindow)
         
     def on_exit(self, event):
         self.fire(self.EVT_CMD_CLOSE)
@@ -35,6 +37,5 @@ if __name__ == '__main__':
     def on_exit(event):
         print "exited"
     mainview = CoinpyGUI()
-    mainview.subscribe(CoinpyGUI.EVT_CMD_EXIT, on_exit)
     mainview.mainloop()
     

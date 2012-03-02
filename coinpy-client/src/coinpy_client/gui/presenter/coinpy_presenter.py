@@ -24,6 +24,7 @@ import wx
 from coinpy_client.gui.view.coinpy_gui import CoinpyGUI
 from coinpy_client.gui.coinpy_service import CoinpyService
 from coinpy_client.gui.presenter.mainwindow_presenter import MainWindowPresenter
+from coinpy_client.gui.view.message_view import MessageView
 
 class CoinpyPresenter():
     def __init__(self, service, view): 
@@ -31,7 +32,6 @@ class CoinpyPresenter():
         self.view = view
         self.view.subscribe(self.view.EVT_CMD_CLOSE, self.on_command_close)
         self.view.mainwindow.subscribe(self.view.mainwindow.EVT_CMD_OPEN_WALLET, self.on_open_wallet)
-        
         self.mainwindow_presenter = MainWindowPresenter(self.service, view.mainwindow)
       
     def on_command_close(self, event):

@@ -15,9 +15,10 @@ class MainWindowPresenter(Observable):
     def __init__(self, service, mainwindow_view):
         self.mainwindow_view = mainwindow_view
         self.service = service
+        self.messages_view = self.mainwindow_view.messages_view
         
         self.node_presenter = NodePresenter(self.service.node, self.mainwindow_view.node_view)
-        self.walletbook_presenter = WalletBookPresenter(self.service, self.mainwindow_view.nb_wallet)
+        self.walletbook_presenter = WalletBookPresenter(self.service, self.mainwindow_view.nb_wallet, self.messages_view)
         self.pools_presenter = PoolsPresenter(self.service.blockchain_with_pools, self.mainwindow_view.pools_view)
         
     def open_wallet(self, dbenv, filename):

@@ -9,7 +9,6 @@ from coinpy_client.gui.view.wallet.balance import BalancePanel
 from coinpy_client.gui.view.wallet.address_book_panel import AddressBookPanel
 from coinpy_client.gui.view.wallet.transations_panel import TransactionsPanel
 from coinpy.tools.hex import hexstr
-from coinpy_client.gui.view.wallet.send_receive_panel import SendReceivePanel
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 import time
 from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
@@ -19,13 +18,21 @@ from coinpy.model.wallet.wallet_poolkey import WalletPoolKey
 from coinpy.model.wallet.wallet_name import WalletName
 from coinpy.tools.id_pool import IdPool
 from coinpy.model.constants.bitcoin import COIN
+from coinpy.tools.observer import Observable
+from coinpy_client.gui.view.wallet.sender_view import SenderView
 
-class WalletPanel(wx.Panel):
+class WalletPanel(wx.Panel, Observable):
+    EVT_SEND = Observable.createevent()
+    EVT_RECEIVE = Observable.createevent()
+    
     def __init__(self, parent):
-        super(WalletPanel, self).__init__(parent) #, style=wx.SIMPLE_BORDER
+        wx.Panel.__init__(self, parent) #, style=wx.SIMPLE_BORDER
+        Observable.__init__(self)
         
+        # Controls
         self.balance = BalancePanel(self)
-        self.send_receive = SendReceivePanel(self)
+        self.send_button = wx.Button(self, label="Send")
+        self.receive_button = wx.Button(self, label="Receive")
         self.keylist = wx.ListCtrl(self, style=wx.LC_REPORT, size=(400,100))
         self.keylist.InsertColumn(0, "Public Key")
         self.keylist.InsertColumn(1, "Private Key")
@@ -34,7 +41,6 @@ class WalletPanel(wx.Panel):
         self.keylist.InsertColumn(4, "Address")
         self.keylist.InsertColumn(5, "Name")
         self.show_hide_private_keys_button = wx.Button(self, label="Show Private Keys")
-        
         self.txhistory_list = wx.ListCtrl(self,style=wx.LC_REPORT, size=(400,100))
         self.txhistory_list.InsertColumn(0, "Date")
         self.txhistory_list.InsertColumn(1, "Address")
@@ -42,12 +48,15 @@ class WalletPanel(wx.Panel):
         self.txhistory_list.InsertColumn(3, "Amount")
         self.txhistory_list.SetColumnWidth(0, 120)
         self.txhistory_list.SetColumnWidth(1, 250)
-        
-        
-        #self.address_book = AddressBookPanel(self)
+        # Sizers
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
         self.sizer.Add(self.balance, 0, wx.EXPAND)
-        self.sizer.Add(self.send_receive, 0, wx.EXPAND)
+        
+        send_receive_sizer = wx.BoxSizer(orient=wx.HORIZONTAL)
+        send_receive_sizer.Add(self.send_button, 0, wx.LEFT)
+        send_receive_sizer.Add(self.receive_button, 0, wx.LEFT)
+        
+        self.sizer.Add(send_receive_sizer, 0, wx.EXPAND)
         self.sizer.Add(wx.StaticText(self, -1, "Keys: "), 0)
         self.sizer.Add(self.keylist, 0, wx.EXPAND)
         self.sizer.Add(self.show_hide_private_keys_button, 0)
@@ -56,12 +65,32 @@ class WalletPanel(wx.Panel):
         self.sizer.Add(self.txhistory_list, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
         
+        # Events
         self.show_hide_private_keys_button.Bind(wx.EVT_BUTTON, self.on_show_hide_private_keys)
-        self.show_private_keys = False
+        self.send_button.Bind(wx.EVT_BUTTON, self.on_send)
+        self.receive_button.Bind(wx.EVT_BUTTON, self.on_receive)
         
+        # ChildViews
+        self.sender_view = SenderView(self)
+        
+        # Initialize private data
+        self.show_private_keys = False
         self.keylist_idpool = IdPool()
         self.keys = {}
         
+        
+    def on_send(self, event):
+        self.fire(self.EVT_SEND)
+
+    def on_receive(self, event):
+        self.fire(self.EVT_RECEIVE)
+    
+    def make_send_dialog(self, event):
+        dlg = SendDialog(self, size=(300, 200))
+        dlg.CenterOnScreen()
+        return dlg
+            
+                
     def add_key(self, key, poolkey, name):
         id = self.keylist_idpool.get_id()
         self.keys[id] = (key, poolkey, name)

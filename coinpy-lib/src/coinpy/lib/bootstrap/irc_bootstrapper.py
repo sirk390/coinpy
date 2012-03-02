@@ -4,7 +4,6 @@ import threading
 import time
 import traceback
 import struct
-from coinpy.tools.bitcoin.base58 import b58decode , b58encode
 from coinpy.tools.bitcoin.base58check import decode_base58check
 from coinpy.tools.observer import Observable
 from coinpy.lib.bootstrap.irc_handler import IrcHandler

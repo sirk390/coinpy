@@ -8,9 +8,9 @@ from coinpy.node.node import Node
 from coinpy.node.logic.blockchain_server import BlockchainServer
 from coinpy.node.logic.blockchain_downloader import BlockchainDownloader
 from coinpy.model.protocol.messages.types import MESSAGE_TYPES
-from coinpy.node.message_dispatcher_node import MessageDispatcherNode
+from coinpy.node.version_exchange_node import VersionExchangeNode
 
-class BitcoinNode(MessageDispatcherNode):
+class BitcoinNode(VersionExchangeNode):
     def __init__(self, reactor, blockchain_with_pools, params, log):
         super(BitcoinNode, self).__init__(reactor, lambda : 0, params, log)
          

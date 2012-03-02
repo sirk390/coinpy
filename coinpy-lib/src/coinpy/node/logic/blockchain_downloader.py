@@ -28,9 +28,9 @@ class BlockchainDownloader():
         self.log = log
         self.reactor = reactor
         
-        node.add_handler(MSG_INV, self.on_inv)
-        node.add_handler(MSG_TX, self.on_tx)
-        node.add_handler(MSG_BLOCK, self.on_block)
+        node.subscribe((node.EVT_MESSAGE, MSG_INV), self.on_inv)
+        node.subscribe((node.EVT_MESSAGE, MSG_TX), self.on_tx)
+        node.subscribe((node.EVT_MESSAGE, MSG_BLOCK), self.on_block)
         
         self.node.subscribe (VersionExchangeNode.EVT_VERSION_EXCHANGED, self.on_version_exchange)
         self.blockchain_with_pools.subscribe (BlockchainWithPools.EVT_MISSING_BLOCK, self.on_missing_block)
@@ -57,7 +57,8 @@ class BlockchainDownloader():
             self.required_items.setdefault(peer, [])
             self.required_items[peer].append(item)
     """   
-    def on_inv(self, peer, message):
+    def on_inv(self, event):
+        peer, message = event.handler, event.message
         items = []
         for item in message.items:
             if item.type == INV_TX:
@@ -76,7 +77,8 @@ class BlockchainDownloader():
         if not self.downloading and not self.processing_block and self.items_to_download:
             self._download_items()
           
-    def on_tx(self, peer, message):
+    def on_tx(self, event):
+        peer, message = event.handler, event.message
         hash = hash_tx(message.tx)
         self.log.info("tx hash:%s" % (str(hash))) 
         if (hash not in self.requested_tx):
@@ -93,7 +95,8 @@ class BlockchainDownloader():
         request = msg_getblocks(locator, end_hash)
         self.node.send_message(peer, request)
         
-    def on_block(self, peer, message):
+    def on_block(self, event):
+        peer, message = event.handler, event.message
         hash = hash_block(message.block)
         #self.log.info("block : %s" % (str(hash)))
         if (hash not in self.requested_blocks):
