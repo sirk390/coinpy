@@ -8,6 +8,7 @@ from coinpy_client.gui.presenter.node_presenter import NodePresenter
 from coinpy_client.gui.presenter.walletbook_presenter import WalletBookPresenter
 from coinpy.tools.observer import Observable
 from coinpy_client.gui.presenter.pools_presenter import PoolsPresenter
+import os
 
 class MainWindowPresenter(Observable):
     #    EVT_WALLET_OPENED = Observable.createevent()
@@ -18,10 +19,11 @@ class MainWindowPresenter(Observable):
         self.messages_view = self.mainwindow_view.messages_view
         
         self.node_presenter = NodePresenter(self.service.node, self.mainwindow_view.node_view)
-        self.walletbook_presenter = WalletBookPresenter(self.service, self.mainwindow_view.nb_wallet, self.messages_view)
+        self.walletbook_presenter = WalletBookPresenter(self.service, self.service.wallet_set, self.mainwindow_view.nb_wallet, self.messages_view)
         self.pools_presenter = PoolsPresenter(self.service.blockchain_with_pools, self.mainwindow_view.pools_view)
+
+        self.mainwindow_view.subscribe(self.mainwindow_view.EVT_CMD_OPEN_WALLET, self.on_open_wallet)
         
-    def open_wallet(self, dbenv, filename):
-        self.walletbook_presenter.open_wallet(dbenv, filename)
-        
-        
+    def on_open_wallet(self, event):
+        self.service.open_wallet(event.file)
+       

@@ -11,6 +11,7 @@ from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
 import os
 from coinpy.tools.bitcoin.base58check import verify_base58check
 from coinpy.lib.bitcoin.address import is_valid_bitcoin_address
+from coinpy.tools.float import is_float
  
 class WalletPresenter():
     def __init__(self, wallet_model, balance_model, wallet_view, messages_view): 
@@ -28,32 +29,7 @@ class WalletPresenter():
             self.wallet_view.add_transaction_history_item(date, address, name, amount)
         #listen to balance updates
         balance_model.subscribe(balance_model.EVT_BALANCE_CHANGED, self.on_balance_changed)
-        #listen to view send/receive
-        wallet_view.subscribe(wallet_view.EVT_SEND, self.on_send)
-        wallet_view.subscribe(wallet_view.EVT_RECEIVE, self.on_receive)
-        wallet_view.sender_view.subscribe(wallet_view.sender_view.EVT_SELECT_VALUE, self.on_select_send_value)
 
-    def on_send(self, event):
-        self.wallet_view.sender_view.open()
-        
-    def on_select_send_value(self, event): 
-        address = self.wallet_view.sender_view.address()
-        amount_str = self.wallet_view.sender_view.amount() 
-        if not is_valid_bitcoin_address(self.wallet_model.runmode, address):
-            self.messages_view.error("Incorrect bitcoin address: %s" % (address))
-            return
-        #FIXME: clean check for float + money range + balance
-        try:
-            amount = float(amount_str)
-        except:
-            self.messages_view.error("Incorrect amount: %s" % (amount_str))
-            return
-        self.wallet_view.sender_view.close()
-        
-    def on_receive(self, event):
-        pass
-    
-        
     def on_balance_changed(self, event):
         self.wallet_view.balance.set_balance( event.confirmed, event.unconfirmed, event.height)
 

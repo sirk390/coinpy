@@ -22,7 +22,6 @@ from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
 import wx
 from coinpy_client.gui.view.coinpy_gui import CoinpyGUI
-from coinpy_client.gui.coinpy_service import CoinpyService
 from coinpy_client.gui.presenter.mainwindow_presenter import MainWindowPresenter
 from coinpy_client.gui.view.message_view import MessageView
 
@@ -31,7 +30,6 @@ class CoinpyPresenter():
         self.service = service
         self.view = view
         self.view.subscribe(self.view.EVT_CMD_CLOSE, self.on_command_close)
-        self.view.mainwindow.subscribe(self.view.mainwindow.EVT_CMD_OPEN_WALLET, self.on_open_wallet)
         self.mainwindow_presenter = MainWindowPresenter(self.service, view.mainwindow)
       
     def on_command_close(self, event):
@@ -39,11 +37,6 @@ class CoinpyPresenter():
         
     def on_service_exited(self):
         self.view.stop()
-        
-    def on_open_wallet(self, event):
-        print "opening: %s" % (str(event.file))
-        directory, basename = os.path.split(event.file)
-        self.mainwindow_presenter.open_wallet(self.service.get_dbenv_handle(directory), basename)
 
     def run(self):
         self.service.start()
