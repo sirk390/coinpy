@@ -4,7 +4,7 @@ Created on 22 Feb 2012
 
 @author: kris
 """
-from coinpy_client.gui.view.node_view import NodeView
+from coinpy_client.view.node_view import NodeView
 
 class NodePresenter():
     def __init__(self, node, view): 

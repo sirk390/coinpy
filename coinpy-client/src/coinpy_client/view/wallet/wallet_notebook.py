@@ -6,7 +6,7 @@ Created on 13 Feb 2012
 """
 import wx
 import wx.aui
-from coinpy_client.gui.view.wallet.wallet_panel import WalletPanel
+from coinpy_client.view.wallet.wallet_panel import WalletPanel
 import wx.lib.scrolledpanel
 import os
 

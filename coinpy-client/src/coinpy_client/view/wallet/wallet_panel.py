@@ -5,9 +5,9 @@ Created on 14 Feb 2012
 @author: kris
 """
 import wx
-from coinpy_client.gui.view.wallet.balance import BalancePanel
-from coinpy_client.gui.view.wallet.address_book_panel import AddressBookPanel
-from coinpy_client.gui.view.wallet.transations_panel import TransactionsPanel
+from coinpy_client.view.wallet.balance import BalancePanel
+from coinpy_client.view.wallet.address_book_panel import AddressBookPanel
+from coinpy_client.view.wallet.transations_panel import TransactionsPanel
 from coinpy.tools.hex import hexstr
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 import time
@@ -19,7 +19,7 @@ from coinpy.model.wallet.wallet_name import WalletName
 from coinpy.tools.id_pool import IdPool
 from coinpy.model.constants.bitcoin import COIN
 from coinpy.tools.observer import Observable
-from coinpy_client.gui.view.wallet.sender_view import SenderView
+from coinpy_client.view.wallet.sender_view import SenderView
 
 class WalletPanel(wx.Panel, Observable):
     EVT_SEND = Observable.createevent()

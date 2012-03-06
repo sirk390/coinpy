@@ -4,11 +4,11 @@ Created on 21 Feb 2012
 
 @author: kris
 """
-from coinpy_client.gui.view.mainwindow import MainWindow
+from coinpy_client.view.mainwindow import MainWindow
 import wx
 import threading
 from coinpy.tools.observer import Observable
-from coinpy_client.gui.view.message_view import MessageView
+from coinpy_client.view.message_view import MessageView
 
 class CoinpyGUI(Observable):
     EVT_CMD_CLOSE = Observable.createevent()

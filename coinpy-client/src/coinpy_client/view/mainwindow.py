@@ -6,15 +6,15 @@ Created on 13 Feb 2012
 """
 import wx
 import wx.aui
-from coinpy_client.gui.view.wallet.wallet_notebook import WalletNotebook
-from coinpy_client.gui.view.log.logpanel import LogPanel
+from coinpy_client.view.wallet.wallet_notebook import WalletNotebook
+from coinpy_client.view.log.logpanel import LogPanel
 import logging
-from coinpy_client.gui.view.log.loghandler import GuiLogHandler
+from coinpy_client.view.log.loghandler import GuiLogHandler
 from coinpy.tools.observer import Observable
 import os
-from coinpy_client.gui.view.node_view import NodeView
-from coinpy_client.gui.view.pools_panel import PoolsPanel
-from coinpy_client.gui.view.message_view import MessageView
+from coinpy_client.view.node_view import NodeView
+from coinpy_client.view.pools_panel import PoolsPanel
+from coinpy_client.view.message_view import MessageView
 
 
 

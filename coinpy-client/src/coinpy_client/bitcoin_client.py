@@ -19,7 +19,7 @@ from coinpy.node.addrpool import AddrPool
 from coinpy.node.addrpool_filler import AddrPoolFiller
 from coinpy.node.peer_reconnector import PeerReconnector
 from coinpy.node.transaction_publisher import TransactionPublisher
-from coinpy_client.gui.model.wallet_set import WalletSet
+from coinpy_client.model.wallet_set import WalletSet
 
 
 

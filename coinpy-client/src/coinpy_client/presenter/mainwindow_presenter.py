@@ -4,10 +4,10 @@ Created on 22 Feb 2012
 
 @author: kris
 """
-from coinpy_client.gui.presenter.node_presenter import NodePresenter
-from coinpy_client.gui.presenter.walletbook_presenter import WalletBookPresenter
+from coinpy_client.presenter.node_presenter import NodePresenter
+from coinpy_client.presenter.walletbook_presenter import WalletBookPresenter
 from coinpy.tools.observer import Observable
-from coinpy_client.gui.presenter.pools_presenter import PoolsPresenter
+from coinpy_client.presenter.pools_presenter import PoolsPresenter
 import os
 
 class MainWindowPresenter(Observable):

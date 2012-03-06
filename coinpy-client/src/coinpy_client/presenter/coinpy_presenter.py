@@ -21,9 +21,9 @@ from coinpy.node.network.bitcoin_port import BITCOIN_PORT
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
 import wx
-from coinpy_client.gui.view.coinpy_gui import CoinpyGUI
-from coinpy_client.gui.presenter.mainwindow_presenter import MainWindowPresenter
-from coinpy_client.gui.view.message_view import MessageView
+from coinpy_client.view.coinpy_gui import CoinpyGUI
+from coinpy_client.presenter.mainwindow_presenter import MainWindowPresenter
+from coinpy_client.view.message_view import MessageView
 
 class CoinpyPresenter():
     def __init__(self, service, view): 

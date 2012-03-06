@@ -9,8 +9,8 @@ from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.bitcoin.wallet.wallet import Wallet
 from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
 import os
-from coinpy_client.gui.presenter.wallet_presenter import WalletPresenter
-from coinpy_client.gui.presenter.tx_creator_presenter import TransactionCreatorPresenter
+from coinpy_client.presenter.wallet_presenter import WalletPresenter
+from coinpy_client.presenter.tx_creator_presenter import TransactionCreatorPresenter
         #self.wallets = []           # id => Wallet
         #self.wallet_filenames = {}  # id => Wallet
         #self.dbenv_handles = {}     # directory => DBEnv
