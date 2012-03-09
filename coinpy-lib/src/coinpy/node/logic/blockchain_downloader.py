@@ -124,7 +124,7 @@ class BlockchainDownloader():
             #fixme: will remove the connection, but we should remove all blocks 
             #queued for processing from this peer, or some other solution
             self.node.misbehaving(peer, str(error))
-            
+        
         self.processing_block = False
         #self.log.info("block processed")
         if (len(self.blocks_to_process) > 0):

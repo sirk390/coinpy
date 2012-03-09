@@ -11,10 +11,10 @@ MAX_NUM_SIZE = 4
 def cast_to_bool(val):
     if len(val) == 0:
         return False
-    if any(c != 0 for c in val[:-1]):
+    if any(ord(c) != 0 for c in val[:-1]):
         return True
     #allow negative zero
-    if val[:-1] == 0x80:
+    if ord(val[-1]) == 0x80 or ord(val[-1]) == 0:
         return False
     return True
 

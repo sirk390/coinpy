@@ -9,15 +9,21 @@ from coinpy.node.logic.blockchain_server import BlockchainServer
 from coinpy.node.logic.blockchain_downloader import BlockchainDownloader
 from coinpy.model.protocol.messages.types import MESSAGE_TYPES
 from coinpy.node.version_exchange_node import VersionExchangeNode
+from coinpy.node.trickler import Trickler
+from coinpy.node.bitcoin_sender import BitcoinSender
+from coinpy.node.addrpool import AddrPool
+from coinpy.node.addrpool_filler import AddrPoolFiller
+from coinpy.node.peer_reconnector import PeerReconnector
+from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
 
+# no wallet dependency
 class BitcoinNode(VersionExchangeNode):
     def __init__(self, reactor, blockchain_with_pools, params, log):
         super(BitcoinNode, self).__init__(reactor, lambda : 0, params, log)
-         
-        #self.inventory = Inventory(reactor, self, log) # handle inv, startheight
-        #self.itemdownloader = ItemDownloader(reactor, self, self.inventory, log) # send getdata, handle tx, block messages
-        #self.blockfinder = BlockFinder(reactor, self, self.itemdownloader, blockchain_with_pools.blockchain, log) # send getblocks, handle inv 
-        
-        self.blockchain_downloader = BlockchainDownloader(reactor, blockchain_with_pools, self, self.log)
-     
-
+        #bootstraper
+        self.bootstrapper = Bootstrapper(params.runmode, self.log)
+        self.addr_pool = AddrPool()
+        AddrPoolFiller(self.bootstrapper, self, self.addr_pool)
+        PeerReconnector(self.addr_pool, self, min_connections=1)
+        BlockchainDownloader(reactor, blockchain_with_pools, self, self.log)
+        self.trickler = Trickler(reactor, self)

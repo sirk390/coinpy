@@ -27,13 +27,12 @@ class WalletBalance(Observable):
         self.blockchain_height = self.blockchain.get_height()
         #get heights for mainchain transactions only
         self.mainchain_outputs = []
-        for tx, txout in self.wallet.iter_my_outputs():
-            txhash = hash_tx(tx)
-            if (self.blockchain.contains_transaction(txhash)):
-                blockhandle = self.blockchain.get_transaction_handle(txhash).get_block()
+        for output in self.wallet.iter_my_outputs():
+            if (self.blockchain.contains_transaction(output.txhash)):
+                blockhandle = self.blockchain.get_transaction_handle(output.txhash).get_block()
                 if blockhandle.is_mainchain():
-                    height = self.blockchain.get_transaction_handle(txhash).get_block().get_height()
-                    self.mainchain_outputs.append([height, tx, txout])
+                    height = self.blockchain.get_transaction_handle(output.txhash).get_block().get_height()
+                    self.mainchain_outputs.append([height, output.tx, output.txout])
         #compute balance
         self._compute_balance()
         

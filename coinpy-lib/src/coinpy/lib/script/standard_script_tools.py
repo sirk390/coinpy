@@ -8,6 +8,9 @@ from coinpy.model.scripts.opcodes import OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY,\
     OP_HASH160, OP_PUSHDATA
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 from coinpy.model.scripts.opcodes_info import is_pushdata
+from coinpy.lib.script.script_pubkeyhash import SCRIPT_PUBKEYHASH_OPCODES
+from coinpy.lib.script.script_pubkey import SCRIPT_PUBKEY_OPCODES
+
 
 
 def normalize_pushdata(opcodes):
@@ -20,11 +23,9 @@ def normalize_pushdata(opcodes):
 """
 def identify_script(script):
     opcodes = normalize_pushdata(script.opcodes())
-    if (opcodes == [OP_DUP, OP_HASH160, OP_PUSHDATA, OP_EQUALVERIFY, OP_CHECKSIG] and 
-        len(script.instructions[2].data) == 20):
+    if (opcodes == SCRIPT_PUBKEYHASH_OPCODES and len(script.instructions[2].data) == 20):
         return (TX_PUBKEYHASH)
-    if (opcodes == [OP_PUSHDATA, OP_CHECKSIG] and 
-        33 <= len(script.instructions[0].data) <= 120):
+    if (opcodes == SCRIPT_PUBKEY_OPCODES and 33 <= len(script.instructions[0].data) <= 120):
         return (TX_PUBKEY)
     #TODO: add support for TX_MULTISIG and TX_SCRIPTHASH
     #see script.cpp:1188

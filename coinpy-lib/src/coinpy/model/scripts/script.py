@@ -8,6 +8,7 @@ from coinpy.model.scripts.opcodes import OP_PUBKEY, OP_CHECKSIG, OP_DUP, OP_EQUA
     OP_HASH160, OP_PUBKEYHASH, OP_PUSHDATA, OP_CHECKSIGVERIFY, OP_CHECKMULTISIG,\
     OP_CHECKMULTISIGVERIFY, OP_CODESEPARATOR
 from coinpy.tools.hex import hexstr
+from coinpy.model.scripts.opcodes_info import is_pushdata
 
 # Used when a script cannot be decoded (error cases with PUSHDATA missing data)
 class RawScript(object):
@@ -19,6 +20,7 @@ class RawScript(object):
 class Script(object):
     #STANDARD_TX = [OP_PUBKEY, OP_CHECKSIG]
     STANDARD_ADDRESS_TX = [OP_DUP, OP_HASH160, OP_PUSHDATA, OP_EQUALVERIFY, OP_CHECKSIG]
+    
     
     def __init__(self, instructions):
         self.instructions = instructions
@@ -70,7 +72,20 @@ class Script(object):
         #    return ("script:PUSHONLY(%s...)" % ("".join((",".join( "%02x" % ord(c) for c in i.data[:4])) for i in self.instructions)))
         return (",".join(str(i) for i in self.instructions))
  
-
+    def __eq__(self, other):
+        return all([i1 == i2 for i1, i2 in zip(self.instructions, other.instructions)])
+    def __ne__(self, other):
+        return any([i1 != i2 for i1, i2 in zip(self.instructions, other.instructions)])
+    def __hash__(self):
+        if len(self.instructions):
+            #return the hash of the first pushdata instruction
+            for instr in self.instructions:
+                if is_pushdata(instr.opcode):
+                    return hash(self.instruction[0])
+            #or the hash of the first instruction if there is no pushdata
+            return hash(self.instruction[0])
+        return 0
+    
 if __name__ == '__main__':
     script1 = [118, 169, 20, 118, 205, 62, 179, 249, 40, 71, 171, 78, 57, 98, 179, 1, 106, 201, 223, 31, 19, 69, 100, 136, 172]
     script2 = [118, 169, 20, 138, 48, 61, 201, 194, 97, 46, 215, 75, 169, 205, 170, 115, 16, 131, 249, 21, 163, 168, 31, 136, 172]

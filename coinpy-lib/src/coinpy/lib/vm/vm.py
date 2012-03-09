@@ -29,10 +29,12 @@ class TxValidationVM():
             self.eval(unspent_script)
             return (len(self.stack) > 0) and (cast_to_bool(self.stack[-1]) == True)
         except:
+            #TMP:debugging
             traceback.print_exc()
             return (False)
 
     def eval(self, script):
+        self.current_script = script
         for i in script.instructions:
             op = is_pushdata(i.opcode) and OP_PUSHDATA or i.opcode
             executed = all(self.cond_stack)

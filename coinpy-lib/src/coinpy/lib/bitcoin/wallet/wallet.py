@@ -15,15 +15,21 @@ from coinpy.tools.hex import hexstr
 from coinpy.lib.bitcoin.address import get_address_from_public_key
 from coinpy.model.address_version import ADDRESSVERSION
 from coinpy.tools.bitcoin.base58check import encode_base58check
+from coinpy.tools.observer import Observable
+from coinpy.model.wallet.controlled_output import ControlledOutput
 
-class Wallet():
+
+class Wallet(Observable):
+    EVT_NEW_TRANSACTION = Observable.createevent()
+    
     def __init__(self, wallet_database, runmode):
+        super(Wallet, self).__init__()
         self.wallet_database = wallet_database
         self.wallet_database.open()
         self.runmode = runmode
-        self.addresses = {}
+        self.keypairs = {}
         for keypair in self.wallet_database.get_keypairs():
-            self.addresses[hash160(keypair.public_key)] = keypair
+            self.keypairs[hash160(keypair.public_key)] = keypair
     
     """
         yields ( WalletKeyPair, WalletName, WalletPoolKey ) entries.
@@ -44,8 +50,7 @@ class Wallet():
         for hash, wallet_tx in self.wallet_database.get_wallet_txs().iteritems():
             for index, txout in enumerate(wallet_tx.merkle_tx.tx.out_list):
                 if not wallet_tx.is_spent(index) and self.is_mine(txout):
-                    yield (wallet_tx.merkle_tx.tx, txout)
-    
+                    yield ControlledOutput(hash, index, txout, self.get_keypair_for_output(txout))
     ''''
         A TxIn is "debit" if the previous output is in the wallet and is mine.
         If it is, get_debit_txin will return the value spent.
@@ -104,7 +109,7 @@ class Wallet():
         return self.wallet_database.get_names()
     
     def have_key_for_addresss(self, address):
-        return (address in self.addresses)
+        return (address in self.keypairs)
 
     def have_key(self, pubkey):
         pass
@@ -119,6 +124,10 @@ class Wallet():
         if script_type == TX_PUBKEY:
             return hash160(tx_pubkey_get_pubkey(txout.script))
         return None 
+    
+    def get_keypair_for_output(self, txout):
+        address = self.extract_adress(txout)
+        return self.keypairs[address]
     
     def is_mine(self, txout):
         address = self.extract_adress(txout)
@@ -142,6 +151,7 @@ if __name__ == '__main__':
     
     for date, address, name, amount in wallet.iter_transaction_history():
         print date, address, name, amount
+    print wallet.select_coins(10)
     #print wallet.get_balance() * 1.0 / COIN 
         
  #   encode_base58check(chr(ADDRESSVERSION[runmode]) + hash160(public_key))

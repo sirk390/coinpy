@@ -12,42 +12,83 @@ from coinpy.model.scripts.script import Script
 from coinpy.lib.vm.stack_valtype import valtype_from_boolean, cast_to_number
 from coinpy.lib.vm.opcode_impl.flow import op_verify
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
+from coinpy.tools.hex import hexstr
+from coinpy.model.scripts.hash_types import SIGHASH_ANYONECANPAY, SIGHASH_SINGLE,\
+    SIGHASH_MASK, SIGHASH_NONE
+from coinpy.model.protocol.structures.tx_out import TxOut
+from coinpy.model.scripts.instruction import Instruction
+from coinpy.model.scripts.opcodes import OP_PUSHDATA
+from coinpy.lib.script.push_data import auto_push_data_instruction
 
 def op_hash160(vm, instr):
     if not vm.stack:
         raise Exception("OP_HASH160: Argument required")
     vm.stack[-1] = hash160(vm.stack[-1])
 
-def checksig(vm, sig, pubkey):
+def checksig(vm, sig_param, pubkey_param):
     transaction, inputindex, unspent_script = vm.checksig_data
     #Hash type is the last byte of the signature
-    hash_type, sig = sig[-1], sig[:-1]
-   
+    hash_type, sig = ord(sig_param[-1]), sig_param[:-1]
+    
+    # last 5 bits of hash_type : 1=SIGHASH_ALL,2=SIGHASH_NONE, 3=SIGHASH_SINGLE 
+    # SIGHASH_ANYONECANPAY = 0x80
+    
     # For performance reasons no full copy is made of the transaction
-    # although it would be simpler to understand.
+    # although it would be simpler to read.
     # e.g. tx_tmp = copy.deepcopy(transaction)
     # The input scripts are saved and then restored.
-
+    tx_tmp = copy.deepcopy(transaction)
     #Save input scripts to restore them later
-    inscripts = [txin.script for txin in transaction.in_list]
-    #Blank out inputs
-    #TODO: blank out depending of hash_type (SIGHASH_NONE, SIGHASH_SINGLE, SIGHASH_ANYONECANPAY)
-    for txin in transaction.in_list:
+    #inlist = transaction.in_list
+    #outlist = transaction.out_list
+    #inscripts = [txin.script for txin in transaction.in_list]
+    #TODO: blank out ouputs depending of hash_type (SIGHASH_NONE, SIGHASH_SINGLE)
+    if (hash_type & SIGHASH_MASK == SIGHASH_NONE):
+        tx_tmp.out_list = []
+    if (hash_type & SIGHASH_MASK == SIGHASH_SINGLE):
+        if (inputindex > len(tx_tmp.out_list)):
+            raise Exception("OP_CHECKSIG: no corresponding output for input %d using SIGHASH_SINGLE " % (inputindex))
+        #n-1 empty TxOuts + original Txout
+        tx_tmp.out_list = [TxOut(-1, Script([])) for _ in range(inputindex)] + \
+                          [tx_tmp.out_list[inputindex]]
+    if (hash_type & SIGHASH_MASK == SIGHASH_SINGLE or 
+        hash_type & SIGHASH_MASK == SIGHASH_NONE):
+        # let others update at will
+        for i in range(len(tx_tmp.in_list)):
+            if i != inputindex:
+                tx_tmp.in_list[i].sequence = 0
+    #blank out other inputs in case of SIGHASH_ANYONECANPAY
+    if (hash_type & SIGHASH_ANYONECANPAY):
+        tx_tmp.in_list = [tx_tmp.in_list[inputindex]]
+        inputindex = 0
+    #blank out input scripts
+    for txin in tx_tmp.in_list:
         txin.script = Script([])
-    #except the current one that is replaced by the unspent_script
-    transaction.in_list[inputindex].script =  unspent_script
-    #Serialize and append hash type
-    enctx = TxSerializer().serialize(transaction) + b"\x01\x00\x00\x00"
+    #except the current one that is replaced by the signed part (e.g. from the last OP_CODESEPARATOR)
+    # of current_script with signature push_data removed
+    # note: only 'optimal' push_data instructions with the same signature are removed
+    current_script = Script(filter(lambda instr: instr!=auto_push_data_instruction(sig_param),
+                            vm.current_script.signed_part().instructions))
+    tx_tmp.in_list[inputindex].script = current_script
+    #serialize and append hash type
+    enctx = TxSerializer().serialize(tx_tmp) + chr(hash_type) + b"\x00\x00\x00"
+    #print "enctx:", hexstr(enctx)
+    #print "sig:", hexstr(sig)
+    #print "pubkey:", hexstr(pubkey_param)
+    
     #Get hash 
     hash = doublesha256(enctx)
     #Verify
     key = KEY()
-    key.set_pubkey(pubkey)
+    key.set_pubkey(pubkey_param)
     #ECDSA_verify: 1 = OK, 0=NOK, -1=ERROR
     result = key.verify(hash, sig) == 1
+    if not result:
+        pass
     #Restore transaction scripts
-    for txin, script in zip(transaction.in_list,inscripts):    
-        txin.script = script
+    #for txin, script in zip(inlist,inscripts):    
+    #    txin.script = script
+    #transaction.in_list = inlist 
     return (result)
 
 def check_multisig(vm, sigs, pubkeys):

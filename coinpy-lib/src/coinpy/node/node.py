@@ -89,5 +89,5 @@ class Node(Observable):
          
     def misbehaving(self, peer, reason):
         self.log.warning("peer misbehaving: %s" % reason)
-    #    self.remove_peer(peer.sockaddr)
+        self.connection_manager.disconnect_peer(peer.sockaddr)
 

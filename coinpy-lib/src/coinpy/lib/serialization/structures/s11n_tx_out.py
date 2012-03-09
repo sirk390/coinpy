@@ -11,7 +11,7 @@ from coinpy.lib.serialization.structures.s11n_varstr_script import VarstrScriptS
 from coinpy.lib.serialization.common.serializer import Serializer
 
 class TxoutSerializer(Serializer):
-    TXOUT = Structure([Field("<Q","value"),
+    TXOUT = Structure([Field("<q","value"),
                        VarstrScriptSerializer()], "outpoint")
 
     def get_size(self, txout):

@@ -19,13 +19,10 @@ class Asynch(object):
         
     def run(self):
         try:
-            result = self.stack[-1].send(self.value)
-            if type(result) is Asynch:
-                self.stack.append(result.coroutine)
-                self.value = None
+            if type(self.value) is Exception:
+                result = self.stack[-1].throw(self.value)
             else:
-                self.value = result  
-                
+                result = self.stack[-1].send(self.value)
         except StopIteration as e:
             if (len(self.stack) == 1):
                 self.completed = True
@@ -34,11 +31,22 @@ class Asynch(object):
                     self.callback(result=self.return_value, *self.callback_args)
             else:
                 self.stack.pop()
+            return
         except Exception as e:
-            if self.callback:
-                self.callback(error=traceback.format_exc(), *self.callback_args)
+            if (len(self.stack) == 1):
+                self.completed = True
+                self.return_value = e
+                if self.callback:
+                    self.callback(error=traceback.format_exc(), *self.callback_args)
             else:
-                raise
+                self.stack.pop()
+            result = e
+        if type(result) is Asynch:
+            self.stack.append(result.coroutine)
+            self.value = None
+        else:
+            self.value = result  
+            
     def run_synchronously(self):
         while not self.completed:
             self.run()
