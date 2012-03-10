@@ -12,10 +12,9 @@ class VarsizelistSerializer(Serializer):
         self.element_serializer = element_serializer
 
     def serialize(self, lst):
-        result = self.count_serializer.serialize(len(lst))
-        for elm in lst:
-            result += self.element_serializer.serialize(elm)
-        return (result)
+        results = [self.count_serializer.serialize(len(lst))]
+        results += [self.element_serializer.serialize(elm) for elm in lst]
+        return ("".join(results))
 
     def get_size(self, lst):
         return self.count_serializer.get_size(len(lst)) + sum(self.element_serializer.get_size(value) for value in lst)

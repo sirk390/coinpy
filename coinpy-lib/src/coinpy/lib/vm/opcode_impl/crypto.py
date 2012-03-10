@@ -19,6 +19,8 @@ from coinpy.model.protocol.structures.tx_out import TxOut
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.model.scripts.opcodes import OP_PUSHDATA
 from coinpy.lib.script.push_data import auto_push_data_instruction
+from coinpy.model.protocol.structures.tx import Tx
+from coinpy.model.protocol.structures.tx_in import TxIn
 
 def op_hash160(vm, instr):
     if not vm.stack:
@@ -37,7 +39,10 @@ def checksig(vm, sig_param, pubkey_param):
     # although it would be simpler to read.
     # e.g. tx_tmp = copy.deepcopy(transaction)
     # The input scripts are saved and then restored.
-    tx_tmp = copy.deepcopy(transaction)
+    tx_tmp = Tx(transaction.version, 
+                [TxIn(txin.previous_output, txin.script, txin.sequence) for txin in transaction.in_list], 
+                [TxOut(txout.value, txout.script) for txout in transaction.out_list], 
+                transaction.locktime) 
     #Save input scripts to restore them later
     #inlist = transaction.in_list
     #outlist = transaction.out_list

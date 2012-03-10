@@ -7,12 +7,12 @@ Created on 2 Jul 2011
 
 # Make a big endian bytestring from an integer.
 def base256encode(value, pad=None):
-    result = b""
+    result_bytes = []
     while value != 0:
         div, mod = divmod(value, 256)
-        result = chr(mod) + result
+        result_bytes.append(chr(mod))
         value = div
-    return (result.rjust(pad or 0, "\0"))
+    return ("".join(result_bytes[::-1]).rjust(pad or 0, "\0"))
 
 # Make an integer from a big endian bytestring.
 def base256decode(bytestr):

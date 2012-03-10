@@ -88,10 +88,7 @@ class ScriptSerializer():
     def serialize(self, script):
         if type(script) is RawScript:
             return script.data
-        result = b""
-        for i in script.instructions:
-            result += self.iser.serialize(i)
-        return (result)
+        return ("".join(self.iser.serialize(i) for i in script.instructions))
     
     def get_size(self, script):
         if type(script) is RawScript:

@@ -16,16 +16,12 @@ class TxinSerializer(Serializer):
     TXIN = Structure([OutpointSerializer(),
                       VarstrScriptSerializer(),
                       Field("<I","sequence")], "outpoint")
-    TXIN2 = Structure([OutpointSerializer(),
-                      VarstrScriptSerializer()], "outpoint")
     
     def get_size(self, txin):
         return (self.TXIN.get_size([txin.previous_output, txin.script, txin.sequence]))
 
     def serialize(self, txin):
-        #Tmp FIXME
         return (self.TXIN.serialize([txin.previous_output, txin.script, txin.sequence]))
-        #return (self.TXIN2.encode(txin.previous_output, txin.script))
 
     def deserialize(self, data, cursor):
         (previous_output, script, sequence), cursor = self.TXIN.deserialize(data, cursor)

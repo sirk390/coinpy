@@ -14,9 +14,7 @@ class VarstrSerializer(Serializer):
         self.lenfield = VarintSerializer()
 
     def serialize(self, str):
-        result = self.lenfield.serialize(len(str))
-        result += str
-        return (result)
+        return (self.lenfield.serialize(len(str)) + str)
     
     def get_size_for_len(self, i):
         return self.lenfield.get_size(i) + i
