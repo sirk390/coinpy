@@ -15,6 +15,7 @@ import os
 from coinpy_client.view.node_view import NodeView
 from coinpy_client.view.pools_panel import PoolsPanel
 from coinpy_client.view.message_view import MessageView
+from coinpy_client.view.blockchain.blockchain_summary_view import BlockchainSummaryView
 
 
 
@@ -45,6 +46,7 @@ class MainWindow(wx.Frame, Observable):
         ID_MENU_SHOWHIDE_CONNECTIONS = wx.NewId()
         ID_MENU_SHOWHIDE_LOGS = wx.NewId()
         ID_MENU_SHOWHIDE_POOLS = wx.NewId()
+        ID_MENU_SHOWHIDE_BLOCKCHAIN_SUMMARY = wx.NewId()
         window_menu = wx.Menu()
         self.mi_showhide_connections = window_menu.Append(ID_MENU_SHOWHIDE_CONNECTIONS, "Connections", kind=wx.ITEM_CHECK)
         self.mi_showhide_connections.Check(True)
@@ -52,12 +54,15 @@ class MainWindow(wx.Frame, Observable):
         self.mi_showhide_logs.Check(True)
         self.mi_showhide_pools = window_menu.Append(ID_MENU_SHOWHIDE_POOLS, "Pools", kind=wx.ITEM_CHECK)
         self.mi_showhide_pools.Check(False)
+        self.mi_showhide_blockchain_summary = window_menu.Append(ID_MENU_SHOWHIDE_BLOCKCHAIN_SUMMARY, "Blockchain", kind=wx.ITEM_CHECK)
+        self.mi_showhide_blockchain_summary.Check(True)
         mb.Append(file_menu, "File")
         mb.Append(window_menu, "Window")
         self.SetMenuBar(mb)
         self.Bind(wx.EVT_MENU, self.on_showhide_connections, id=ID_MENU_SHOWHIDE_CONNECTIONS)
         self.Bind(wx.EVT_MENU, self.on_showhide_logs, id=ID_MENU_SHOWHIDE_LOGS)
         self.Bind(wx.EVT_MENU, self.on_showhide_pools, id=ID_MENU_SHOWHIDE_POOLS)
+        self.Bind(wx.EVT_MENU, self.on_showhide_blockchain_summary, id=ID_MENU_SHOWHIDE_BLOCKCHAIN_SUMMARY)
 
         
         # Create Child Windows
@@ -68,7 +73,7 @@ class MainWindow(wx.Frame, Observable):
         self.log_panel = LogPanel(self)
         self.node_view = NodeView(self)
         self.pools_view = PoolsPanel(self, size=(250,300))
-        
+        self.blockchain_summary_view = BlockchainSummaryView(self, size=(10, 10))
         self._mgr.AddPane(self.nb_wallet, wx.aui.AuiPaneInfo().
                   Name("wallet_notebook").Caption("Wallet Notebook").MaximizeButton(True).
                   CenterPane())
@@ -76,12 +81,15 @@ class MainWindow(wx.Frame, Observable):
                   Name("pools").Layer(2).Caption("Pools").MaximizeButton(True).
                   Right().Hide())
         self._mgr.AddPane(self.node_view, wx.aui.AuiPaneInfo().
-                  Name("node").Layer(1).Caption("Connections").MaximizeButton(True).
+                  Name("node").Layer(1).BestSize(wx.Size(300,500)).Caption("Connections").MaximizeButton(True).
                   Right())
         self._mgr.AddPane(self.log_panel, wx.aui.AuiPaneInfo().
                   Name("logs").Caption("Logs").MaximizeButton(True).
                   Bottom())
-                
+        self._mgr.AddPane(self.blockchain_summary_view, wx.aui.AuiPaneInfo().
+                  Name("blockchain_summary").BestSize(wx.Size(300,150)).Caption("Blockchain").Layer(1).
+                  Right().MaximizeButton(True))
+               
         self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self.on_close_pane)
         self._mgr.Update()
         #Statusbar
@@ -138,6 +146,8 @@ class MainWindow(wx.Frame, Observable):
             self.mi_showhide_logs.Check(False)
         if pane.name == 'pools':
             self.mi_showhide_pools.Check(False)
+        if pane.name == 'blockchain_summary':
+            self.mi_showhide_blockchain_summary.Check(False)
     
     def showhide_pane(self, pane_name, menuitem):
         pane = self._mgr.GetPane(pane_name)
@@ -158,8 +168,12 @@ class MainWindow(wx.Frame, Observable):
 
     def on_showhide_logs(self, event):
         self.showhide_pane("logs", self.mi_showhide_logs)
-    
 
+    def on_showhide_blockchain_summary(self, event):
+        self.showhide_pane("blockchain_summary", self.mi_showhide_blockchain_summary)
+    
+ 
+        
 #self.app = wx.App(False) #turn of graphical error console
         
 if __name__ == '__main__':

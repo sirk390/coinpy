@@ -10,12 +10,21 @@ import time
      WalletTx:    A transaction with metadata as saved in the wallet
          merkle_tx: (MerkleTx) the transaction 
          map_value: {key => value} map for saving metadata information.
-                     recognized keys: "fromaccount", "spent" (string of "0" and "1" for each output)
-         order_from: [[str,str], ...]
+                     recognized keys: 
+                         "fromaccount", account name for JSON-RPC, default=empty
+                         "spent" (string of "0" and "1" for each output)
+         order_from: [[str,str], ...]:    
+                     obsolete & unused, historically linked to market.cpp/market.h
          time_received_is_tx_time: bool
+             true if we sent the transaction. 
+             seems to be used hitorically with sumbitorder/checkorde. 
          time_received: int
+             time of the transaction.
          from_me: bool  
-         spent: bool 
+             true if we sent the transaction
+         spent: bool: true if any of mapvalue.spent is spent
+                      obsolete, use mapvalue.spent.
+             
  """       
 class WalletTx():
     def __init__(self, merkle_tx, merkle_tx_prev, map_value, order_from, time_received_is_tx_time, time_received, from_me, spent):

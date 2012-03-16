@@ -109,7 +109,7 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def set_version(self, version):
         self.db["\x07version"] = struct.pack("<I", version)
     
-    def get_blocklocator(self):
+    def get_block_locator(self):
         serializer = BlockLocatorSerializer()
         block_locator, cursor = serializer.deserialize(self.db["\x09bestblock"], 0)           
         return block_locator

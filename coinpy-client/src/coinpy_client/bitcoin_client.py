@@ -19,7 +19,11 @@ from coinpy.node.addrpool import AddrPool
 from coinpy.node.addrpool_filler import AddrPoolFiller
 from coinpy.node.peer_reconnector import PeerReconnector
 from coinpy.node.transaction_publisher import TransactionPublisher
-from coinpy_client.model.wallet_set import WalletSet
+from coinpy_client.model.wallet_account_factory import WalletAccountFactory
+from coinpy_client.model.account_set import AccountSet
+from coinpy.lib.bitcoin.wallet.wallet import Wallet
+from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
+from coinpy.lib.bitcoin.wallet.wallet_account import WalletAccount
 
 
 
@@ -39,15 +43,12 @@ class BitcoinClient():
         self.blockchain_with_pools = BlockchainWithPools(self.blockchain, self.log)
         # Node
         self.node = BitcoinNode(self.reactor, self.blockchain_with_pools, self.nodeparams, self.log)
-        
         # TMP: Add seed
         self.node.addr_pool.addpeer(SockAddr("127.0.0.1", BITCOIN_PORT[self.nodeparams.runmode]))
-        
         # Wallets
-        self.wallet_set = WalletSet(self.blockchain, self.nodeparams.runmode)
-        self.transaction_publisher = TransactionPublisher(self.wallet_set, self.node, self.reactor)
-        # Transaction
-        #self.transaction_creator = TransactionCreator(self.nodeparams.runmode, self.blockchain)
+
+        
+        self.account_set = AccountSet()
         
     def get_dbenv_handle(self, directory):
         normdir = os.path.normcase(os.path.normpath(os.path.abspath(directory)))
@@ -58,7 +59,10 @@ class BitcoinClient():
     def open_wallet(self, filename):
         directory, basename = os.path.split(filename)
         dbenv = self.get_dbenv_handle(directory)
-        self.wallet_set.open_wallet(dbenv, basename)
+        wallet_db = BSDDBWalletDatabase(dbenv, filename)
+        wallet = Wallet(wallet_db, self.nodeparams.runmode)
+        account = WalletAccount(basename, wallet, self.blockchain)
+        self.account_set.add_account(account)
    
     def start(self):
         self.reactor.start()

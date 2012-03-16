@@ -18,6 +18,8 @@ class SendDialog(wx.Dialog, Observable):
         self.address_textctrl = wx.TextCtrl(self, -1, "", size=(250,-1))
         self.amount_label = wx.StaticText(self, -1, "Amount:")
         self.amount_textctrl = wx.TextCtrl(self, -1, "", size=(80,-1))
+        #self.fee_label = wx.StaticText(self, -1, "Fee:")
+        #self.fee_textctrl = wx.TextCtrl(self, -1, "", size=(50,-1))
         # Setup Sizers
         sizer = wx.BoxSizer(wx.VERTICAL)
         formsizer = wx.FlexGridSizer(2, 2)
@@ -25,6 +27,8 @@ class SendDialog(wx.Dialog, Observable):
         formsizer.Add(self.address_textctrl, 1, wx.LEFT|wx.ALL|wx.EXPAND, 5)
         formsizer.Add(self.amount_label, 0, wx.LEFT|wx.ALL, 5)
         formsizer.Add(self.amount_textctrl, 0, wx.LEFT|wx.ALL, 5)
+        #formsizer.Add(self.fee_label, 0, wx.LEFT|wx.ALL, 5)
+        #formsizer.Add(self.fee_textctrl, 0, wx.LEFT|wx.ALL, 5)
         formsizer.AddGrowableCol(1)
     
         sizer.Add(formsizer, 1, wx.EXPAND|wx.TOP|wx.BOTTOM, 20)
@@ -81,10 +85,9 @@ class SenderView(Observable):
     
 if __name__ == '__main__':
     app = wx.App(False)
-    s = SenderView()
+    s = SenderView(None)
     def validate(event):
         print "validating..."
         s.close()
-    s.subscribe(s.EVT_OK, validate)
     s.open()
     

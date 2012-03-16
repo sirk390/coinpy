@@ -12,7 +12,7 @@ import random
 from coinpy_client.bitcoin_client import BitcoinClient
 import log
 
-def main(runmode):
+def main(runmode=TESTNET):
     data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
     nodeparams = NodeParams(runmode=runmode,
                             port=8080,

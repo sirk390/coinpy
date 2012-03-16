@@ -128,7 +128,8 @@ class WalletPanel(wx.Panel, Observable):
             key, _, _ = self.keys[id]
             self.keylist.SetStringItem(i, 1,self.private_key_mask(hexstr(key.private_key)))
         button_label = ("Hide" if self.show_private_keys else "Show") + " Private Keys"
-        self.show_hide_private_keys_button.SetLabel(button_label) 
+        self.show_hide_private_keys_button.SetLabel(button_label)
+        
         
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import MAIN, TESTNET

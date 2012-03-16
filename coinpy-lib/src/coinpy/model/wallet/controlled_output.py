@@ -9,8 +9,9 @@ Created on 6 Mar 2012
     Output for which we have a keypair
 '''
 class ControlledOutput():
-    def __init__(self, txhash, index, txout, keypair):
+    def __init__(self, txhash, tx, index, txout, keypair):
         self.txhash = txhash
+        self.tx = tx
         self.index = index
         self.txout = txout
         self.keypair = keypair

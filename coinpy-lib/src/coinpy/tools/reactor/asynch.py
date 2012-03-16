@@ -19,7 +19,7 @@ class Asynch(object):
         
     def run(self):
         try:
-            if type(self.value) is Exception:
+            if isinstance(self.value, Exception):
                 result = self.stack[-1].throw(self.value)
             else:
                 result = self.stack[-1].send(self.value)

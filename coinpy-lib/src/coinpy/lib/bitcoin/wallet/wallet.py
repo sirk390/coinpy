@@ -18,7 +18,11 @@ from coinpy.tools.bitcoin.base58check import encode_base58check
 from coinpy.tools.observer import Observable
 from coinpy.model.wallet.controlled_output import ControlledOutput
 
-
+'''
+    Wallet implementes the basic satoshi wallet logic.
+       Database logic is implemented in WalletDatabase
+       Features requiring on blockchain are implemented in WalletAccount.
+'''
 class Wallet(Observable):
     EVT_NEW_TRANSACTION = Observable.createevent()
     
@@ -50,7 +54,7 @@ class Wallet(Observable):
         for hash, wallet_tx in self.wallet_database.get_wallet_txs().iteritems():
             for index, txout in enumerate(wallet_tx.merkle_tx.tx.out_list):
                 if not wallet_tx.is_spent(index) and self.is_mine(txout):
-                    yield ControlledOutput(hash, index, txout, self.get_keypair_for_output(txout))
+                    yield ControlledOutput(hash, wallet_tx.merkle_tx.tx, index, txout, self.get_keypair_for_output(txout))
     ''''
         A TxIn is "debit" if the previous output is in the wallet and is mine.
         If it is, get_debit_txin will return the value spent.
@@ -134,6 +138,9 @@ class Wallet(Observable):
         if not address: # if unknown script type, return False
             return False
         return self.have_key_for_addresss(address)
+
+    def get_besthash_reference(self):
+        return self.wallet_database.get_block_locator().highest()
     
     def is_change(self, txout): 
         # Fix to be implemented in main client, see wallet.cpp:390
