@@ -22,13 +22,26 @@ class AccountBookPresenter():
         self.walletbook_view = walletbook_view
         self.messages_view = messages_view
         self.account_set.subscribe(self.account_set.EVT_ADDED_ACCOUNT, self.on_added_account)
+        self.account_set.subscribe(self.account_set.EVT_REMOVED_ACCOUNT, self.on_removed_account)
+        
+        self.walletbook_view.subscribe(self.walletbook_view.EVT_CLOSE_WALLET, self.on_close_account_view)
+       
+        self.account_presenters = {}
         
     def on_added_account(self, event):
-        account = event.account
-        #wallet_balance = WalletBalance(event.wallet, self.service.blockchain)
         # add a view for the wallet
-        wallet_view = self.walletbook_view.add_wallet_view(account.name)
+        wallet_view = self.walletbook_view.add_wallet_view(event.account, event.account.name)
         # present it
         wallet_presenter = AccountPresenter(event.account, wallet_view, self.messages_view)
-        #TransactionCreatorPresenter(self.service.transaction_creator, event.wallet, wallet_view, self.messages_view)
-        
+        self.account_presenters[event.account] = wallet_presenter
+
+    def on_removed_account(self, event):
+        #stop presenting
+        self.account_presenters[event.account].close()
+        del self.account_presenters[event.account]
+        #removed view
+        self.walletbook_view.remove_wallet_view(event.account)
+    
+    def on_close_account_view(self, event):
+        self.account_set.remove_account(event.id)
+            

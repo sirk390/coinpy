@@ -34,6 +34,9 @@ class AccountPresenter():
         wallet_view.subscribe(wallet_view.EVT_SEND, self.on_send)
         wallet_view.sender_view.subscribe(wallet_view.sender_view.EVT_SELECT_VALUE, self.on_select_send_value)
 
+    def close(self):
+        self.account.unsubscribe(self.account.EVT_BALANCE_CHANGED, self.on_balance_changed)
+        
     def on_balance_changed(self, event):
         self.wallet_view.balance.set_balance( event.confirmed, event.unconfirmed, event.height)
 
