@@ -15,9 +15,11 @@ class Observable(object):
         
     def subscribe(self, eventtype, callback):
         if (eventtype not in self.listeners):
-            self.listeners[eventtype] = []
-        self.listeners[eventtype].append(callback)
-       
+            self.listeners[eventtype] = set()
+        self.listeners[eventtype].add(callback)
+    def unsubscribe(self, eventtype, callback):
+        self.listeners[eventtype].remove(callback)
+        
     def fire(self, eventtype, **attrs):
         if (eventtype in self.listeners):
             e = Event()

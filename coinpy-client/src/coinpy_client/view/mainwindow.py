@@ -86,9 +86,11 @@ class MainWindow(wx.Frame, Observable):
         self._mgr.AddPane(self.log_panel, wx.aui.AuiPaneInfo().
                   Name("logs").Caption("Logs").MaximizeButton(True).
                   Bottom())
-        self._mgr.AddPane(self.blockchain_summary_view, wx.aui.AuiPaneInfo().
-                  Name("blockchain_summary").BestSize(wx.Size(300,150)).Caption("Blockchain").Layer(1).
-                  Right().MaximizeButton(True))
+        blockchain_summary_paneinfo = wx.aui.AuiPaneInfo(). \
+                  Name("blockchain_summary").BestSize(wx.Size(300,150)).Caption("Blockchain").Layer(1). \
+                  Right().MaximizeButton(True)
+        blockchain_summary_paneinfo.dock_proportion = 20000
+        self._mgr.AddPane(self.blockchain_summary_view, blockchain_summary_paneinfo)
                
         self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self.on_close_pane)
         self._mgr.Update()

@@ -36,12 +36,12 @@ class AccountBookPresenter():
         self.account_presenters[event.account] = wallet_presenter
 
     def on_removed_account(self, event):
-        #stop presenting
-        self.account_presenters[event.account].close()
         del self.account_presenters[event.account]
-        #removed view
         self.walletbook_view.remove_wallet_view(event.account)
     
     def on_close_account_view(self, event):
+        #stop presenting
+        self.account_presenters[event.id].close()
+        #removed view
         self.account_set.remove_account(event.id)
             
