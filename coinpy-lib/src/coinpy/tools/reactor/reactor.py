@@ -12,7 +12,6 @@ import threading
 import sys
 
 
-
 def async_run(it, value=None):
     completed = False
     while not completed:

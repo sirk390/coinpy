@@ -12,8 +12,8 @@ from coinpy.node.version_exchange_node import VersionExchangeNode
 
 
 class BlockchainServer(Observable):
-    def __init__(self, node, blockchain, log):
-        super(BlockchainServer, self).__init__()
+    def __init__(self, reactor, node, blockchain, log):
+        super(BlockchainServer, self).__init__(reactor)
         
         node.subscribe(VersionExchangeNode.EVT_VERSION_EXCHANGED, self.on_version_exchanged)      
         node.subscribe((Node.EVT_MESSAGE, MSG_GETDATA), self.on_getdata)

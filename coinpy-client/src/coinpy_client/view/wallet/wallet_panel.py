@@ -25,9 +25,9 @@ class WalletPanel(wx.Panel, Observable):
     EVT_SEND = Observable.createevent()
     EVT_RECEIVE = Observable.createevent()
     
-    def __init__(self, parent):
+    def __init__(self, reactor, parent):
         wx.Panel.__init__(self, parent) #, style=wx.SIMPLE_BORDER
-        Observable.__init__(self)
+        Observable.__init__(self, reactor)
         
         # Controls
         self.balance = BalancePanel(self)
@@ -71,7 +71,7 @@ class WalletPanel(wx.Panel, Observable):
         self.receive_button.Bind(wx.EVT_BUTTON, self.on_receive)
         
         # ChildViews
-        self.sender_view = SenderView(self)
+        self.sender_view = SenderView(reactor, self)
         
         # Initialize private data
         self.show_private_keys = False

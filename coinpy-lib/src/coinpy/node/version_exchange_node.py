@@ -14,6 +14,7 @@ from coinpy.tools.observer import Observable
 from coinpy.node.node import Node
 from coinpy.node.logic.status.version_status import VersionStatus
 
+
 class VersionExchangeNode(Node):
     EVT_VERSION_EXCHANGED = Observable.createevent()
             

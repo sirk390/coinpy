@@ -41,6 +41,7 @@ class CoinpyPresenter():
     def run(self):
         self.service.start()
         self.view.mainloop()
+        #self.service.run()
        
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import MAIN, TESTNET

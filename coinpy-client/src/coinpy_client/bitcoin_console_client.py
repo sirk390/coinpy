@@ -11,6 +11,7 @@ from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 import random
 from coinpy_client.bitcoin_client import BitcoinClient
 import log
+from coinpy.tools.reactor.reactor import Reactor
 
 def main(runmode=TESTNET):
     data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
@@ -20,8 +21,8 @@ def main(runmode=TESTNET):
                             enabledservices=SERVICES_NODE_NETWORK,
                             nonce=random.randint(0, 2**64),
                             sub_version_num="/coinpy:0.0.1/")
-    
-    client = BitcoinClient(log.createlogger(), nodeparams, data_directory)
+    reactor = Reactor()
+    client = BitcoinClient(reactor, log.createlogger(), nodeparams, data_directory)
     client.start()
   
 if __name__ == '__main__':

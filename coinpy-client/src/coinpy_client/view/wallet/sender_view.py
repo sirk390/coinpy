@@ -6,13 +6,14 @@ Created on 29 Feb 2012
 """
 import wx
 from coinpy.tools.observer import Observable
+from coinpy_client.view.guithread import guithread
 
 class SendDialog(wx.Dialog, Observable):
     EVT_OK = Observable.createevent()
     EVT_CANCEL = Observable.createevent()
-    def __init__(self, parent, size):
+    def __init__(self, reactor, parent, size):
         wx.Dialog.__init__(self, parent, size=size, title="Send")
-        Observable.__init__(self)
+        Observable.__init__(self, reactor)
         # Create Controls
         self.address_label = wx.StaticText(self, -1, "To:")
         self.address_textctrl = wx.TextCtrl(self, -1, "", size=(250,-1))
@@ -58,13 +59,14 @@ class SendDialog(wx.Dialog, Observable):
 
 class SenderView(Observable):
     EVT_SELECT_VALUE= Observable.createevent()
-    def __init__(self, parent):
-        super(SenderView, self).__init__()
-        self.dlg = SendDialog(parent, size=(300, 200))
+    def __init__(self, reactor, parent):
+        super(SenderView, self).__init__(reactor)
+        self.dlg = SendDialog(reactor, parent, size=(300, 200))
         self.dlg.CenterOnScreen()
         self.dlg.subscribe(self.dlg.EVT_CANCEL, self.on_cancel)
         self.dlg.subscribe(self.dlg.EVT_OK, self.on_ok)
-        
+    
+    @guithread  
     def open(self):
         self.dlg.ShowModal()
 
@@ -80,6 +82,7 @@ class SenderView(Observable):
     def amount(self):
         return self.dlg.amount()
     
+    @guithread  
     def close(self):
         self.dlg.EndModal(wx.ID_OK)
     

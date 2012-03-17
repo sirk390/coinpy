@@ -12,7 +12,7 @@ class PeerConnection(PeerHandler):
     EVT_NEW_MESSAGE = Observable.createevent()
     #TODO: merge with PeerHandler?
     def __init__(self, sockaddr, reactor, msg_serializer, sock, log):
-        PeerHandler.__init__(self, sockaddr, sock)
+        PeerHandler.__init__(self, reactor, sockaddr, sock)
         #self.subscribe(self.EVT_CONNECT, self.on_connect)
         self.reactor = reactor
         self.msg_serializer = msg_serializer

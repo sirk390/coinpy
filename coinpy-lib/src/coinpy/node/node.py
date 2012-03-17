@@ -32,7 +32,7 @@ class Node(Observable):
     EVT_DISCONNECTED = Observable.createevent()
             
     def __init__(self, reactor, params, log, min_connection_count=5):
-        super(Node, self).__init__()
+        super(Node, self).__init__(reactor)
         self.min_connection_count = min_connection_count
         self.reactor = reactor
         self.params = params

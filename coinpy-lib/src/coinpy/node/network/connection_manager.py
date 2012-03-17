@@ -19,7 +19,7 @@ class ConnectionManager(asyncore.dispatcher, Observable):
     EVT_DISCONNECTED_PEER = Observable.createevent()
 
     def __init__(self, reactor, sockaddr, connection_factory, log):
-        Observable.__init__(self)
+        Observable.__init__(self, reactor)
         asyncore.dispatcher.__init__(self)
         self.log = log
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -35,7 +35,8 @@ class NodePresenter():
             displayversion += "(%s)" % (event.version_message.sub_version_num)
         self.view.set_peer_status(event.handler.sockaddr, "VersionExchanged", (192, 255, 192))
         self.view.set_peer_version(event.handler.sockaddr, displayversion)
-        
+        self.view.set_peer_height(event.handler.sockaddr, str(event.version_message.start_height))
+      
     def on_disconnected_peer(self, event):    
         self.view.remove_peer(event.handler.sockaddr)
  

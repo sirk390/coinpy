@@ -5,7 +5,8 @@ class Event(object):
 class Observable(object):
     lastevent = 0
     
-    def __init__(self):
+    def __init__(self, reactor):
+        self.reactor = reactor
         self.listeners = {}
         
     @classmethod 
@@ -17,6 +18,7 @@ class Observable(object):
         if (eventtype not in self.listeners):
             self.listeners[eventtype] = set()
         self.listeners[eventtype].add(callback)
+        
     def unsubscribe(self, eventtype, callback):
         self.listeners[eventtype].remove(callback)
         
@@ -27,7 +29,8 @@ class Observable(object):
             for k, v in attrs.iteritems():
                 setattr(e, k, v)
             for fn in self.listeners[eventtype]:
-                fn(e)
+                #fn(e)
+                self.reactor.call(fn, e)
 
             
         

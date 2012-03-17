@@ -21,9 +21,9 @@ class BitcoinNode(VersionExchangeNode):
     def __init__(self, reactor, blockchain_with_pools, params, log):
         super(BitcoinNode, self).__init__(reactor, lambda : 0, params, log)
         #bootstraper
-        self.bootstrapper = Bootstrapper(params.runmode, self.log)
-        self.addr_pool = AddrPool()
+        self.bootstrapper = Bootstrapper(reactor, params.runmode, self.log)
+        self.addr_pool = AddrPool(reactor)
         AddrPoolFiller(self.bootstrapper, self, self.addr_pool)
-        PeerReconnector(self.addr_pool, self, min_connections=1)
+        PeerReconnector(self.addr_pool, self, min_connections=params.targetpeers)
         BlockchainDownloader(reactor, blockchain_with_pools, self, self.log)
         self.trickler = Trickler(reactor, self)

@@ -7,8 +7,8 @@ class PeerHandler(asyncore.dispatcher_with_send, Observable):
     EVT_CONNECT = Observable.createevent()
     EVT_DISCONNECT = Observable.createevent()
    
-    def __init__(self, sockaddr, sock=None):
-        Observable.__init__(self)
+    def __init__(self, reactor, sockaddr, sock=None):
+        Observable.__init__(self, reactor)
         asyncore.dispatcher_with_send.__init__(self, sock=sock)
         self.sockaddr = sockaddr
         self.isoutbound = (sock == None)

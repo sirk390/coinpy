@@ -24,31 +24,37 @@ from coinpy_client.model.account_set import AccountSet
 from coinpy.lib.bitcoin.wallet.wallet import Wallet
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.bitcoin.wallet.wallet_account import WalletAccount
+from coinpy.node.config.nodeparams import NodeParams
+from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 
 
 
 class BitcoinClient():
-    def __init__(self, log, nodeparams, data_directory): 
-        self.nodeparams = nodeparams
+    def __init__(self, reactor, log, clientparams): 
+        self.clientparams = clientparams
         self.log = log
         self.dbenv_handles = {}
-        self.dbenv = self.get_dbenv_handle(data_directory)
-        # Reactor
-        self.reactor = Reactor()
+        self.dbenv = self.get_dbenv_handle(clientparams.data_directory)
+        self.reactor = reactor
         # Blockchain
-        self.database = BSDDbBlockChainDatabase(self.log, self.dbenv, self.nodeparams.runmode, data_directory)
-        self.database.open_or_create(GENESIS[self.nodeparams.runmode])
-        self.blockchain = Blockchain(self.log, self.database)
+        self.database = BSDDbBlockChainDatabase(self.log, self.dbenv, clientparams.runmode, clientparams.data_directory)
+        self.database.open_or_create(GENESIS[clientparams.runmode])
+        self.blockchain = Blockchain(self.reactor, self.log, self.database)
         # Pools
-        self.blockchain_with_pools = BlockchainWithPools(self.blockchain, self.log)
+        self.blockchain_with_pools = BlockchainWithPools(self.reactor, self.blockchain, self.log)
         # Node
-        self.node = BitcoinNode(self.reactor, self.blockchain_with_pools, self.nodeparams, self.log)
+        nodeparams = NodeParams(runmode=clientparams.runmode,
+                                port=clientparams.port,
+                                version=60000,
+                                enabledservices=SERVICES_NODE_NETWORK,
+                                nonce=clientparams.nonce,
+                                sub_version_num=clientparams.sub_version_num,
+                                targetpeers=clientparams.targetpeers)
+        self.node = BitcoinNode(self.reactor, self.blockchain_with_pools, nodeparams, self.log)
         # TMP: Add seed
-        self.node.addr_pool.addpeer(SockAddr("127.0.0.1", BITCOIN_PORT[self.nodeparams.runmode]))
+        self.node.addr_pool.addpeer(SockAddr("127.0.0.1", BITCOIN_PORT[clientparams.runmode]))
         # Wallets
-
-        
-        self.account_set = AccountSet()
+        self.account_set = AccountSet(self.reactor)
         
     def get_dbenv_handle(self, directory):
         normdir = os.path.normcase(os.path.normpath(os.path.abspath(directory)))
@@ -60,8 +66,8 @@ class BitcoinClient():
         directory, basename = os.path.split(filename)
         dbenv = self.get_dbenv_handle(directory)
         wallet_db = BSDDBWalletDatabase(dbenv, filename)
-        wallet = Wallet(wallet_db, self.nodeparams.runmode)
-        account = WalletAccount(basename, wallet, self.blockchain)
+        wallet = Wallet(self.reactor, wallet_db, self.clientparams.runmode)
+        account = WalletAccount(self.reactor, basename, wallet, self.blockchain)
         self.account_set.add_account(account)
    
     def start(self):
@@ -70,3 +76,5 @@ class BitcoinClient():
     def stop(self, callback):
         self.reactor.stop(callback)
  
+    def run(self):
+        self.reactor.run()

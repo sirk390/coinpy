@@ -26,8 +26,8 @@ from coinpy.model.wallet.controlled_output import ControlledOutput
 class Wallet(Observable):
     EVT_NEW_TRANSACTION = Observable.createevent()
     
-    def __init__(self, wallet_database, runmode):
-        super(Wallet, self).__init__()
+    def __init__(self, reactor, wallet_database, runmode):
+        super(Wallet, self).__init__(reactor)
         self.wallet_database = wallet_database
         self.wallet_database.open()
         self.runmode = runmode

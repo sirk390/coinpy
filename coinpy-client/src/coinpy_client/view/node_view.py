@@ -7,7 +7,6 @@ Created on 14 Feb 2012
 import wx
 from coinpy.node.node import Node
 from coinpy.tools.id_pool import IdPool
-from coinpy.node.version_exchange_node import VersionExchangeNode
 
 class NodeView(wx.Panel):
     def __init__(self, parent):
@@ -22,6 +21,8 @@ class NodeView(wx.Panel):
         self.list.SetColumnWidth(2, 80)
         self.list.InsertColumn(3, "version")
         self.list.SetColumnWidth(3, 80)
+        self.list.InsertColumn(4, "height")
+        self.list.SetColumnWidth(4, 80)
         
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
         self.sizer.Add(self.list, 1, wx.EXPAND)
@@ -49,6 +50,11 @@ class NodeView(wx.Panel):
         id = self.connections[sockaddr]
         index = self.list.FindItemData(-1, id)
         self.list.SetStringItem(index, 3, version)
+        
+    def set_peer_height(self, sockaddr, height):
+        id = self.connections[sockaddr]
+        index = self.list.FindItemData(-1, id)
+        self.list.SetStringItem(index, 4, height)
         
     def remove_peer(self, sockaddr):
         id = self.connections[sockaddr]

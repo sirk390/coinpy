@@ -25,11 +25,12 @@ class BlockchainWithPools(Observable):
     EVT_REMOVED_TX = Observable.createevent()
     
     def __init__(self, 
+                 reactor,
                  blockchain, 
                  log,
                  orphantransactions = set(),
                  transactionpool = set()):
-        super(BlockchainWithPools, self).__init__()
+        super(BlockchainWithPools, self).__init__(reactor)
         self.blockchain = blockchain
         self.orphanblocks =  BlockPool(log)
         self.orphantransactions = orphantransactions

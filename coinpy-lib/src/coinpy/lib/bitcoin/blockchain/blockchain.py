@@ -27,8 +27,8 @@ class Blockchain(Observable):
     EVT_REORGANIZE = Observable.createevent()
     EVT_NEW_HIGHEST_BLOCK = Observable.createevent()
     
-    def __init__(self, log, database):
-        super(Blockchain, self).__init__()
+    def __init__(self, reactor, log, database):
+        super(Blockchain, self).__init__(reactor)
         self.log = log
         self.database = database
         self.vm = TxValidationVM()
