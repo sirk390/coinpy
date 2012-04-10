@@ -46,6 +46,7 @@ class WalletPanel(wx.Panel, Observable):
         self.txhistory_list.InsertColumn(1, "Address")
         self.txhistory_list.InsertColumn(2, "Label")
         self.txhistory_list.InsertColumn(3, "Amount")
+        self.txhistory_list.InsertColumn(4, "Confirmed")
         self.txhistory_list.SetColumnWidth(0, 120)
         self.txhistory_list.SetColumnWidth(1, 250)
         # Sizers
@@ -77,7 +78,9 @@ class WalletPanel(wx.Panel, Observable):
         self.show_private_keys = False
         self.keylist_idpool = IdPool()
         self.keys = {}
-        
+
+        self.itemdata_ids = IdPool()
+        self.tx_history_items = {} # id => itemdata_ids
         
     def on_send(self, event):
         self.fire(self.EVT_SEND)
@@ -107,17 +110,27 @@ class WalletPanel(wx.Panel, Observable):
             self.keylist.SetStringItem(index, 5, name.name)
 
 
-    def add_transaction_history_item(self, txtime, address, label, amount):
+    def add_transaction_history_item(self, id, txtime, address, label, amount, confirmed):
+        itemdata = self.itemdata_ids.get_id()
+        self.tx_history_items[id] = itemdata
+        
         timestr = time.strftime("%Y-%m-%d %H:%m:%S", time.localtime(txtime))
         index = self.txhistory_list.InsertStringItem(self.keylist.GetItemCount(),timestr)
         self.txhistory_list.SetStringItem(index, 1, address)
         self.txhistory_list.SetStringItem(index, 2, label)
         self.txhistory_list.SetStringItem(index, 3, str(amount * 1.0 / COIN ))
+        self.txhistory_list.SetStringItem(index, 4, confirmed)
+        self.txhistory_list.SetItemData(index, itemdata)
         #if (amount < 0):
         #    self.txhistory_list.SetItemBackgroundColour(index, (255, 200, 200))
         #else:
         #    self.txhistory_list.SetItemBackgroundColour(index, (200, 255, 200))
-            
+        
+    def set_confirmed(self, id, confirmed):
+        itemdata = self.tx_history_items[id]
+        index = self.list.FindItemData(-1, itemdata)
+        self.txhistory_list.SetStringItem(index, 4, confirmed)
+        
     def private_key_mask(self, private_key):
         return (private_key if self.show_private_keys else "***" )
     
@@ -138,7 +151,7 @@ if __name__ == '__main__':
     
     app = wx.App(False)
     frame = wx.Frame(None)
-    wallet_panel = WalletPanel(frame)
+    wallet_panel = WalletPanel(None, frame)
     wallet_panel.add_key(WalletKeypair("public_key1", "private_key2"), 
                          WalletPoolKey(3, 3, time.time(), "public_key1"),
                          WalletName("name1", "adress1"))

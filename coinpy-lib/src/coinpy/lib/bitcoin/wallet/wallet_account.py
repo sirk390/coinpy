@@ -10,7 +10,8 @@ from coinpy.lib.script.standard_script_tools import tx_pubkeyhash_get_address,\
     identify_script, tx_pubkey_get_pubkey
 from coinpy.tools.bitcoin.hash160 import hash160
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.model.constants.bitcoin import COIN, COINBASE_MATURITY
+from coinpy.model.constants.bitcoin import COIN, COINBASE_MATURITY,\
+    CONFIRMATIONS
 from coinpy.tools.hex import hexstr
 from coinpy.lib.bitcoin.address import get_address_from_public_key
 from coinpy.model.address_version import ADDRESSVERSION
@@ -25,11 +26,14 @@ from coinpy.model.protocol.structures.uint256 import uint256
 from coinpy.model.protocol.structures.merkle_tx import MerkleTx
 from coinpy.lib.bitcoin.transactions.create_wallet_tx import create_wallet_tx
 from coinpy.lib.bitcoin.hash_tx import hash_tx
+import time
 
 
 class WalletAccount(Observable):
     EVT_BALANCE_CHANGED = Observable.createevent() 
     EVT_PUBLISH_TRANSACTION = Observable.createevent() 
+
+    EVT_NEW_TRANSACTION_HISTORY_ITEM = Observable.createevent() 
 
     def __init__(self, reactor, log, name, wallet, blockchain):
         super(WalletAccount, self).__init__(reactor)
@@ -51,26 +55,35 @@ class WalletAccount(Observable):
     Set the followings attributes:
         - is_blockchain_synched : True if the blockchain is height is greater than the wallet height.
         - mainchain_outputs : outputs that are present in the blockchain and are controlled by me.
+        - other_outputs : outputs that are not present in the blockchain and are controlled by me.
     '''
     def check_blockchain_synch(self):
         #improvement: could only check if all my transactions are present in the blockchain
         self.is_blockchain_synched = self.blockchain.contains_block(self.get_besthash())
         if self.is_blockchain_synched:
             self.mainchain_outputs = []
+            self.other_outputs = []
             for output in self.wallet.iter_my_outputs():
-                if (self.blockchain.contains_transaction(output.txhash)):
-                    blockhandle = self.blockchain.get_transaction_handle(output.txhash).get_block()
-                    if blockhandle.is_mainchain():
-                        height = self.blockchain.get_transaction_handle(output.txhash).get_block().get_height()
-                        self.mainchain_outputs.append([height, output.tx, output.txout])
-             
+                if (self.blockchain.contains_transaction(output.txhash) and
+                    self.blockchain.get_transaction_handle(output.txhash).get_block().is_mainchain()):
+                    height = self.blockchain.get_transaction_handle(output.txhash).get_block().get_height()
+                    self.mainchain_outputs.append([height, output.tx, output.txout])
+                else:
+                    self.other_outputs.append([output.tx, output.txout])
+                   
         
     def iter_my_outputs(self):
         return self.wallet.iter_my_outputs()
     
     def iter_transaction_history(self):
-        return self.wallet.iter_transaction_history()
-
+        for tx, hash, date, address, name, amount in self.wallet.iter_transaction_history():
+            if self.blockchain.contains_transaction(hash):
+                height = self.blockchain.get_transaction_handle(hash).get_block().get_height()
+                confirmed = self.is_confirmed(tx, height)
+            else:
+                confirmed = False
+            yield (tx, hash, date, address, name, amount, confirmed)
+        
     def iter_unconfirmed_transactions(self):
         return self.wallet.iter_unconfirmed_transactions()
     
@@ -95,7 +108,12 @@ class WalletAccount(Observable):
     
     def get_blockchain_height(self):
         return self.blockchain_height
-    
+
+    def is_confirmed(self, tx, height):
+        if tx.iscoinbase():
+            return (self.blockchain_height >  height + COINBASE_MATURITY)
+        return (self.blockchain_height >  height + CONFIRMATIONS)
+        
     def _recompute_balance(self):
         confirmed, unconfirmed = 0, 0
         if not self.is_blockchain_synched:
@@ -104,11 +122,12 @@ class WalletAccount(Observable):
                 unconfirmed += output.txout.value
         else:  
             for height, tx, txout in self.mainchain_outputs:
-                if (tx.iscoinbase() and (self.blockchain_height >  height + COINBASE_MATURITY)) or \
-                   (not tx.iscoinbase()): # set confirmed after 6 blocks here instead of 1?
+                if self.is_confirmed(tx, height):
                     confirmed += txout.value
                 else:
                     unconfirmed += txout.value
+            for tx, txout in self.other_outputs:
+                unconfirmed += txout.value
         self.confirmed_balance = confirmed
         self.unconfirmed_balance = unconfirmed
         self.fire(self.EVT_BALANCE_CHANGED, confirmed=self.confirmed_balance, unconfirmed=self.unconfirmed_balance, height=self.blockchain_height)
@@ -120,16 +139,19 @@ class WalletAccount(Observable):
 
     def get_besthash(self): 
         return self.wallet.get_besthash_reference()
+    """
     
+        amount: value in COIN.
+    """
     def send_transaction(self, amount, address, fee):
         outputs = list(self.iter_my_outputs())
-        selected_outputs = self.coin_selector.select_coins(outputs, amount + fee)
+        selected_outputs = self.coin_selector.select_coins(outputs, (amount + fee))
         self.wallet.begin_updates() # begin transaction on wallet to allocate a pool_key
         change_keypair = self.wallet.allocate_pool_key()
         change_address = get_address_from_public_key(self.wallet.runmode, change_keypair.public_key)
         tx = create_pubkeyhash_transaction(selected_outputs, 
-                                        decode_base58check(address), 
-                                        decode_base58check(change_address), 
+                                        decode_base58check(address)[1:],  #remove ADDRESSVERSION[runmode] byte
+                                        decode_base58check(change_address)[1:],  #remove ADDRESSVERSION[runmode] byte
                                         amount, 
                                         fee)
         txhash = hash_tx(tx)
@@ -146,10 +168,14 @@ class WalletAccount(Observable):
             input_wallet_tx.set_spent(output.index)
             self.wallet.set_transaction(output.txhash, input_wallet_tx)
         #Add the wallet_tx (contains supporting transations)
-        wallet_tx = create_wallet_tx(self.blockchain, merkle_tx)
-        self.wallet.add_unconfirmed_transaction(txhash, wallet_tx)
-
+        txtime = time.time()
+        wallet_tx = create_wallet_tx(self.blockchain, merkle_tx, txtime)
+        self.wallet.add_transaction(txhash, wallet_tx)
         self.wallet.commit_updates()
+        self.fire(self.EVT_NEW_TRANSACTION_HISTORY_ITEM, item=(tx, txhash, txtime, address, "", amount, False))
+        
+        self.check_blockchain_synch()# we could only compute delta here
+        self._recompute_balance()
         
         
 if __name__ == '__main__':

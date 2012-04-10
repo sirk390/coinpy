@@ -48,7 +48,7 @@ class Wallet(Observable):
             self.wallet_database.set_label(address, label)
         return keypair
     
-    def add_unconfirmed_transaction(self, hashtx, wallet_tx):
+    def add_transaction(self, hashtx, wallet_tx):
         self.wallet_database.set_transaction(hashtx, wallet_tx)
 
     def get_transaction(self, hashtx):
@@ -119,9 +119,9 @@ class Wallet(Observable):
                 if debit > 0 and self.is_change(txout):
                     pass
                 elif debit > 0:
-                    yield (wallet_tx.time_received, address, name, -txout.value)
+                    yield (wallet_tx.merkle_tx.tx, hash, wallet_tx.time_received, address, name, -txout.value)
                 elif self.is_mine(txout):
-                    yield (wallet_tx.time_received, address, name, txout.value)
+                    yield (wallet_tx.merkle_tx.tx, hash, wallet_tx.time_received, address, name, txout.value)
                 else:
                     print "not my txout", hash, address
           
@@ -183,8 +183,9 @@ if __name__ == '__main__':
     wallet_db = BSDDBWalletDatabase(dbenv, "wallet_testnet.dat")
     wallet = Wallet(reactor, wallet_db, TESTNET)
     
-    for date, address, name, amount in wallet.iter_transaction_history():
-        print date, address, name, amount
+    print "\n".join([str(s) for s in wallet.iter_my_outputs()])
+    #for date, address, name, amount in wallet.iter_transaction_history():
+    #    print date, address, name, amount
     #print wallet.get_balance() * 1.0 / COIN 
         
  #   encode_base58check(chr(ADDRESSVERSION[runmode]) + hash160(public_key))

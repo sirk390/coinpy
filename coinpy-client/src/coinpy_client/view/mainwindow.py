@@ -22,6 +22,7 @@ from coinpy_client.view.blockchain.blockchain_summary_view import BlockchainSumm
 
 class MainWindow(wx.Frame, Observable):
     EVT_CMD_OPEN_WALLET = Observable.createevent()
+    EVT_CMD_CLOSE_WALLET = Observable.createevent()
     EVT_CMD_CLOSE = Observable.createevent()
     
     def __init__(self, reactor, parent, id=-1, title="", pos=wx.DefaultPosition,
@@ -37,7 +38,7 @@ class MainWindow(wx.Frame, Observable):
         # File
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, "Open")
-        self.Bind(wx.EVT_MENU, self.on_open_wallet, id=wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.on_cmd_open_wallet, id=wx.ID_OPEN)
         file_menu.Append(wx.ID_EXIT, "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit_menu, id=wx.ID_EXIT)
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -99,6 +100,8 @@ class MainWindow(wx.Frame, Observable):
         #MessageBoxes
         self.messages_view = MessageView(self)
         
+        self.nb_wallet.subscribe(self.nb_wallet.EVT_CLOSE_WALLET, self.on_cmd_close_wallet)
+ 
         
     def add_child_frame(self, childclass, title):
         child_frame = wx.aui.AuiMDIChildFrame(self, -1, title=title)
@@ -120,7 +123,7 @@ class MainWindow(wx.Frame, Observable):
         logger.addHandler(handler)
         return logger
     
-    def on_open_wallet(self, event):
+    def on_cmd_open_wallet(self, event):
         dlg = wx.FileDialog(
             self, message="Select a wallet.dat file",
             defaultDir=os.getcwd(), 
@@ -129,11 +132,10 @@ class MainWindow(wx.Frame, Observable):
             style=wx.OPEN | wx.CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
             self.fire(self.EVT_CMD_OPEN_WALLET, file=dlg.GetPath())
-    """    
-    def add_wallet(self, filename, wallet, balance):
-        self.nb_wallet.add_wallet(filename, wallet, balance)
-    """
 
+    def on_cmd_close_wallet(self, event):
+        self.fire(self.EVT_CMD_CLOSE_WALLET, id=event.id)
+        
     def on_exit_menu(self, event):
         self.Close()   
         

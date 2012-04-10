@@ -14,10 +14,11 @@ import time
 COPY_DEPTH = 1
 
 #see wallet.cpp:580/AddSupportingTransactions
-def create_wallet_tx(blockchain, merkle_tx):
+def create_wallet_tx(blockchain, merkle_tx, txtime):
     input_txs = [merkle_tx]
     merkle_tx_prev = {}
     #Fixed version of AddSupportingTransactions
+    """
     for d in range(COPY_DEPTH):
         next_input_txs = []
         for tx in input_txs:
@@ -31,13 +32,13 @@ def create_wallet_tx(blockchain, merkle_tx):
                                      txin.previous_output.index)
                 merkle_tx_prev[hash_tx(tx)] = merkle_tx #put in a map for unicity of hashes
                 next_input_txs.append(merkle_tx_prev)
-    
+    """
     return WalletTx(merkle_tx, 
                     merkle_tx_prev.values(),
                     {"spent": "0" * len(merkle_tx.tx.out_list)},
                     [],
                     True,
-                    time.time(),
+                    txtime,
                     True,
                     False)
     

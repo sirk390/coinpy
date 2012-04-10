@@ -34,11 +34,6 @@ def main(runmode):
 
 #testnet faucet: mhFwRrjRNt8hYeWtm9LwqCpCgXjF38RJqn
 
-#n4MsBRWD7VxKGsqYRSLaFZC6hQrsrKLaZo
-#- Sending 1.000000 to n4MsBRWD7VxKGsqYRSLaFZC6hQrsrKLaZo (fee:0.000000), 
-#change address: mfvYfhQeKmXTKYGMUh9BJR23img6x72PYD, 
-#hash:88ff0a377fcddf61c70f84c8b195d790c6809b4f54cc247a23b1d1e0fa3cdd5d
-#
 # old peer : 88.114.198.141:18333
 
 if __name__ == '__main__':

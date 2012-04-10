@@ -28,6 +28,7 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         self.dbflags = bsddb.db.DB_THREAD
         
     def open(self):
+        #self.bsddb_env.dbenv.fileid_reset(self.filename)
         dbtxn = self.bsddb_env.dbenv.txn_begin()
         self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags, txn=dbtxn)
         dbtxn.commit()
@@ -120,14 +121,16 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         pass
 
     def set_transaction(self, hashtx, wallet_tx):
+        self.txs[hashtx] = wallet_tx
         key = self.uint256_serializer.serialize(hashtx)
         value = self.wallet_tx_serializer.serialize(wallet_tx)
         self.db.put("\x02tx" + key, value, txn=self.dbtxn)
-
+        
     def get_transaction(self, hashtx):
         return self.txs[hashtx]
 
     def del_poolkey(self, num):
+        del self.poolkeys[num]
         self.db.delete("\x04pool" + struct.pack("<I", num))
 
     def get_version(self):

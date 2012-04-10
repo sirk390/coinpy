@@ -26,6 +26,7 @@ from coinpy.lib.bitcoin.wallet.wallet_account import WalletAccount
 from coinpy.node.config.nodeparams import NodeParams
 from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 import logging.handlers
+from coinpy.tools.bsddb.bsddb_file_id import bsddb_read_file_uid
 
 
 
@@ -33,7 +34,8 @@ class BitcoinClient():
     def __init__(self, reactor, log, clientparams): 
         self.clientparams = clientparams
         self.log = log
-        self.dbenv_handles = {}
+        self.dbenv_handles = {} 
+        self.account_infos = {} # account => (handle, dirname, filename)
         self.dbenv = self.get_dbenv_handle(clientparams.data_directory)
         self.reactor = reactor
         # Logfile
@@ -61,6 +63,7 @@ class BitcoinClient():
         # Wallets
         self.account_set = AccountSet(self.reactor)
         
+        
     def get_dbenv_handle(self, directory):
         normdir = os.path.normcase(os.path.normpath(os.path.abspath(directory)))
         if normdir not in self.dbenv_handles:
@@ -70,11 +73,24 @@ class BitcoinClient():
     def open_wallet(self, filename):
         directory, basename = os.path.split(filename)
         dbenv = self.get_dbenv_handle(directory)
-        wallet_db = BSDDBWalletDatabase(dbenv, filename)
+        
+        uid = bsddb_read_file_uid(filename)
+        if uid in dbenv.open_file_uids:
+            raise Exception("Multiple wallets with the same uid unsupported in the same directory.")
+        dbenv.open_file_uids.add(uid)
+        wallet_db = BSDDBWalletDatabase(dbenv, basename)
         wallet = Wallet(self.reactor, wallet_db, self.clientparams.runmode)
         account = WalletAccount(self.reactor, self.log, basename, wallet, self.blockchain)
         self.account_set.add_account(account)
-   
+        self.account_infos[account] = (dbenv, directory, basename)
+        
+    def close_wallet(self, account):
+        dbenv, directory, basename = self.account_infos[account]
+        uid = bsddb_read_file_uid(os.path.join(directory, basename))
+        dbenv.open_file_uids.remove(uid)
+        self.account_set.remove_account(account)
+        del self.account_infos[account]
+        
     def start(self):
         self.reactor.start()
 

@@ -45,6 +45,4 @@ class AccountBookPresenter():
     def on_close_account_view(self, event):
         #stop presenting
         self.account_presenters[event.id].close()
-        #removed view
-        self.account_set.remove_account(event.id)
-            
+        

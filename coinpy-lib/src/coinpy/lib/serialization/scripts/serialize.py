@@ -18,7 +18,7 @@ class IntructionSerializer(Serializer):
         in case of errors in the script.
         
         E.g. on testnet some scripts have opcode OP_PUSHDATA(1-75) but not 
-        enough data following. It is = possible to have an instruction
+        enough data following. It is possible to have an instruction
         OP_PUSHDATA(1-75) with a different pushed data length. 
     """
     def serialize_pushdata(self, instr):

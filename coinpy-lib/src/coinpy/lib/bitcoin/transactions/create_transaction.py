@@ -19,10 +19,15 @@ from coinpy.tools.hex import hexstr
 from coinpy.tools.bitcoin.hash160 import hash160
 from coinpy.lib.bitcoin.transactions.sign_transaction import sign_transaction
 
-
+"""
+    address: 20byte bytestring address 
+    change_adress: 20byte bytestring address 
+    amount: value in COINS.
+    fee: value in COINS.
+"""
 def create_pubkeyhash_transaction(controlled_output_list, address, change_adress, amount, fee):
     amount_in = sum(output.txout.value for output in controlled_output_list) 
-    amount_change = amount_in - amount - fee
+    amount_change = int(amount_in - amount - fee)
     #assert amount_change > 0
     in_list = [TxIn(previous_output=outpoint(output.txhash, output.index), 
                              script=Script([])) for output in controlled_output_list]

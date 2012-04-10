@@ -22,8 +22,8 @@ class IndexDB():
         self.bsddb_env = bsddb_env
         self.filename = filename
         self.db = bsddb.db.DB(self.bsddb_env.dbenv)
-        self.dbflags = bsddb.db.DB_THREAD
-
+        self.dbflags = bsddb.db.DB_THREAD#bsddb.db.DB_READ_UNCOMMITTED
+        
     def open(self):
         dbtxn = self.bsddb_env.dbenv.txn_begin()
         self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags, txn=dbtxn)

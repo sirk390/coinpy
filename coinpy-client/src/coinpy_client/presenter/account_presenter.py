@@ -12,6 +12,7 @@ import os
 from coinpy.tools.bitcoin.base58check import verify_base58check
 from coinpy.lib.bitcoin.address import is_valid_bitcoin_address
 from coinpy.tools.float import is_float
+from coinpy.model.constants.bitcoin import COIN
  
 class AccountPresenter():
     def __init__(self, account, wallet_view, messages_view): 
@@ -25,14 +26,15 @@ class AccountPresenter():
             self.wallet_view.add_key(key, poolkey, name)
         wallet_view.balance.set_balance(account.get_confirmed_balance(), account.get_unconfirmed_balance(), account.get_blockchain_height())
         #show transaction history
-        for date, address, name, amount in self.account.iter_transaction_history():
-            self.wallet_view.add_transaction_history_item(date, address, name, amount)
+        for tx, hash, date, address, name, amount, confirmed in self.account.iter_transaction_history():
+            self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed and "Yes" or "No")
         #listen to balance updates
         self.account.subscribe(self.account.EVT_BALANCE_CHANGED, self.on_balance_changed)
-
+        self.account.subscribe(self.account.EVT_NEW_TRANSACTION_HISTORY_ITEM, self.on_new_history_item)
 
         wallet_view.subscribe(wallet_view.EVT_SEND, self.on_send)
         wallet_view.sender_view.subscribe(wallet_view.sender_view.EVT_SELECT_VALUE, self.on_select_send_value)
+
 
     def close(self):
         self.account.unsubscribe(self.account.EVT_BALANCE_CHANGED, self.on_balance_changed)
@@ -40,6 +42,10 @@ class AccountPresenter():
     def on_balance_changed(self, event):
         self.wallet_view.balance.set_balance( event.confirmed, event.unconfirmed, event.height)
 
+    def on_new_history_item(self, event):
+        tx, hash, date, address, name, amount, confirmed = event.item
+        self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed and "Yes" or "No")
+        
     def on_send(self, event):
         self.wallet_view.sender_view.open()
         
@@ -52,7 +58,7 @@ class AccountPresenter():
         if not is_float(amount_str):
             self.messages_view.error("Incorrect amount: %s" % (amount_str))
             return
-        self.account.send_transaction(float(amount_str), address, 0)
+        self.account.send_transaction(int(float(amount_str) * COIN), address, 0)
         self.wallet_view.sender_view.close()
     
 if __name__ == '__main__':
