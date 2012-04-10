@@ -23,7 +23,6 @@ class NodePresenter():
             self.view.set_peer_status(peer.sockaddr, "Connected", (230, 255, 230))
         
     def on_connecting_peer(self, event):    
-        print "on_connecting_peer.add_peer"
         self.view.add_peer(event.handler.sockaddr)
       
     def on_connected(self, event):

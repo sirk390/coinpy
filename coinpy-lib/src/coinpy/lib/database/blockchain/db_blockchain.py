@@ -20,34 +20,34 @@ from coinpy.lib.database.blockchain.objects.disktxpos import DiskTxPos
 from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
 from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
+from coinpy.model.genesis import GENESIS
 
 class BSDDbBlockChainDatabase(BlockChainDatabase):
-    def __init__(self, log, bdsdb_env, runmode, directory="."):
+    def __init__(self, log, bdsdb_env, runmode):
         self.log = log
         self.runmode = runmode
         self.indexdb = IndexDB(runmode, bdsdb_env)
-        self.blockstore = BlockStorage(runmode, directory)
+        self.blockstore = BlockStorage(runmode, bdsdb_env.directory)
         self.version = 32200
         self.genesishash = None
         self.genesisblock = None
 
     def open(self):
         self.indexdb.open()
-        self.genesishash = self.indexdb.get_hashbestchain()
-        self.genesisblock = self.get_block_handle(self.genesishash).get_block()    
     
     def exists(self):
         return (self.indexdb.exists())
 
     def create(self, genesis_block):
-        self.genesisblock = genesis_block
-        self.genesishash = hash_block(genesis_block)
         file, blockpos = self.blockstore.saveblock(genesis_block)
         self.blockstore.commit()
         genesis_index = DbBlockIndex(self.version, uint256.zero(), file, blockpos, 0, genesis_block.blockheader)
         self.indexdb.create(hash_block(genesis_block), genesis_index)
     
     def open_or_create(self, genesisblock):
+        self.genesisblock = genesisblock
+        self.genesishash = hash_block(genesisblock)
+       
         if self.exists():
             self.open()
         else:
@@ -86,7 +86,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         
         idx = DbBlockIndex(self.version, uint256.zero(), file, blockpos, prevblock.get_height()+1, block.blockheader)
         self.indexdb.set_blockindex(blockhash, idx)
-        if prevblock.is_mainchain():
+        if prevblock.hash == self.get_mainchain():
             prevblock.blockindex.hash_next = blockhash
             self.indexdb.set_blockindex(prevblock.hash, prevblock.blockindex)
             self.indexdb.set_hashbestchain(blockhash)
@@ -105,30 +105,32 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
             hash = handle.get_blockheader().hash_prev 
         return handle.hash
     
-    # iterate backwards through [hashfirst-hashlast] blocks and set the 
-    # hash_next pointer depending on ismainchain
-    def _set_branch(self, hashfirst, hashlast, ismainchain=True):
-        hash, nexthash = hashlast, uint256.zero()
-        #fixme:buggy
+    # iterate backwards in [hashfirst-hashlast] and yield (hash, blkindex)
+    def _iterate_branch(self, hashfirst, hashlast):
+        hash = hashlast
         while (hash != hashfirst):
-            if ismainchain:
-                blockindex = self.indexdb.get_blockindex(hash)
-                blockindex.hash_next = nexthash
-                self.indexdb.set_blockindex(hash, blockindex)
-                self._index_transactions(hash)
-            else:
-                blockindex = self.indexdb.get_blockindex(hash)
-                blockindex.hash_next = uint256.zero()
-                self.indexdb.set_blockindex(hash, blockindex)
-                self._unindex_transactions(hash)
-            nexthash = hash
+            blockindex = self.indexdb.get_blockindex(hash)
+            yield (hash, blockindex)
+            hash = blockindex.blockheader.hash_prev
         
     def set_mainchain(self, new_mainchain_hash):
         hashfork = self._find_fork(new_mainchain_hash)
-        #set hash_next to 0 in previous mainchain
-        self._set_branch(hashfork, self.indexdb.get_hashbestchain(), False)
-        #set hash_next to next in new mainchain
-        self._set_branch(hashfork, new_mainchain_hash, True)
+        #set hash_next to 0 in previous mainchain and unindex transactions
+        for hash, blkindex in self._iterate_branch(hashfork, self.indexdb.get_hashbestchain()):
+            blkindex.hash_next = uint256.zero()
+            self.indexdb.set_blockindex(hash, blkindex)
+            self._unindex_transactions(hash)
+        #set hash_next to next in new mainchain and index transactions
+        next = uint256.zero()
+        for hash, blkindex in self._iterate_branch(hashfork, new_mainchain_hash):
+            blkindex.hash_next = next
+            self.indexdb.set_blockindex(hash, blkindex)
+            next = hash
+            self._index_transactions(hash)
+        #set next of fork
+        blkindex = self.indexdb.get_blockindex(hashfork)
+        blkindex.hash_next = next
+        self.indexdb.set_blockindex(hashfork, blkindex)
         #set hashbestchain
         self.indexdb.set_hashbestchain(new_mainchain_hash)
 

@@ -32,6 +32,22 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags, txn=dbtxn)
         dbtxn.commit()
         self._read_wallet()
+
+   
+    def begin_updates(self):
+        self.dbtxn = self.bsddb_env.dbenv.txn_begin()
+        
+    def commit_updates(self):
+        self.dbtxn.commit()
+        #Synch to disk as wallet changes should not be lost
+        self.db.sync()
+        self.dbtxn = None
+        
+    def allocate_pool_key(self):
+        num, poolkey = self.poolkeys.popitem()
+        print self.db.keys()
+        self.db.delete("\x04pool" + struct.pack("<q", num))
+        return self.keypairs[poolkey.public_key]
     
     def reset_wallet(self):
         self.keypairs = {}
@@ -66,7 +82,7 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
 
     def _read_poolkeys(self):
         for key, key_cursor, value, value_cursor in self._read_entries("pool"):
-            poolnum, = struct.unpack_from("<I", key, key_cursor)
+            poolnum, = struct.unpack_from("<q", key, key_cursor)
             version, = struct.unpack_from("<I", value, 0)
             time, = struct.unpack_from("<q", value, 4)
             public_key, _ = self.varstr_serializer.deserialize(value, 12)
@@ -91,18 +107,29 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def get_poolkeys(self):
         return self.poolkeys
     
-    def begin_updates(self):
-        pass
-
-    def commit_updates(self):
-        pass
+    def set_label(self, address, label):
+        self.names[address] = WalletName(label, address)         
+        address = self.varstr_serializer.serialize(address)
+        name = self.varstr_serializer.deserialize(label)
+        self.db["\x04name" + address] = name
 
     def add_name(self, wallet_name):
         pass
 
     def add_keypair(self, wallet_keypair):
         pass
-    
+
+    def set_transaction(self, hashtx, wallet_tx):
+        key = self.uint256_serializer.serialize(hashtx)
+        value = self.wallet_tx_serializer.serialize(wallet_tx)
+        self.db.put("\x02tx" + key, value, txn=self.dbtxn)
+
+    def get_transaction(self, hashtx):
+        return self.txs[hashtx]
+
+    def del_poolkey(self, num):
+        self.db.delete("\x04pool" + struct.pack("<I", num))
+
     def get_version(self):
         return (struct.unpack("<I", self.db["\x07version"])[0])
 

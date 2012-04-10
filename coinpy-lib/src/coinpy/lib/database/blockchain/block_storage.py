@@ -40,8 +40,8 @@ class BlockStorage:
         #Flush and commit to disk
         
         #FIXME?
-        #handle.flush()
-        #os.fsync(handle.fileno())
+        handle.flush()
+        os.fsync(handle.fileno())
         return (file, blockpos)
     
     def commit(self):

@@ -21,7 +21,7 @@ from coinpy.model.wallet.controlled_output import ControlledOutput
 '''
     Wallet implementes the basic satoshi wallet logic.
        Database logic is implemented in WalletDatabase
-       Features requiring on blockchain are implemented in WalletAccount.
+       Features requiring a blockchain are implemented in WalletAccount.
 '''
 class Wallet(Observable):
     EVT_NEW_TRANSACTION = Observable.createevent()
@@ -31,10 +31,32 @@ class Wallet(Observable):
         self.wallet_database = wallet_database
         self.wallet_database.open()
         self.runmode = runmode
-        self.keypairs = {}
+        self.keypairs = {} # not so usefull; remove field ?
         for keypair in self.wallet_database.get_keypairs():
             self.keypairs[hash160(keypair.public_key)] = keypair
     
+    def begin_updates(self):
+        self.wallet_database.begin_updates()
+        
+    def commit_updates(self):
+        self.wallet_database.commit_updates()
+    
+    def allocate_pool_key(self, label=None):
+        keypair = self.wallet_database.allocate_pool_key()
+        if (label):
+            address = get_address_from_public_key(self.runmode, keypair.public_key)
+            self.wallet_database.set_label(address, label)
+        return keypair
+    
+    def add_unconfirmed_transaction(self, hashtx, wallet_tx):
+        self.wallet_database.set_transaction(hashtx, wallet_tx)
+
+    def get_transaction(self, hashtx):
+        return self.wallet_database.get_transaction(hashtx)
+
+    def set_transaction(self, hashtx, wallet_tx):
+        self.wallet_database.set_transaction(hashtx, wallet_tx)
+
     """
         yields ( WalletKeyPair, WalletName, WalletPoolKey ) entries.
                 WalletName, WalletPoolKey can be None
@@ -83,6 +105,7 @@ class Wallet(Observable):
      
     def iter_transaction_history(self): # see wallet.cpp:448 GetAmounts
         for hash, wallet_tx in self.wallet_database.get_wallet_txs().iteritems():
+            print "---------- TX:", hash
             debit = self.get_debit_tx(wallet_tx)
             for txout in wallet_tx.merkle_tx.tx.out_list:
                 address = encode_base58check(chr(ADDRESSVERSION[self.runmode]) + self.extract_adress(txout))
@@ -94,12 +117,14 @@ class Wallet(Observable):
                 if address in self.get_names():
                     name = self.get_names()[address].name
                 if debit > 0 and self.is_change(txout):
-                    continue
-                if debit > 0:
+                    pass
+                elif debit > 0:
                     yield (wallet_tx.time_received, address, name, -txout.value)
-                if self.is_mine(txout):
+                elif self.is_mine(txout):
                     yield (wallet_tx.time_received, address, name, txout.value)
-            
+                else:
+                    print "not my txout", hash, address
+          
     def get_wallet_txs(self):
         return self.wallet_database.get_wallet_txs()
 
@@ -152,13 +177,14 @@ class Wallet(Observable):
 
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import MAIN, TESTNET
-    dbenv = BSDDBEnv("D:\\repositories\\coinpy\\coinpy-client\\src\\data\\testnet\\")
+    from coinpy.tools.reactor.reactor import Reactor
+    dbenv = BSDDBEnv("D:\\repositories\\coinpy\\coinpy-client\\src\\coinpy_client\\data_testnet\\")
+    reactor = Reactor()
     wallet_db = BSDDBWalletDatabase(dbenv, "wallet_testnet.dat")
-    wallet = Wallet(wallet_db, TESTNET)
+    wallet = Wallet(reactor, wallet_db, TESTNET)
     
     for date, address, name, amount in wallet.iter_transaction_history():
         print date, address, name, amount
-    print wallet.select_coins(10)
     #print wallet.get_balance() * 1.0 / COIN 
         
  #   encode_base58check(chr(ADDRESSVERSION[runmode]) + hash160(public_key))

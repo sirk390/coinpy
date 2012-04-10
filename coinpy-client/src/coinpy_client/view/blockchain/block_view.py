@@ -5,7 +5,8 @@ Created on 9 Mar 2012
 @author: kris
 """
 import wx
- 
+import wx.lib.agw.hyperlink as hyperlink
+
 class BlockView(wx.Panel):
     def __init__(self, parent=None):
         wx.Panel.__init__(self, parent)
@@ -17,17 +18,11 @@ class BlockView(wx.Panel):
         self.block_label = wx.StaticText(self, -1, "Block", size=(350,30))
         self.block_label.SetFont(font_large)
         self.hash_label = wx.StaticText(self, -1, "Hash:")
-        self.hash_textctrl = wx.TextCtrl(self, -1, "", size=(390,-1), style=txtctrl_style)
-        self.hash_textctrl.SetBackgroundColour(txtctrl_color)
-        self.hash_textctrl.SetFont(font_mono)
+        self.hash_linkctrl = hyperlink.HyperLinkCtrl(self, wx.ID_ANY, "")
         self.previous_block_label = wx.StaticText(self, -1, "Previous block:")
-        self.previous_block_textctrl = wx.TextCtrl(self, -1, "", size=(390,-1), style=txtctrl_style)
-        self.previous_block_textctrl.SetBackgroundColour(txtctrl_color)
-        self.previous_block_textctrl.SetFont(font_mono)
+        self.previous_block_linkctrl = hyperlink.HyperLinkCtrl(self, wx.ID_ANY, "") 
         self.next_block_label = wx.StaticText(self, -1, "Next block:")
-        self.next_block_textctrl = wx.TextCtrl(self, -1, "", size=(390,-1), style=txtctrl_style)
-        self.next_block_textctrl.SetBackgroundColour(txtctrl_color)
-        self.next_block_textctrl.SetFont(font_mono)
+        self.next_block_linkctrl = hyperlink.HyperLinkCtrl(self, wx.ID_ANY, "") 
         self.time_label = wx.StaticText(self, -1, "Time:")
         self.time_textctrl = wx.TextCtrl(self, -1, "", size=(150,-1), style=txtctrl_style)
         self.time_textctrl.SetBackgroundColour(txtctrl_color)
@@ -51,6 +46,7 @@ class BlockView(wx.Panel):
         self.transactions_listctrl = wx.ListCtrl(self,style=wx.LC_REPORT, size=(400,100))
         
         self.transactions_listctrl.InsertColumn(0, "Transaction")
+        self.transactions_listctrl.SetColumnWidth(0, 240)
         self.transactions_listctrl.InsertColumn(1, "Amount")
         self.transactions_listctrl.InsertColumn(2, "Fee")
         self.transactions_listctrl.InsertColumn(3, "Type")
@@ -59,11 +55,11 @@ class BlockView(wx.Panel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         formsizer = wx.FlexGridSizer(7, 2, vgap=2)
         formsizer.Add(self.hash_label, 0)
-        formsizer.Add(self.hash_textctrl,  0, wx.EXPAND)
+        formsizer.Add(self.hash_linkctrl,  0, wx.EXPAND)
         formsizer.Add(self.previous_block_label, 0)
-        formsizer.Add(self.previous_block_textctrl, 0, wx.EXPAND)
+        formsizer.Add(self.previous_block_linkctrl, 0, wx.EXPAND)
         formsizer.Add(self.next_block_label)
-        formsizer.Add(self.next_block_textctrl, 0,wx.EXPAND)
+        formsizer.Add(self.next_block_linkctrl, 0,wx.EXPAND)
         formsizer.Add(self.time_label, 0)
         formsizer.Add(self.time_textctrl, 0)
         formsizer.Add(self.difficulty_label, 0)
@@ -97,15 +93,32 @@ class BlockView(wx.Panel):
         self.bestsize = (600,25)
         self.SetSize(self.GetBestSize())
         self.SetSizer(self.sizer)
-    
+        #Events
+        self.hash_linkctrl.Bind(hyperlink.EVT_HYPERLINK_LEFT, self.on_click_hash)
+        self.hash_linkctrl.AutoBrowse(False)
+        self.previous_block_linkctrl.Bind(hyperlink.EVT_HYPERLINK_LEFT, self.on_click_prev)
+        self.previous_block_linkctrl.AutoBrowse(False)
+        self.next_block_linkctrl.Bind(hyperlink.EVT_HYPERLINK_LEFT, self.on_click_next)
+        self.next_block_linkctrl.AutoBrowse(False)
+            
+    def on_click_hash(self, event):
+        wx.MessageBox("You clicked hash")
+
+    def on_click_prev(self, event):
+        wx.MessageBox("You clicked prev")
+
+    def on_click_next(self, event):
+        wx.MessageBox("You clicked next")
+
+
     def set_hash(self, str):
-        self.hash_textctrl.SetValue(str)
+        self.hash_linkctrl.SetLabel(str)
 
     def set_previous_block(self, str):
-        self.previous_block_textctrl.SetValue(str)
+        self.previous_block_linkctrl.SetLabel(str)
 
     def set_next_block(self, str):
-        self.next_block_textctrl.SetValue(str)
+        self.next_block_linkctrl.SetLabel(str)
 
     def set_time(self, str):
         self.time_textctrl.SetValue(str)
@@ -119,7 +132,13 @@ class BlockView(wx.Panel):
     def set_nonce(self, str):
         self.nonce_textctrl.SetValue(str)
 
-       
+    def add_transaction(self, hash, amount, fee, type):
+        index = self.transactions_listctrl.InsertStringItem(self.transactions_listctrl.GetItemCount(),hash)
+        self.transactions_listctrl.SetStringItem(index, 1, amount)
+        self.transactions_listctrl.SetStringItem(index, 2, fee)
+        self.transactions_listctrl.SetStringItem(index, 3, type)
+        
+     
 if __name__ == '__main__':
     app = wx.App(False)
     frame = wx.Frame(None, size=(500, 600))

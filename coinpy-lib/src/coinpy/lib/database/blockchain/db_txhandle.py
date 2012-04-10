@@ -7,6 +7,7 @@ Created on 13 Jan 2012
 from coinpy.model.blockchain.tx_handle import TxHandle
 from coinpy.lib.bitcoin.hash_block import hash_blockheader
 from coinpy.lib.database.blockchain.db_blockhandle import DBBlockHandle
+from coinpy.lib.bitcoin.hash_tx import hash_tx
 
 class DBTxHandle(TxHandle):
     def __init__(self, log, indexdb, blockstorage, hash):
@@ -27,6 +28,11 @@ class DBTxHandle(TxHandle):
     def is_output_spent(self, output):
         return (not self.txindex.spent[output].isnull())
 
+    def get_spending_transaction(self, n):
+        disktxpos = self.txindex.spent[n]
+        tx = self.blockstorage.load_tx(disktxpos.file, disktxpos.txpos)
+        return DBTxHandle(self.log, self.indexdb, self.blockstorage, hash_tx(tx))
+        
     def output_count(self):
         return (len(self.txindex.spent))
     

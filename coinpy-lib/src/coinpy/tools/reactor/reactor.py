@@ -51,7 +51,10 @@ class Reactor():
         work_completed = True
         while not self.terminate:
             #process asyncore network loop
-            asyncore.loop(timeout=(1 if work_completed else 0.001), count=1)
+            #note: GUI might send an event during the asyncore.loop
+            # so timeout is 0.1 even when work_completed
+            # to be fixed somehow
+            asyncore.loop(timeout=(0.1 if work_completed else 0.001), count=1)
             #process all workqueue items
             while (len(self.workqueue) > 0):
                 fn, args = self.workqueue.popleft()
@@ -71,7 +74,7 @@ class Reactor():
             #if nbiterate > 1:
             #    print "reactor executed %d asynch tasks" % (nbiterate)
             #print nbiterate
-            work_completed = len(self.asynchs) == 0
+            work_completed = len(self.asynchs) == 0 and len(self.workqueue) == 0
             #process scheduled items
             t = time.time()
             while (self.scheduled_workqueue and self.scheduled_workqueue[0][0] <= t):

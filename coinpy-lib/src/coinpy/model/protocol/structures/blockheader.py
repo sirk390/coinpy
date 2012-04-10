@@ -18,7 +18,7 @@ class BlockHeader():
         return uint256.from_bignum(value * 2**(8*(exp - 3)))
                             
     def work(self):
-        return ((1 << 256) / (self.target().value + 1))
+        return ((1 << 256) / (self.target().get_bignum() + 1))
         
     def __str__(self):
         return ("BlockHeader(version:%d,hash_next:%s,hash_merkle:%s,time:%d,bits:%d,nonce:%d)" % 

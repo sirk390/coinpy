@@ -38,7 +38,7 @@ class VersionExchangeNode(Node):
         self.log.info("received version (%s: %d)" % (str(event.source), event.message.version))
         if (not self.is_supported_version(event.message.version)):
             self.log.warning("version %d not supported" % (event.message.version))
-            self.remove_peer(event.source.sockaddr)
+            self.misbehaving(event.source, "version %d not supported" % (event.message.version))
             return
         self.send_verack(event.source)
         if (not event.source.isoutbound):

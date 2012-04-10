@@ -26,16 +26,17 @@ class Branch():
         return self.last.get_height()
             
     def backward_iterblocks(self):
-        pos = BlockIterator(self.database, self.lasthash) 
-        while pos.hasprev() and pos.hash != self.firsthash and pos.hash != uint256.zero():
+        pos = self.database.get_block_handle(self.lasthash)
+        while pos.hasprev() and pos.hash != self.firsthash:
             yield pos
-            pos.prev()
-        yield pos
+            pos = self.database.get_block_handle(pos.blockindex.blockheader.hash_prev)
             
     def foreward_iterblocks(self):
         #accumulate and reverse hash_prev links (TODO: add a chain length limit)
-        for block in list( self.backward_iterblocks() ).reverse:
-            yield block
+        blocks = list( self.backward_iterblocks() )
+        blocks.reverse()
+        for blk in blocks:
+            yield blk
             
     def __iter__(self):
         return self.backward_iterblocks()

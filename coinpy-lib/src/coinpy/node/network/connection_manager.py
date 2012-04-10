@@ -49,6 +49,8 @@ class ConnectionManager(asyncore.dispatcher, Observable):
              
             
     def connect_peer(self, sockaddr):
+        if (sockaddr in self.peers):
+            raise Exception("allready connecting/connected: %s" % (str(sockaddr)))
         self.log.info("Connecting: %s" % (str(sockaddr)))
         handler = self.connection_factory.create_connection(sockaddr)        
         handler.subscribe(handler.EVT_CONNECT, self.on_peer_connected)

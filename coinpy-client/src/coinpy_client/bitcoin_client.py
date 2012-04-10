@@ -19,13 +19,13 @@ from coinpy.node.addrpool import AddrPool
 from coinpy.node.addrpool_filler import AddrPoolFiller
 from coinpy.node.peer_reconnector import PeerReconnector
 from coinpy.node.transaction_publisher import TransactionPublisher
-from coinpy_client.model.wallet_account_factory import WalletAccountFactory
 from coinpy_client.model.account_set import AccountSet
 from coinpy.lib.bitcoin.wallet.wallet import Wallet
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.bitcoin.wallet.wallet_account import WalletAccount
 from coinpy.node.config.nodeparams import NodeParams
 from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
+import logging.handlers
 
 
 
@@ -36,8 +36,13 @@ class BitcoinClient():
         self.dbenv_handles = {}
         self.dbenv = self.get_dbenv_handle(clientparams.data_directory)
         self.reactor = reactor
+        # Logfile
+        handler = logging.handlers.RotatingFileHandler(os.path.join(clientparams.data_directory,clientparams.logfilename), maxBytes=1024*1024*8, backupCount=5)
+        self.log.addHandler(handler)
+        fmt = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        handler.setFormatter(fmt)
         # Blockchain
-        self.database = BSDDbBlockChainDatabase(self.log, self.dbenv, clientparams.runmode, clientparams.data_directory)
+        self.database = BSDDbBlockChainDatabase(self.log, self.dbenv, clientparams.runmode)
         self.database.open_or_create(GENESIS[clientparams.runmode])
         self.blockchain = Blockchain(self.reactor, self.log, self.database)
         # Pools
@@ -67,7 +72,7 @@ class BitcoinClient():
         dbenv = self.get_dbenv_handle(directory)
         wallet_db = BSDDBWalletDatabase(dbenv, filename)
         wallet = Wallet(self.reactor, wallet_db, self.clientparams.runmode)
-        account = WalletAccount(self.reactor, basename, wallet, self.blockchain)
+        account = WalletAccount(self.reactor, self.log, basename, wallet, self.blockchain)
         self.account_set.add_account(account)
    
     def start(self):

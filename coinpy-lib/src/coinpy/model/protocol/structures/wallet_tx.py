@@ -9,12 +9,16 @@ import time
 """
      WalletTx:    A transaction with metadata as saved in the wallet
          merkle_tx: (MerkleTx) the transaction 
+         merkle_tx_prev: (MerkleTx) of the supporting the transactions.
+                         Contains the merkle_tx for each input transaction, and input transaction 
+                         of these transactions, etc... until COPY_DEPTH (=3)
          map_value: {key => value} map for saving metadata information.
                      recognized keys: 
                          "fromaccount", account name for JSON-RPC, default=empty
-                         "spent" (string of "0" and "1" for each output)
+                         "spent" (string of "0" and "1" for each output) (probably only usefull for outputs that are mine) 
          order_from: [[str,str], ...]:    
                      obsolete & unused, historically linked to market.cpp/market.h
+                     use []
          time_received_is_tx_time: bool
              true if we sent the transaction. 
              seems to be used hitorically with sumbitorder/checkorde. 
@@ -24,10 +28,11 @@ import time
              true if we sent the transaction
          spent: bool: true if any of mapvalue.spent is spent
                       obsolete, use mapvalue.spent.
-             
  """       
 class WalletTx():
-    def __init__(self, merkle_tx, merkle_tx_prev, map_value, order_from, time_received_is_tx_time, time_received, from_me, spent):
+    def __init__(self, 
+                 merkle_tx, merkle_tx_prev, map_value, order_from,
+                 time_received_is_tx_time, time_received, from_me, spent):
         self.merkle_tx = merkle_tx
         self.merkle_tx_prev = merkle_tx_prev
         self.map_value = map_value
@@ -45,6 +50,11 @@ class WalletTx():
     def is_spent(self, n):
         return (self.outputs_spent[n])
     
+    def set_spent(self, n):
+        self.outputs_spent[n] = True
+        spent = "".join({False:"0", True:"1"}[s] for s in self.outputs_spent)
+        self.map_value["spent"] = spent
+
     def __str__(self):
         return ("WalletTx(\n"  \
                 "   merkle_tx:%s\n"  \

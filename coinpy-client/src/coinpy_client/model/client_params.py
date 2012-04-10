@@ -18,3 +18,5 @@ class ClientParams():
         self.nonce = nonce
         self.sub_version_num = sub_version_num
         self.targetpeers = targetpeers
+        self.logfilename = "coinpy.log"
+        

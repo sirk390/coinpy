@@ -15,3 +15,7 @@ class ControlledOutput():
         self.index = index
         self.txout = txout
         self.keypair = keypair
+        
+    def __str__(self):
+        return ("%s:%d (key:%s)" % (self.txhash, self.index, str(self.keypair)))
+    

@@ -38,3 +38,7 @@ class DBBlockHandle(BlockHandle):
     def hasprev(self):
         return self.blockindex.blockheader.hash_prev != uint256.zero()
     
+
+    def __eq__(self, other):
+        return self.hash == other.hash
+    

@@ -51,7 +51,6 @@ class Node(Observable):
         self.on_connected(event)
         
     def __on_connecting(self, event):
-        print "Node.EVT_CONNECTING_PEER"
         self.fire(self.EVT_CONNECTING, handler=event.handler)
         
     def __on_disconnected(self, event):
@@ -89,5 +88,5 @@ class Node(Observable):
          
     def misbehaving(self, peer, reason):
         self.log.warning("peer misbehaving: %s" % reason)
-        self.connection_manager.disconnect_peer(peer.sockaddr)
+        self.connection_manager.disconnect_peer(peer)
 

@@ -113,10 +113,11 @@ class MainWindow(wx.Frame, Observable):
         fmt = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         #Stdout
         #stdout = logging.StreamHandler(sys.stdout)
-        handle = GuiLogHandler(self.log_panel)
+        handler = GuiLogHandler(self.log_panel)
+        handler.setLevel(logging.INFO)
         #logger.addHandler(stdout)
-        handle.setFormatter(fmt)
-        logger.addHandler(handle)
+        handler.setFormatter(fmt)
+        logger.addHandler(handler)
         return logger
     
     def on_open_wallet(self, event):
