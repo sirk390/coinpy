@@ -10,7 +10,6 @@ from coinpy.node.logic.blockchain_downloader import BlockchainDownloader
 from coinpy.model.protocol.messages.types import MESSAGE_TYPES
 from coinpy.node.version_exchange_node import VersionExchangeNode
 from coinpy.node.trickler import Trickler
-from coinpy.node.bitcoin_sender import BitcoinSender
 from coinpy.node.addrpool import AddrPool
 from coinpy.node.addrpool_filler import AddrPoolFiller
 from coinpy.node.peer_reconnector import PeerReconnector
