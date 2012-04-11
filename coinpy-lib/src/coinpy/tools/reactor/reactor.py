@@ -39,12 +39,18 @@ class Reactor():
     
     def call_asynch(self, asynch):
         self.asynchs.append(asynch)
-        
+
     def schedule_each(self, seconds, fn, *args):
+        self.schedule(seconds, fn, True, *args)
+
+    def schedule_later(self, seconds, fn, *args):
+        self.schedule(seconds, fn, False, *args)
+        
+    def schedule(self, seconds, fn, repeat, *args):
         t = time.time()
         item = (fn, args)
         self.scheduled_tasks[item] = seconds
-        heapq.heappush(self.scheduled_workqueue, (t + seconds, item)) 
+        heapq.heappush(self.scheduled_workqueue, (t + seconds, item, repeat)) 
         #self.log.info("scheduled notify_newhashes")
         
     def run(self):
@@ -78,10 +84,11 @@ class Reactor():
             #process scheduled items
             t = time.time()
             while (self.scheduled_workqueue and self.scheduled_workqueue[0][0] <= t):
-                (_, item) = heapq.heappop(self.scheduled_workqueue)
+                (_, item, repeat) = heapq.heappop(self.scheduled_workqueue)
                 fn, args = item
                 fn(*args)
-                heapq.heappush(self.scheduled_workqueue, (t + self.scheduled_tasks[item], item)) 
+                if repeat:
+                    heapq.heappush(self.scheduled_workqueue, (t + self.scheduled_tasks[item], item)) 
             
         if self.stopped_callback:
             self.stopped_callback()

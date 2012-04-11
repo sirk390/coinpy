@@ -40,7 +40,7 @@ class Asynch(object):
                     self.callback(error=traceback.format_exc(), *self.callback_args)
             else:
                 self.stack.pop()
-            result = e
+            result = Exception(traceback.format_exc())
         if type(result) is Asynch:
             self.stack.append(result.coroutine)
             self.value = None

@@ -7,16 +7,23 @@ Created on 4 Mar 2012
 # TransactionPublisher
 #     Puts transactions in the wallet, relays unconfirmed wallet transactions to
 #     the node trickler. 
+import random
+from coinpy.model.protocol.messages.inv import msg_inv
+from coinpy.model.protocol.structures.invitem import invitem, INV_TX
+
 class TransactionPublisher():
-    # transaction_source: wallet or wallet_set
-    def __init__(self, reactor, node, wallet_set):
+    def __init__(self, reactor, node, account):
         self.reactor = reactor
-        self.wallet_set = wallet_set
-        self.transaction_source.subscribe(self.transaction_source.EVT_NEW_TRANSACTION, self.on_new_transaction)
+        self.node = node
+        self.account = account
+        self.account.subscribe(self.account.EVT_PUBLISH_TRANSACTION, self.on_publish_transaction)
     
-    def on_new_transaction(self, transaction):
-        print "new transaction", str(transaction)
-    
-    def send_transaction(self, tx):
-        pass
-    
+    def on_publish_transaction(self, event):
+        #trickle out tx inv, see main.cpp:2971 "Message: inventory"
+        if self.node.version_exchanged_nodes:
+            random_peer = random.sample(self.node.version_exchanged_nodes, 1)[0]
+            if not self.node.blockchain_with_pools.contains_transaction(event.txhash):
+                self.node.blockchain_with_pools.add_transaction(event.txhash, event.tx)
+            self.node.send_message(random_peer, msg_inv([invitem(INV_TX, event.txhash)]))
+
+            

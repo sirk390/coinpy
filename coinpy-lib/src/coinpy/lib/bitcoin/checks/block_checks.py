@@ -80,35 +80,35 @@ class BlockVerifier():
     """
     #AcceptBlock: main.cpp:1445
     def accept_block(self, hash, block, blockchain):
-        prevblockiter = blockchain.get_block(block.blockheader.hash_prev)
+        prevblockhandle = blockchain.get_block_handle(block.blockheader.hash_prev)
         
-        self.check_target(prevblockiter, hash, block)
-        self.check_timestamp(prevblockiter, hash, block)
-        self.check_tx_finalized(prevblockiter, hash, block)
-        self.check_checkpoints(prevblockiter, hash, block)
+        self.check_target(blockchain, prevblockhandle, hash, block)
+        self.check_timestamp(blockchain, prevblockhandle, hash, block)
+        self.check_tx_finalized(prevblockhandle, hash, block)
+        self.check_checkpoints(prevblockhandle, hash, block)
       
         
-    def check_target(self, prevblockiter, hash, block):
+    def check_target(self, blockchain, prevblockhandle, hash, block):
         #Check proof of work target
-        if (prevblockiter.get_next_work_required() != block.blockheader.bits):
-            raise Exception("Incorrect difficulty target: %08x != %08x" % (block.blockheader.bits, prevblockiter.get_next_work_required()) )
+        if (blockchain.get_next_work_required(prevblockhandle.hash, block) != block.blockheader.bits):
+            raise Exception("Incorrect difficulty target, found:%08x != required:%08x in block %s" % (block.blockheader.bits, blockchain.get_next_work_required(prevblockhandle.hash, block), hash) )
 
             #self.log.info("Incorrect difficulty target: %08x != %08x" % (block.blockheader.bits, prevblockiter.get_next_work_required()))
             #incorrect_blocks.append((sender, block, "Incorrect difficulty target: %08x != %08x" % (block.blockheader.bits, prevblockiter.get_next_work_required())))
         
-    def check_timestamp(self, prevblockiter, hash, block):
-        if (block.blockheader.time <= prevblockiter.get_median_time_past()):
+    def check_timestamp(self, blockchain, prevblockhandle, hash, block):
+        if (block.blockheader.time <= blockchain.get_median_time_past(prevblockhandle.hash)):
             raise Exception("block's timestamp is smaller than the median of past %d block: %d <= %d" % (MEDIAN_TIME_SPAN, prevblockiter.get_blockheader().time , prevblockiter.get_median_time_past()))
 
-    def check_tx_finalized(self, prevblockiter, hash, block):
-        height = prevblockiter.get_height()+1
+    def check_tx_finalized(self, prevblockhandle, hash, block):
+        height = prevblockhandle.get_height()+1
         #Check that all transactions are finalized (can this be done somewhere else?)
         for tx in block.transactions:
             if not tx.isfinal(height, block.blockheader.time):
                 raise Exception("transaction is not final: %s" % str(hash_tx(tx)))
     
-    def check_checkpoints(self, prevblockiter, hash, block):
-        height = prevblockiter.get_height()+1
+    def check_checkpoints(self, prevblockhandle, hash, block):
+        height = prevblockhandle.get_height()+1
         if not verify_checkpoints(self.runmode, height, hash):
             raise Exception("blockchain checkpoint error: height:%d value:%s != %s" % (height, hash, str(get_checkpoint(self.runmode, height))))
         

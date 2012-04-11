@@ -26,7 +26,7 @@ class AccountPresenter():
             self.wallet_view.add_key(key, poolkey, name)
         wallet_view.balance.set_balance(account.get_confirmed_balance(), account.get_unconfirmed_balance(), account.get_blockchain_height())
         #show transaction history
-        for tx, hash, date, address, name, amount, confirmed in self.account.iter_transaction_history():
+        for wallet_tx, hash, date, address, name, amount, confirmed in self.account.iter_transaction_history():
             self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed and "Yes" or "No")
         #listen to balance updates
         self.account.subscribe(self.account.EVT_BALANCE_CHANGED, self.on_balance_changed)

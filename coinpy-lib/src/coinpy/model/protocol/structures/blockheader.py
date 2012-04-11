@@ -21,7 +21,7 @@ class BlockHeader():
         return ((1 << 256) / (self.target().get_bignum() + 1))
         
     def __str__(self):
-        return ("BlockHeader(version:%d,hash_next:%s,hash_merkle:%s,time:%d,bits:%d,nonce:%d)" % 
+        return ("BlockHeader(version:%d,hash_prev:%s,hash_merkle:%s,time:%d,bits:%d,nonce:%d)" % 
                     (self.version, 
                      self.hash_prev, 
                      self.hash_merkle, 

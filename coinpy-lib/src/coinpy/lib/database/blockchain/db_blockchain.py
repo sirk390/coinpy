@@ -80,6 +80,14 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
     def get_block_handle(self, blockhash):
         return DBBlockHandle(self.log, self.indexdb, self.blockstore, blockhash)
 
+    def get_next_in_mainchain(self, blockhash):
+        if not self.indexdb.contains_block(blockhash):
+            return None
+        blockindex = self.indexdb.get_blockindex(blockhash)
+        if (blockindex.hash_next == uint256.zero()):
+            return None
+        return blockindex.hash_next
+    
     def append_block(self, blockhash, block):
         file, blockpos = self.blockstore.saveblock(block)
         prevblock = self.get_block_handle(block.blockheader.hash_prev)

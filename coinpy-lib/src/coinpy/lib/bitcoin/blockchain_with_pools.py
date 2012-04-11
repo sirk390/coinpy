@@ -28,8 +28,8 @@ class BlockchainWithPools(Observable):
                  reactor,
                  blockchain, 
                  log,
-                 orphantransactions = set(),
-                 transactionpool = set()):
+                 orphantransactions = {},
+                 transactionpool = {}):
         super(BlockchainWithPools, self).__init__(reactor)
         self.blockchain = blockchain
         self.orphanblocks =  BlockPool(log)
@@ -45,7 +45,10 @@ class BlockchainWithPools(Observable):
     def verified_add_tx(self, tx):
         self.fire(self.EVT_ADDED_TX, hash = hash_tx(tx))
         self.log.info("Adding tx %s" % str(tx))
-
+    
+    def add_transaction(self, txhash, tx):
+        self.fire(self.EVT_ADDED_TX, hash=txhash)
+        self.transactionpool[txhash] = tx
     
     """
         Asynch method: send to reactor.call_asych( )
@@ -67,11 +70,22 @@ class BlockchainWithPools(Observable):
             self.fire(self.EVT_ADDED_ORPHAN_BLOCK, hash=hash)
             return
         #Checks-2 (done after finding the parent block)
+        self.blockverifier.accept_block(hash, block, self.blockchain)
+        
         #TODO: Check timestamp
         #if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
         #return error("CheckBlock() : block timestamp too far in the future");     
         yield self.blockchain.appendblock(hash, block)
         #self.log.info("Appended block %d prev:%s, hash=%s" % (blockhandle.get_height(), str(blockhandle.get_blockheader().hash_prev), str(blockhandle.hash)))
+
+    def get_transaction(self, hash):
+        if hash in self.transactionpool:
+            return self.transactionpool[hash]
+        if hash in self.orphantransactions:
+            return self.orphantransactions[hash]
+        if self.blockchain.contains_transaction(hash):
+            return self.blockchain.get_transaction_handle(hash).get_transaction()
+        return None
         
     def contains_transaction(self, hash):
         return (self.blockchain.contains_transaction(hash) or 
@@ -81,6 +95,13 @@ class BlockchainWithPools(Observable):
     def contains_block(self, hash):
         return (self.blockchain.contains_block(hash) or 
                 hash in self.orphanblocks)
+        
+    def get_block(self, blkhash):
+        if blkhash in self.orphanblocks:
+            return self.orphanblocks[blkhash]
+        if self.blockchain.contains_block(blkhash):
+            return self.blockchain.get_block(blkhash)
+        return None
         
     def is_orphan_block(self, hash):
         return (hash in self.orphanblocks)

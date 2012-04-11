@@ -81,6 +81,7 @@ class BitcoinClient():
         wallet_db = BSDDBWalletDatabase(dbenv, basename)
         wallet = Wallet(self.reactor, wallet_db, self.clientparams.runmode)
         account = WalletAccount(self.reactor, self.log, basename, wallet, self.blockchain)
+        TransactionPublisher(self.reactor, self.node, account)
         self.account_set.add_account(account)
         self.account_infos[account] = (dbenv, directory, basename)
         

@@ -19,6 +19,6 @@ class GetdataMessageSerializer(Serializer):
 
     def deserialize(self, data, cursor):
         invitems, cursor = self.GETDATA_ENC.deserialize(data, cursor)
-        return (msg_getdata(invitems))
+        return (msg_getdata(invitems), cursor)
 
     

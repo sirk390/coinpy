@@ -5,10 +5,13 @@ Created on 13 Feb 2012
 @author: kris
 """
 
+"""
+    starts with the highest block, ends with the genesis block 
+    (dense and the beginning but then sparse)
+"""
 class BlockLocator():
     def __init__(self, version, blockhashlist):
         self.version = version
-        # newest back to genesis block (dense to start, but then sparse)
         self.blockhashlist = blockhashlist
     
     def highest(self):

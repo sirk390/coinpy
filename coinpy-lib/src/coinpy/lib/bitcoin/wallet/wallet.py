@@ -105,7 +105,6 @@ class Wallet(Observable):
      
     def iter_transaction_history(self): # see wallet.cpp:448 GetAmounts
         for hash, wallet_tx in self.wallet_database.get_wallet_txs().iteritems():
-            print "---------- TX:", hash
             debit = self.get_debit_tx(wallet_tx)
             for txout in wallet_tx.merkle_tx.tx.out_list:
                 address = encode_base58check(chr(ADDRESSVERSION[self.runmode]) + self.extract_adress(txout))
@@ -119,11 +118,9 @@ class Wallet(Observable):
                 if debit > 0 and self.is_change(txout):
                     pass
                 elif debit > 0:
-                    yield (wallet_tx.merkle_tx.tx, hash, wallet_tx.time_received, address, name, -txout.value)
+                    yield (wallet_tx, hash, wallet_tx.time_received, address, name, -txout.value)
                 elif self.is_mine(txout):
-                    yield (wallet_tx.merkle_tx.tx, hash, wallet_tx.time_received, address, name, txout.value)
-                else:
-                    print "not my txout", hash, address
+                    yield (wallet_tx, hash, wallet_tx.time_received, address, name, txout.value)
           
     def get_wallet_txs(self):
         return self.wallet_database.get_wallet_txs()

@@ -27,7 +27,7 @@ class DBBlockHandle(BlockHandle):
     def get_blockheader(self):
         return self.blockindex.blockheader
         #return (self.blockstorage.load_blockheader(self.blockindex.file, self.blockindex.blockpos))
-
+    
     def get_height(self):
         return self.blockindex.height
 

@@ -27,6 +27,7 @@ from coinpy.model.protocol.structures.merkle_tx import MerkleTx
 from coinpy.lib.bitcoin.transactions.create_wallet_tx import create_wallet_tx
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 import time
+import random
 
 
 class WalletAccount(Observable):
@@ -50,6 +51,11 @@ class WalletAccount(Observable):
         self._recompute_balance()
     
         self.coin_selector = CoinSelector()
+        
+        self.lastblock_time = 0
+        self.last_tx_publish = {}
+        self.schedule_republish_transactions()
+        
     '''Determine if the blockchain has at least the height of the wallet.
      
     Set the followings attributes:
@@ -76,16 +82,14 @@ class WalletAccount(Observable):
         return self.wallet.iter_my_outputs()
     
     def iter_transaction_history(self):
-        for tx, hash, date, address, name, amount in self.wallet.iter_transaction_history():
+        for wallet_tx, hash, date, address, name, amount in self.wallet.iter_transaction_history():
             if self.blockchain.contains_transaction(hash):
                 height = self.blockchain.get_transaction_handle(hash).get_block().get_height()
-                confirmed = self.is_confirmed(tx, height)
+                confirmed = self.is_confirmed(wallet_tx.merkle_tx.tx, height)
             else:
                 confirmed = False
-            yield (tx, hash, date, address, name, amount, confirmed)
+            yield (wallet_tx, hash, date, address, name, amount, confirmed)
         
-    def iter_unconfirmed_transactions(self):
-        return self.wallet.iter_unconfirmed_transactions()
     
     '''Return the confirmed account balance.
      
@@ -134,11 +138,33 @@ class WalletAccount(Observable):
 
     def on_new_highest_block(self, event):
         self.blockchain_height = event.height
+        self.lastblock_time = time.time()
         self.check_blockchain_synch()
         self._recompute_balance()
 
     def get_besthash(self): 
         return self.wallet.get_besthash_reference()
+    
+    """
+         Do this infrequently and randomly to avoid giving away
+         that these are our transactions.
+    """
+    def republish_transactions(self):
+        tnow = time.time()
+        for wallet_tx, txhash, date, address, name, amount, confirmed in self.iter_transaction_history():
+            # Only if at least one block was received more than 5min after last publishing.
+            
+            # FIXME: only if blockchain is synched?
+            if not confirmed and (self.lastblock_time > self.last_tx_publish[txhash] + 5*60):
+                self.fire(self.EVT_PUBLISH_TRANSACTION, txhash=txhash, tx=wallet_tx.merkle_tx.tx)
+                self.last_tx_publish[hash] = tnow
+        self.schedule_republish_transactions()
+        
+    """"""
+    def schedule_republish_transactions(self):
+        seconds = random.randint(5*60, 30*60)
+        self.reactor.schedule_later(seconds, self.republish_transactions)
+
     """
     
         amount: value in COIN.
@@ -176,7 +202,8 @@ class WalletAccount(Observable):
         
         self.check_blockchain_synch()# we could only compute delta here
         self._recompute_balance()
-        
+        self.fire(self.EVT_PUBLISH_TRANSACTION, txhash=txhash, tx=tx)
+        self.last_tx_publish[txhash] = txtime
         
 if __name__ == '__main__':
    pass

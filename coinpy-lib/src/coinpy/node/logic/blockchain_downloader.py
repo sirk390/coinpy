@@ -135,6 +135,7 @@ class BlockchainDownloader():
             try:
                 yield self.blockchain_with_pools.add_block(peer, hash, block)
             except Exception as e:
+                self.log.error(traceback.format_exc())
                 self.node.misbehaving(peer, str(e))
                 return
         self.processing_block = False

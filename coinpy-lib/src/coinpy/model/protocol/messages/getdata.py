@@ -14,4 +14,4 @@ class msg_getdata(message):
         self.invitems = invitems
         
     def __str__(self):
-        return ("getdata invitems:%s" % (str(self.invitems)))
+        return ("getdata invitems(%d)[%s...]" % (len(self.invitems), ",".join(str(i) for i in self.invitems[:5])))
