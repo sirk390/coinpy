@@ -98,7 +98,7 @@ class BlockVerifier():
         
     def check_timestamp(self, blockchain, prevblockhandle, hash, block):
         if (block.blockheader.time <= blockchain.get_median_time_past(prevblockhandle.hash)):
-            raise Exception("block's timestamp is smaller than the median of past %d block: %d <= %d" % (MEDIAN_TIME_SPAN, prevblockiter.get_blockheader().time , prevblockiter.get_median_time_past()))
+            raise Exception("block's timestamp is smaller than the median of past %d block: %d <= %d" % (MEDIAN_TIME_SPAN, prevblockhandle.get_blockheader().time , prevblockhandle.get_median_time_past()))
 
     def check_tx_finalized(self, prevblockhandle, hash, block):
         height = prevblockhandle.get_height()+1

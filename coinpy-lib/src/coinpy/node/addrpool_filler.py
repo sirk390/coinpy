@@ -34,6 +34,7 @@ class AddrPoolFiller():
             if len(self.node.connection_manager.connected_peers):
                 #take a random connected peer and request more peer addresses
                 peer = random.sample(self.node.connection_manager.connected_peers, 1)[0]
+                self.node.send_message(peer, msg_getaddr())
             else:
                 #bootstrap
                 self.bootstrapper.bootstrap()

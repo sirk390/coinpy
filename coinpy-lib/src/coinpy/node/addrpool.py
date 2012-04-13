@@ -25,7 +25,8 @@ class AddrPool(Observable):
             self.fire(self.EVT_ADDED_ADDR, addr=sockaddr)
         
     def failed(self, sockaddr):
-        self.known_peers.remove(sockaddr)
+        if sockaddr in self.known_peers:
+            self.known_peers.remove(sockaddr)
         #self.failed_peers.add(sockaddr)
     
     def connected(self, sockaddr):

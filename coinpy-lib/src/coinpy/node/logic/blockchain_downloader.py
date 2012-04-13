@@ -41,6 +41,7 @@ class BlockchainDownloader():
         self.blocks_to_process = deque()
         self.processing_block = False
         self.downloading = False
+        self.sending_getblocks = False
         self.items_to_download = deque()
         self.firstrequest = True
         self.getblock_to_send = deque()
@@ -79,7 +80,7 @@ class BlockchainDownloader():
             
         if self.items_to_download:
             self._download_items()
-          
+        self.sending_getblocks = False  
     def on_tx(self, event):
         peer, message = event.handler, event.message
         hash = hash_tx(message.tx)
@@ -98,6 +99,7 @@ class BlockchainDownloader():
             self._process_getblocks()
                     
     def _process_getblocks(self):
+        self.sending_getblocks = True
         peer, end_hash = self.getblock_to_send.popleft()
         locator = self.blockchain_with_pools.blockchain.get_block_locator()
         self.log.info("requesting blocks from %s, block locator: %s" % (str(peer), str(locator)))
@@ -119,7 +121,8 @@ class BlockchainDownloader():
         self.start_processing()
 
     def on_missing_block(self, event):
-        self.push_getblocks(event.peer, event.missing_hash)
+        if not self.getblock_to_send and not self.sending_getblocks:
+            self.push_getblocks(event.peer, event.missing_hash)
     
     def start_processing(self):
         if not self.processing_block:
@@ -150,7 +153,11 @@ class BlockchainDownloader():
         self.downloading = True
         #all blocks must be processed or INV continue might not find an orphan block
         peer, items = self.items_to_download.pop()
-        self.log.info("Downloading items: %d block, %d transactions from %s" % (len([i for i in items if i.type == INV_BLOCK]), len([i for i in items if i.type == INV_TX]), str(peer)))
+        self.log.info("Downloading items: %d block, %d transactions from %s: (%s...)" % 
+                      (len([i for i in items if i.type == INV_BLOCK]), 
+                       len([i for i in items if i.type == INV_TX]), 
+                       str(peer),
+                       ",".join([str(i.hash) for i in items[:5]])))
             
         self.node.send_message(peer, msg_getdata(items))
         for item in items:

@@ -43,7 +43,9 @@ class WalletAccount(Observable):
         self.blockchain = blockchain
         self.blockchain.subscribe(blockchain.EVT_NEW_HIGHEST_BLOCK, self.on_new_highest_block)
         self.log = log
-        
+        self.lastblock_time = 0
+        self.last_tx_publish = {}
+       
         #Satoshi wallet format doesn't store confirmations so we have 
         #to recompute confirmations every time.
         self.blockchain_height = self.blockchain.get_height()
@@ -52,8 +54,6 @@ class WalletAccount(Observable):
     
         self.coin_selector = CoinSelector()
         
-        self.lastblock_time = 0
-        self.last_tx_publish = {}
         self.schedule_republish_transactions()
         
     '''Determine if the blockchain has at least the height of the wallet.
@@ -76,7 +76,7 @@ class WalletAccount(Observable):
                     self.mainchain_outputs.append([height, output.tx, output.txout])
                 else:
                     self.other_outputs.append([output.tx, output.txout])
-                   
+                    self.last_tx_publish[output.txhash] = 0
         
     def iter_my_outputs(self):
         return self.wallet.iter_my_outputs()

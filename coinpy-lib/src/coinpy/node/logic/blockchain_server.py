@@ -29,7 +29,8 @@ class BlockchainServer(Observable):
         self.blockchain = blockchain_with_pools.blockchain
         self.node = node
         self.log = log
-       
+        self.hash_continue = None
+        
     def on_version_exchanged(self, event):
         pass
     
@@ -44,6 +45,10 @@ class BlockchainServer(Observable):
             if inv.type == INV_BLOCK and self.blockchain_with_pools.contains_block(inv.hash):
                 block = self.blockchain_with_pools.get_block(inv.hash)
                 self.node.send_message(event.handler, msg_block(block))
+                if inv.hash == self.hash_continue:
+                    hash_best = self.blockchain.database.get_mainchain()
+                    self.log.info("sending hashContinue: %s" % (str(self.hash_best)))
+                    self.node.send_message(event.handler, msg_inv([invitem(INV_BLOCK, hash_best)]))
                 
     def on_getblocks(self, event):
         firstfound = first(event.message.block_locator.blockhashlist, 
@@ -56,6 +61,7 @@ class BlockchainServer(Observable):
                 inv_to_send.append(invitem(INV_BLOCK, blkhash))
             i += 1
         self.node.send_message(event.handler, msg_inv(inv_to_send))
+        self.hash_continue = blkhash 
         self.log.info("sending reply to getblocks: %d items" % (len(inv_to_send)))
    
     def on_getheaders(self, event):

@@ -230,11 +230,11 @@ class Blockchain(Observable):
     #ref main.h:1109
     def get_median_time_past(self, hashprev):
         block_times = []
-        blkprev = self.database.get_block_handle(hashprev)
-        for dummy in range(MEDIAN_TIME_SPAN):
-            blkheader = blkprev.get_blockheader()
+        i = 0
+        while hashprev != uint256.zero() and i < MEDIAN_TIME_SPAN:
+            blk = self.database.get_block_handle(hashprev)
+            blkheader = blk.get_blockheader()
             block_times.append(blkheader.time)
-            blkprev = self.database.get_block_handle(blkheader.hash_prev)
-            if (not blkprev):
-                break;
+            hashprev = blkheader.hash_prev
+            i += 1
         return median(block_times)

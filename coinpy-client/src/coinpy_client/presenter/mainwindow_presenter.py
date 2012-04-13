@@ -10,6 +10,7 @@ from coinpy_client.presenter.pools_presenter import PoolsPresenter
 import os
 from coinpy_client.presenter.blockchain.blockchain_summary_presenter import BlockchainSummaryPresenter
 from coinpy_client.presenter.accountbook_presenter import AccountBookPresenter
+import traceback
 
 class MainWindowPresenter(Observable):
     #    EVT_WALLET_OPENED = Observable.createevent()
@@ -31,6 +32,7 @@ class MainWindowPresenter(Observable):
         try:
             self.service.open_wallet(event.file)
         except Exception as exc:
+            traceback.print_exc()
             self.mainwindow_view.messages_view.error(str(exc))
 
     def on_cmd_close_wallet(self, event):
