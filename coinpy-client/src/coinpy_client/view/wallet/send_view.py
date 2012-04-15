@@ -8,19 +8,18 @@ import wx
 from coinpy.tools.observer import Observable
 from coinpy_client.view.guithread import guithread
 
-class SendDialog(wx.Dialog, Observable):
-    EVT_OK = Observable.createevent()
-    EVT_CANCEL = Observable.createevent()
-    def __init__(self, reactor, parent, size):
+class SendView(wx.Dialog, Observable):
+    EVT_SELECT_VALUE= Observable.createevent()
+    def __init__(self, reactor, parent, size=(300, 200)):
         wx.Dialog.__init__(self, parent, size=size, title="Send")
-        Observable.__init__(self, reactor)
+        Observable.__init__(self,reactor)
+
         # Create Controls
         self.address_label = wx.StaticText(self, -1, "To:")
         self.address_textctrl = wx.TextCtrl(self, -1, "", size=(250,-1))
         self.amount_label = wx.StaticText(self, -1, "Amount:")
         self.amount_textctrl = wx.TextCtrl(self, -1, "", size=(80,-1))
-        #self.fee_label = wx.StaticText(self, -1, "Fee:")
-        #self.fee_textctrl = wx.TextCtrl(self, -1, "", size=(50,-1))
+
         # Setup Sizers
         sizer = wx.BoxSizer(wx.VERTICAL)
         formsizer = wx.FlexGridSizer(2, 2)
@@ -28,8 +27,6 @@ class SendDialog(wx.Dialog, Observable):
         formsizer.Add(self.address_textctrl, 1, wx.LEFT|wx.ALL|wx.EXPAND, 5)
         formsizer.Add(self.amount_label, 0, wx.LEFT|wx.ALL, 5)
         formsizer.Add(self.amount_textctrl, 0, wx.LEFT|wx.ALL, 5)
-        #formsizer.Add(self.fee_label, 0, wx.LEFT|wx.ALL, 5)
-        #formsizer.Add(self.fee_textctrl, 0, wx.LEFT|wx.ALL, 5)
         formsizer.AddGrowableCol(1)
     
         sizer.Add(formsizer, 1, wx.EXPAND|wx.TOP|wx.BOTTOM, 20)
@@ -48,49 +45,34 @@ class SendDialog(wx.Dialog, Observable):
         # Bind Events
         ok_button.Bind(wx.EVT_BUTTON, self.on_ok)
         
-    def on_ok(self, event):
-        self.fire(self.EVT_OK)
-        
-    def address(self):
-        return self.address_textctrl.GetValue()
-    
-    def amount(self):
-        return self.amount_textctrl.GetValue()
-
-class SenderView(Observable):
-    EVT_SELECT_VALUE= Observable.createevent()
-    def __init__(self, reactor, parent):
-        super(SenderView, self).__init__(reactor)
-        self.dlg = SendDialog(reactor, parent, size=(300, 200))
-        self.dlg.CenterOnScreen()
-        self.dlg.subscribe(self.dlg.EVT_CANCEL, self.on_cancel)
-        self.dlg.subscribe(self.dlg.EVT_OK, self.on_ok)
-    
     @guithread  
     def open(self):
-        self.dlg.ShowModal()
+        self.Show(True)
 
     def on_ok(self, event):
         self.fire(self.EVT_SELECT_VALUE)
 
     def on_cancel(self):
-        self.dlg.EndModal(wx.ID_CANCEL)
-                             
+        self.Show(False)
+               
     def address(self):
-        return self.dlg.address()
+        return self.address_textctrl.GetValue()
         
     def amount(self):
-        return self.dlg.amount()
+        return self.amount_textctrl.GetValue()
     
     @guithread  
     def close(self):
-        self.dlg.EndModal(wx.ID_OK)
+        self.Show(False)
     
 if __name__ == '__main__':
+    from coinpy.tools.reactor.reactor import Reactor
     app = wx.App(False)
-    s = SenderView(None)
+    s = SendView(None, None)
     def validate(event):
         print "validating..."
         s.close()
+    s.subscribe(s.EVT_SELECT_VALUE, validate)
     s.open()
-    
+    app.MainLoop()
+

@@ -45,7 +45,7 @@ class BlockchainServer(Observable):
             if inv.type == INV_BLOCK and self.blockchain_with_pools.contains_block(inv.hash):
                 block = self.blockchain_with_pools.get_block(inv.hash)
                 self.node.send_message(event.handler, msg_block(block))
-                if inv.hash == self.hash_continue:
+                if self.hash_continue and inv.hash == self.hash_continue:
                     hash_best = self.blockchain.database.get_mainchain()
                     self.log.info("sending hashContinue: %s" % (str(hash_best)))
                     self.node.send_message(event.handler, msg_inv([invitem(INV_BLOCK, hash_best)]))

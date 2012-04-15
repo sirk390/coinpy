@@ -29,8 +29,9 @@ class Observable(object):
             for k, v in attrs.iteritems():
                 setattr(e, k, v)
             for fn in self.listeners[eventtype]:
-                #fn(e)
-                self.reactor.call(fn, e)
-
-            
+                if self.reactor: #speed up by remove test?
+                    self.reactor.call(fn, e)
+                else:
+                    fn(e)
+           
         

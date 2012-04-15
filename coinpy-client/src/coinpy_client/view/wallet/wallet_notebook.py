@@ -74,12 +74,10 @@ class WalletNotebook(wx.aui.AuiNotebook, Observable):
 if __name__ == '__main__':
     app = wx.App(False)
     frame = wx.Frame(None)
-    notebook = WalletNotebook(frame)
+    notebook = WalletNotebook(None, frame)
     notebook.add_wallet_view(2, "wallet1")
     notebook.add_wallet_view(4, "wallet2")
+    notebook.add_wallet_view(5, "wallet5")
     notebook.remove_wallet_view(4)
-    notebook.remove_wallet_view(2)
-    #for w in notebook.GetChildren():
-    #    print w.GetName(), type(w)
     frame.Show()
     app.MainLoop()

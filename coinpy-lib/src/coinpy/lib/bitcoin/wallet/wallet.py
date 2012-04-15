@@ -57,6 +57,9 @@ class Wallet(Observable):
     def set_transaction(self, hashtx, wallet_tx):
         self.wallet_database.set_transaction(hashtx, wallet_tx)
 
+    def del_transaction(self, hashtx):
+        self.wallet_database.del_transaction(hashtx)
+
     """
         yields ( WalletKeyPair, WalletName, WalletPoolKey ) entries.
                 WalletName, WalletPoolKey can be None
@@ -118,6 +121,7 @@ class Wallet(Observable):
                 if debit > 0 and self.is_change(txout):
                     pass
                 elif debit > 0:
+                    print wallet_tx, hash, wallet_tx.time_received, address, name, -txout.value
                     yield (wallet_tx, hash, wallet_tx.time_received, address, name, -txout.value)
                 elif self.is_mine(txout):
                     yield (wallet_tx, hash, wallet_tx.time_received, address, name, txout.value)

@@ -29,6 +29,6 @@ class TransactionCreatorPresenter():
         if not is_float(amount_str):
             self.messages_view.error("Incorrect amount: %s" % (amount_str))
             return
-        self.transaction_creator.create_transaction(self.wallet, amount_str, float(amount_str))
         self.wallet_view.sender_view.close()
+        self.transaction_creator.create_transaction(self.wallet, amount_str, float(amount_str))
         

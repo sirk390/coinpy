@@ -5,9 +5,6 @@ Created on 14 Feb 2012
 @author: kris
 """
 import wx
-from coinpy_client.view.wallet.balance import BalancePanel
-from coinpy_client.view.wallet.address_book_panel import AddressBookPanel
-from coinpy_client.view.wallet.transations_panel import TransactionsPanel
 from coinpy.tools.hex import hexstr
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 import time
@@ -19,7 +16,8 @@ from coinpy.model.wallet.wallet_name import WalletName
 from coinpy.tools.id_pool import IdPool
 from coinpy.model.constants.bitcoin import COIN
 from coinpy.tools.observer import Observable
-from coinpy_client.view.wallet.sender_view import SenderView
+from coinpy_client.view.wallet.send_view import SendView
+from coinpy_client.view.wallet.balance import BalancePanel
 
 class WalletPanel(wx.Panel, Observable):
     EVT_SEND = Observable.createevent()
@@ -72,7 +70,7 @@ class WalletPanel(wx.Panel, Observable):
         self.receive_button.Bind(wx.EVT_BUTTON, self.on_receive)
         
         # ChildViews
-        self.sender_view = SenderView(reactor, self)
+        self.sender_view = SendView(reactor, self)
         
         # Initialize private data
         self.show_private_keys = False
@@ -119,18 +117,27 @@ class WalletPanel(wx.Panel, Observable):
         self.txhistory_list.SetStringItem(index, 1, address)
         self.txhistory_list.SetStringItem(index, 2, label)
         self.txhistory_list.SetStringItem(index, 3, str(amount * 1.0 / COIN ))
-        self.txhistory_list.SetStringItem(index, 4, confirmed)
+        self.txhistory_list.SetStringItem(index, 4, confirmed and "Yes" or "No")
         self.txhistory_list.SetItemData(index, itemdata)
         #if (amount < 0):
         #    self.txhistory_list.SetItemBackgroundColour(index, (255, 200, 200))
         #else:
         #    self.txhistory_list.SetItemBackgroundColour(index, (200, 255, 200))
-        
+        if confirmed:
+            self.txhistory_list.SetItemBackgroundColour(index, (255, 255, 255))
+        else:
+            self.txhistory_list.SetItemBackgroundColour(index, (255, 230, 148))  
+                  
     def set_confirmed(self, id, confirmed):
         itemdata = self.tx_history_items[id]
         index = self.list.FindItemData(-1, itemdata)
         self.txhistory_list.SetStringItem(index, 4, confirmed)
-        
+        if confirmed:
+            self.txhistory_list.SetItemBackgroundColour(index, (255, 255, 255))
+        else:
+            self.txhistory_list.SetItemBackgroundColour(index, (255, 230, 230))
+           
+
     def private_key_mask(self, private_key):
         return (private_key if self.show_private_keys else "***" )
     

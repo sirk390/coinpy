@@ -129,6 +129,10 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def get_transaction(self, hashtx):
         return self.txs[hashtx]
 
+    def del_transaction(self, hashtx):
+        del self.txs[hashtx]
+        self.db.delete("\x02tx" + self.uint256_serializer.serialize(hashtx), txn=self.dbtxn)
+
     def del_poolkey(self, num):
         del self.poolkeys[num]
         self.db.delete("\x04pool" + struct.pack("<I", num))

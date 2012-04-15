@@ -27,11 +27,12 @@ class AccountPresenter():
         wallet_view.balance.set_balance(account.get_confirmed_balance(), account.get_unconfirmed_balance(), account.get_blockchain_height())
         #show transaction history
         for wallet_tx, hash, date, address, name, amount, confirmed in self.account.iter_transaction_history():
-            self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed and "Yes" or "No")
+            self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed)
         #listen to balance updates
         self.account.subscribe(self.account.EVT_BALANCE_CHANGED, self.on_balance_changed)
-        self.account.subscribe(self.account.EVT_NEW_TRANSACTION_HISTORY_ITEM, self.on_new_history_item)
-
+        self.account.subscribe(self.account.EVT_NEW_TRANSACTION_ITEM, self.on_new_transaction_item)
+        self.account.subscribe(self.account.EVT_CONFIRMED_TRANSACTION_ITEM, self.on_confirmed_transaction_item)
+                               
         wallet_view.subscribe(wallet_view.EVT_SEND, self.on_send)
         wallet_view.sender_view.subscribe(wallet_view.sender_view.EVT_SELECT_VALUE, self.on_select_send_value)
 
@@ -42,9 +43,13 @@ class AccountPresenter():
     def on_balance_changed(self, event):
         self.wallet_view.balance.set_balance( event.confirmed, event.unconfirmed, event.height)
 
-    def on_new_history_item(self, event):
+    def on_new_transaction_item(self, event):
         tx, hash, date, address, name, amount, confirmed = event.item
-        self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed and "Yes" or "No")
+        self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed)
+    
+    def on_confirmed_transaction_item(self, event):
+        txhash, = event.item
+        self.wallet_view.set_confirmed(txhash, True)
         
     def on_send(self, event):
         self.wallet_view.sender_view.open()
