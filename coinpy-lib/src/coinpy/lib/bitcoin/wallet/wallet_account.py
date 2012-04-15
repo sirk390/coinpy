@@ -35,6 +35,7 @@ class WalletAccount(Observable):
     EVT_PUBLISH_TRANSACTION = Observable.createevent() 
     EVT_NEW_TRANSACTION_ITEM = Observable.createevent() 
     EVT_CONFIRMED_TRANSACTION_ITEM = Observable.createevent() 
+    EVT_NEW_ADDRESS_LABEL = Observable.createevent() 
 
     def __init__(self, reactor, log, name, wallet, blockchain):
         super(WalletAccount, self).__init__(reactor)
@@ -169,6 +170,18 @@ class WalletAccount(Observable):
         seconds = random.randint(5*60, 30*60)
         self.reactor.schedule_later(seconds, self.republish_transactions)
 
+    def get_receive_address(self):
+        public_key = self.wallet.get_receive_key()
+        address = get_address_from_public_key(self.wallet.runmode, public_key)
+        return address
+    
+    def set_receive_label(self, address, label):
+        self.wallet.begin_updates()
+        public_key = self.wallet.get_keypair_for_address(decode_base58check(address)[1:]).public_key
+        self.wallet.allocate_key(public_key, label)
+        self.wallet.commit_updates()
+        self.fire(self.EVT_NEW_ADDRESS_LABEL, public_key=public_key, address=address, label=label)
+
     """
     
         amount: value in COIN.
@@ -177,8 +190,11 @@ class WalletAccount(Observable):
         outputs = list(self.iter_my_outputs())
         selected_outputs = self.coin_selector.select_coins(outputs, (amount + fee))
         self.wallet.begin_updates() # begin transaction on wallet to allocate a pool_key
-        change_keypair = self.wallet.allocate_pool_key()
-        change_address = get_address_from_public_key(self.wallet.runmode, change_keypair.public_key)
+
+        change_public_key = self.wallet.get_receive_key()
+        change_address = get_address_from_public_key(self.wallet.runmode, change_public_key)
+        self.wallet.allocate_key(change_public_key, ischange=True)
+        
         tx = create_pubkeyhash_transaction(selected_outputs, 
                                         decode_base58check(address)[1:],  #remove ADDRESSVERSION[runmode] byte
                                         decode_base58check(change_address)[1:],  #remove ADDRESSVERSION[runmode] byte

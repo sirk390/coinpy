@@ -43,12 +43,28 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         #Synch to disk as wallet changes should not be lost
         self.db.sync()
         self.dbtxn = None
+
+    def get_receive_key(self):
+        if len(self.poolkeys) == 0:
+            raise Exception("get_receive_key: No keys remaining")
+        num, poolkey = next(self.poolkeys.iteritems())
+        return self.keypairs[poolkey.public_key].public_key
+
+    def _search_poolkey(self, public_key):
+        for num, poolkey in self.poolkeys.iteritems():
+            if poolkey.public_key == public_key:
+                return num
+        return None
         
-    def allocate_pool_key(self):
-        num, poolkey = self.poolkeys.popitem()
-        print self.db.keys()
-        self.db.delete("\x04pool" + struct.pack("<q", num))
-        return self.keypairs[poolkey.public_key]
+    def allocate_key(self, public_key, address, label=None, ischange=False):
+        num = self._search_poolkey(public_key)
+        if num is None:
+            raise Exception("allocate_pool_key: Can't find pool public_key")
+        del self.poolkeys[num]
+        self.db.delete("\x04pool" + struct.pack("<q", num), txn=self.dbtxn)
+
+        if (label and not ischange):
+            self.set_label(address, label)
     
     def reset_wallet(self):
         self.keypairs = {}
@@ -111,8 +127,8 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def set_label(self, address, label):
         self.names[address] = WalletName(label, address)         
         address = self.varstr_serializer.serialize(address)
-        name = self.varstr_serializer.deserialize(label)
-        self.db["\x04name" + address] = name
+        name = self.varstr_serializer.serialize(label)
+        self.db.put("\x04name" + address, name, txn=self.dbtxn)
 
     def add_name(self, wallet_name):
         pass

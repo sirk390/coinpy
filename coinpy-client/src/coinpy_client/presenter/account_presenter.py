@@ -23,7 +23,7 @@ class AccountPresenter():
         
         #show account balance
         for key, name, poolkey in  self.account.wallet.iterkeys():
-            self.wallet_view.add_key(key, poolkey, name)
+            self.wallet_view.add_key(key.public_key, key, poolkey, name)
         wallet_view.balance.set_balance(account.get_confirmed_balance(), account.get_unconfirmed_balance(), account.get_blockchain_height())
         #show transaction history
         for wallet_tx, hash, date, address, name, amount, confirmed in self.account.iter_transaction_history():
@@ -32,9 +32,14 @@ class AccountPresenter():
         self.account.subscribe(self.account.EVT_BALANCE_CHANGED, self.on_balance_changed)
         self.account.subscribe(self.account.EVT_NEW_TRANSACTION_ITEM, self.on_new_transaction_item)
         self.account.subscribe(self.account.EVT_CONFIRMED_TRANSACTION_ITEM, self.on_confirmed_transaction_item)
+        self.account.subscribe(self.account.EVT_NEW_ADDRESS_LABEL, self.on_new_address_label)
                                
         wallet_view.subscribe(wallet_view.EVT_SEND, self.on_send)
-        wallet_view.sender_view.subscribe(wallet_view.sender_view.EVT_SELECT_VALUE, self.on_select_send_value)
+        wallet_view.subscribe(wallet_view.EVT_RECEIVE, self.on_receive)
+        
+        wallet_view.send_view.subscribe(wallet_view.send_view.EVT_SELECT_VALUE, self.on_select_send_value)
+        wallet_view.receive_view.subscribe(wallet_view.receive_view.EVT_SET_LABEL, self.on_set_receive_label)
+
 
 
     def close(self):
@@ -50,13 +55,28 @@ class AccountPresenter():
     def on_confirmed_transaction_item(self, event):
         txhash, = event.item
         self.wallet_view.set_confirmed(txhash, True)
+    
+    def on_new_address_label(self, event):
+        self.wallet_view.set_key_label(event.public_key, event.address, event.label)
+        self.wallet_view.select_key(event.public_key)
         
     def on_send(self, event):
-        self.wallet_view.sender_view.open()
+        self.wallet_view.send_view.open()
+
+    
+    def on_receive(self, event):
+        receive_address = self.account.get_receive_address()
+        self.wallet_view.receive_view.set_receive_address(receive_address)
+        self.wallet_view.receive_view.open()
+    
+    def on_set_receive_label(self, event):
+        receive_address = self.wallet_view.receive_view.get_receive_address()
+        label = self.wallet_view.receive_view.get_label()
+        self.account.set_receive_label(receive_address, label)
         
     def on_select_send_value(self, event): 
-        address = self.wallet_view.sender_view.address()
-        amount_str = self.wallet_view.sender_view.amount() 
+        address = self.wallet_view.send_view.address()
+        amount_str = self.wallet_view.send_view.amount() 
         if not is_valid_bitcoin_address(self.account.wallet.runmode, address):
             self.messages_view.error("Incorrect bitcoin address: %s" % (address))
             return
@@ -64,7 +84,7 @@ class AccountPresenter():
             self.messages_view.error("Incorrect amount: %s" % (amount_str))
             return
         self.account.send_transaction(int(float(amount_str) * COIN), address, 0)
-        self.wallet_view.sender_view.close()
+        self.wallet_view.send_view.close()
     
 if __name__ == '__main__':
     #n4MsBRWD7VxKGsqYRSLaFZC6hQrsrKLaZo
@@ -81,15 +101,15 @@ if __name__ == '__main__':
     directory, filename = os.path.split(wallet_filename)
     
     bsddb_env = BSDDBEnv(directory)
-    wallet = Wallet(BSDDBWalletDatabase(bsddb_env, filename), runmode)
+    wallet = Wallet(None, BSDDBWalletDatabase(bsddb_env, filename), runmode)
     balance = Mock({"get_confirmed" : 175877, "get_unconfirmed" : 2828727, "get_height" : 3}, accept_all_methods=True)
-    def make_transaction(amount, to_adress, fee):
-        print  amount, to_adress, fee
-    wallet_manager = Mock(attributes={"wallet" : wallet, "balance" : balance, "make_transaction" : make_transaction}, )
+    
+    wallet_account = Mock(attributes={})
+    
     app = wx.App(False)
     frame = wx.Frame(None, size=(600,500))
-    wallet_view = WalletPanel(frame)
-    WalletPresenter(wallet_manager, wallet_view, MessageView(None))
+    wallet_view = WalletPanel(None, frame)
+    AccountPresenter(wallet_account, wallet_view, MessageView(None))
     
     frame.Show()
     app.MainLoop()

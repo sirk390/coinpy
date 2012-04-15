@@ -40,13 +40,13 @@ class Wallet(Observable):
         
     def commit_updates(self):
         self.wallet_database.commit_updates()
-    
-    def allocate_pool_key(self, label=None):
-        keypair = self.wallet_database.allocate_pool_key()
-        if (label):
-            address = get_address_from_public_key(self.runmode, keypair.public_key)
-            self.wallet_database.set_label(address, label)
-        return keypair
+        
+    def get_receive_key(self):
+        return self.wallet_database.get_receive_key()
+        
+    def allocate_key(self, public_key, label=None, ischange=False):
+        address = get_address_from_public_key(self.runmode, public_key)
+        return self.wallet_database.allocate_key(public_key, address, label)
     
     def add_transaction(self, hashtx, wallet_tx):
         self.wallet_database.set_transaction(hashtx, wallet_tx)
@@ -140,7 +140,10 @@ class Wallet(Observable):
     
     def have_key_for_addresss(self, address):
         return (address in self.keypairs)
-
+    
+    def get_keypair_for_address(self, address):
+        return (self.keypairs[address]) 
+    
     def have_key(self, pubkey):
         pass
     

@@ -18,6 +18,7 @@ from coinpy.model.constants.bitcoin import COIN
 from coinpy.tools.observer import Observable
 from coinpy_client.view.wallet.send_view import SendView
 from coinpy_client.view.wallet.balance import BalancePanel
+from coinpy_client.view.wallet.receive_view import ReceiveView
 
 class WalletPanel(wx.Panel, Observable):
     EVT_SEND = Observable.createevent()
@@ -70,13 +71,15 @@ class WalletPanel(wx.Panel, Observable):
         self.receive_button.Bind(wx.EVT_BUTTON, self.on_receive)
         
         # ChildViews
-        self.sender_view = SendView(reactor, self)
+        self.send_view = SendView(reactor, self)
+        self.receive_view = ReceiveView(reactor, self)
         
         # Initialize private data
         self.show_private_keys = False
         self.keylist_idpool = IdPool()
         self.keys = {}
-
+        self.key_itemids = {}
+        
         self.itemdata_ids = IdPool()
         self.tx_history_items = {} # id => itemdata_ids
         
@@ -85,19 +88,14 @@ class WalletPanel(wx.Panel, Observable):
 
     def on_receive(self, event):
         self.fire(self.EVT_RECEIVE)
-    
-    def make_send_dialog(self, event):
-        dlg = SendDialog(self, size=(300, 200))
-        dlg.CenterOnScreen()
-        return dlg
-            
-                
-    def add_key(self, key, poolkey, name):
-        id = self.keylist_idpool.get_id()
-        self.keys[id] = (key, poolkey, name)
+                    
+    def add_key(self, id, key, poolkey, name):
+        itemid = self.keylist_idpool.get_id()
+        self.keys[itemid] = (key, poolkey, name)
+        self.key_itemids[id] = itemid
         
         index = self.keylist.InsertStringItem(self.keylist.GetItemCount(), hexstr(key.public_key))
-        self.keylist.SetItemData(index, id)
+        self.keylist.SetItemData(index, itemid)
         self.keylist.SetStringItem(index, 1, self.private_key_mask(hexstr(key.private_key)))
         if poolkey:
             self.keylist.SetStringItem(index, 2, "%d" % (poolkey.poolnum))
@@ -107,7 +105,24 @@ class WalletPanel(wx.Panel, Observable):
             self.keylist.SetStringItem(index, 4, name.address)
             self.keylist.SetStringItem(index, 5, name.name)
 
-
+    def set_key_label(self, id, address, label):
+        itemid = self.key_itemids[id]
+        index = self.keylist.FindItemData(-1, itemid)
+        self.keylist.SetStringItem(index, 4, address)
+        self.keylist.SetStringItem(index, 5, label)
+    
+    def select_key(self, id):
+        itemid = self.key_itemids[id]
+        index = self.keylist.FindItemData(-1, itemid)
+        #Deselect all
+        idx = self.keylist.GetFirstSelected()
+        while idx != -1:
+            self.keylist.Select(index, False)
+            idx =  self.keylist.GetNextSelected(idx)
+        #Select and Focus
+        self.keylist.Select(index)
+        self.keylist.Focus(index)
+        
     def add_transaction_history_item(self, id, txtime, address, label, amount, confirmed):
         itemdata = self.itemdata_ids.get_id()
         self.tx_history_items[id] = itemdata
