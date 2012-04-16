@@ -11,9 +11,9 @@ from coinpy.tools.observer import Observable
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.serialization.messages.s11n_message import MessageSerializer
 
-"""
-    Bitcoin node that uses the standard binary protocol.
-    https://en.bitcoin.it/wiki/Protocol_specification
+"""Node: connect, disconnect peers, send and receive bitcoin messages. 
+
+No logic included.
 """
 class Node(Observable):
     EVT_NEED_PEERS = Observable.createevent()

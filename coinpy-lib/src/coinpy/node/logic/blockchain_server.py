@@ -12,13 +12,12 @@ from coinpy.model.protocol.messages.tx import TxMessage
 from coinpy.tools.functools import first
 from coinpy.model.protocol.messages.block import BlockMessage
 from coinpy.model.protocol.messages.inv import InvMessage
-from coinpy.node.version_exchange_node import VersionExchangeService
+from coinpy.node.logic.version_exchange import VersionExchangeService
 
 
 class BlockchainServer(Observable):
     def __init__(self, reactor, node, blockchain_with_pools, log):
         super(BlockchainServer, self).__init__(reactor)
-        
         self.blockchain_with_pools = blockchain_with_pools
         self.blockchain = blockchain_with_pools.blockchain
         self.node = node

@@ -6,12 +6,18 @@ Created on 17 Sep 2011
 """
 from coinpy.node.node import Node
 from coinpy.node.addrpool import AddrPool
-from coinpy.node.addrpool_filler import AddrPoolFiller
-from coinpy.node.peer_reconnector import PeerReconnector
 from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
-from coinpy.node.version_exchange_node import VersionExchangeService
+from coinpy.node.logic.peer_reconnector import PeerReconnector
+from coinpy.node.logic.version_exchange import VersionExchangeService
+from coinpy.node.logic.addrpool_filler import AddrPoolFiller
 
-# no wallet dependency, but blockchain dependency
+"""BasicNode: bootstrap, maintain basic peer network connections. 
+
+Handles the following tasks:
+    - reconnect to "targetpeers" peers, handle version/verack exchange.
+    - fill an address pool using bootstrap and "getaddr" messages.
+    - keep a list of banned peers.
+"""
 class BasicNode(Node):
     def __init__(self, reactor, get_blockchain_height, params, log):
         super(BasicNode, self).__init__(reactor, params, log)

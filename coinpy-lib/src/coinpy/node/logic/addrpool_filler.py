@@ -9,9 +9,9 @@ from coinpy.model.protocol.messages.getaddr import GetaddrMessage
 from coinpy.model.protocol.messages.types import MSG_ADDR
 from coinpy.node.node import Node
 from coinpy.node.network.sockaddr import SockAddr
-from coinpy.node.version_exchange_node import VersionExchangeService
+from coinpy.node.logic.version_exchange import VersionExchangeService
 
-""" Fill 'addr_pool' by bootstrapping and sending get_addr() messages.
+"""Fill 'addr_pool' by bootstrapping and sending get_addr() messages.
  
 AddrPoolFiller fills 'addr_pool' until it contains 'min_addrpool_size' addresses using:
         get_addr() messages if some peers are connected

@@ -33,7 +33,6 @@ class PeerReconnector():
                         len(self.node.connection_manager.connected_peers) \
                         - (len(self.node.connection_manager.connecting_peers) / 2.0))
                         
-        #print "check_connection_count", missing_count
         if missing_count > 0:
             connected_or_connecting = set(self.node.connection_manager.peers)
             peeraddrs = self.addrpool.getpeers(missing_count, exclude=connected_or_connecting)
