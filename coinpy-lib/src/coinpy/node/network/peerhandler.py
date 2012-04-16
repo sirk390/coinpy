@@ -14,7 +14,7 @@ class PeerHandler(asyncore.dispatcher_with_send, Observable):
         self.isoutbound = (sock == None)
         if not sock:
             self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.connect(sockaddr)
+            self.connect((sockaddr.ip, sockaddr.port))
                 
     def handle_connect(self):
         self.fire(self.EVT_CONNECT)

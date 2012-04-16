@@ -4,7 +4,7 @@ Created on 22 Feb 2012
 
 @author: kris
 """
-from coinpy.node.version_exchange_node import VersionExchangeService
+from coinpy.node.logic.version_exchange import VersionExchangeService
 
 class NodePresenter():
     def __init__(self, node, view): 

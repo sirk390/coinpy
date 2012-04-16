@@ -4,6 +4,7 @@ Created on 26 Feb 2012
 
 @author: kris
 """
+import time
 
 class PeerReconnector():
     def __init__(self, addrpool, min_connections=4):
@@ -19,13 +20,13 @@ class PeerReconnector():
         self.check_connection_count()
            
     def on_peer_connected(self, event):
-        self.addrpool.connected(event.handler.sockaddr)
+        self.addrpool.log_success(time.time(), event.handler.sockaddr)
         self.connecting_peers.remove(event.handler.sockaddr)
         
     def on_peer_disconnected(self, event):
         addr = event.handler.sockaddr
         if addr in self.connecting_peers:
-            self.addrpool.failed(addr)
+            self.addrpool.log_failure(time.time(), addr)
         self.check_connection_count()
             
     def check_connection_count(self):

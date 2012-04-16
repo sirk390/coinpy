@@ -92,15 +92,18 @@ class Reactor():
             
         if self.stopped_callback:
             self.stopped_callback()
-              
+        
     def start(self):
         self.thread.start()
         
-    def stop(self, stopped_callback):
+    def stop(self, on_stopped=None):
         self.terminate = True
-        self.stopped_callback = stopped_callback
+        self.stopped_callback = on_stopped
 
-
+    def join(self):
+        self.thread.join()
+        
+        
 if __name__ == '__main__':
     from coinpy.tools.reactor.asynch import Asynch
     def slow_func_0_1(x):
