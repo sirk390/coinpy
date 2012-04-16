@@ -10,8 +10,6 @@ from coinpy.lib.script.standard_script_tools import tx_pubkeyhash_get_address,\
     identify_script, tx_pubkey_get_pubkey
 from coinpy.tools.bitcoin.hash160 import hash160
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.model.constants.bitcoin import COIN
-from coinpy.tools.hex import hexstr
 from coinpy.lib.bitcoin.address import get_address_from_public_key
 from coinpy.model.address_version import ADDRESSVERSION
 from coinpy.tools.bitcoin.base58check import encode_base58check

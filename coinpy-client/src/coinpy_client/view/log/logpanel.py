@@ -4,7 +4,6 @@ Created on 13 Feb 2012
 
 @author: kris
 """
-import wx
 import wx.richtext
              
 class LogPanel(wx.Panel):

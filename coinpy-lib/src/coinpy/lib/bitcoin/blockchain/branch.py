@@ -4,8 +4,6 @@ Created on 9 Aug 2011
 
 @author: kris
 """
-from copy import copy
-from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
 
 class Branch():
@@ -40,4 +38,3 @@ class Branch():
             
     def __iter__(self):
         return self.backward_iterblocks()
-   

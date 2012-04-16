@@ -4,7 +4,6 @@ Created on 11 Mar 2012
 
 @author: kris
 """
-import wx
 
 class BlockchainSummaryPresenter:
     def __init__(self, blockchain, block_summary_view):

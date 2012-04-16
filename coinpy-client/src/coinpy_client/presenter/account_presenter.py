@@ -7,9 +7,7 @@ Created on 21 Feb 2012
 #wallets
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.bitcoin.wallet.wallet import Wallet
-from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
 import os
-from coinpy.tools.bitcoin.base58check import verify_base58check
 from coinpy.lib.bitcoin.address import is_valid_bitcoin_address
 from coinpy.tools.float import is_float
 from coinpy.model.constants.bitcoin import COIN

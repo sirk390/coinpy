@@ -20,7 +20,6 @@ from coinpy.lib.database.blockchain.objects.disktxpos import DiskTxPos
 from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
 from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
-from coinpy.model.genesis import GENESIS
 
 class BSDDbBlockChainDatabase(BlockChainDatabase):
     def __init__(self, log, bdsdb_env, runmode):

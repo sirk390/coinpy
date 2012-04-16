@@ -4,13 +4,12 @@ Created on 18 Jun 2011
 
 @author: kris
 """
-from coinpy.model.protocol.services import SERVICES_NONE, SERVICES_NODE_NETWORK
+from coinpy.model.protocol.services import SERVICES_NONE
 from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_VERACK
 from coinpy.model.protocol.messages.verack import VerackMessage
 from coinpy.model.protocol.messages.version import VersionMessage
 import time
 from coinpy.tools.observer import Observable
-from coinpy.node.node import Node
 from coinpy.node.logic.status.version_status import VersionStatus
 from coinpy.model.protocol.structures.netaddr import Netaddr
 

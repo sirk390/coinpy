@@ -5,8 +5,7 @@ Created on 13 Sep 2011
 @author: kris
 """
 from coinpy.model.protocol.messages.types import MSG_GETDATA, MSG_GETBLOCKS,\
-    MSG_GETHEADERS, MSG_INV, MSG_TX, MSG_BLOCK, MSG_HEADERS
-from coinpy.node.node import Node
+    MSG_GETHEADERS
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK, Invitem
 from coinpy.model.protocol.messages.tx import TxMessage

@@ -4,19 +4,14 @@ Created on 13 Feb 2012
 
 @author: kris
 """
-from coinpy.tools.reactor.reactor import Reactor
 from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
 from coinpy.model.genesis import GENESIS
 from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
-from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
 from coinpy.node.network.bitcoin_port import BITCOIN_PORT
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 import os
-from coinpy.node.addrpool import AddrPool
-from coinpy.node.addrpool_filler import AddrPoolFiller
-from coinpy.node.peer_reconnector import PeerReconnector
 from coinpy.node.transaction_publisher import TransactionPublisher
 from coinpy_client.model.account_set import AccountSet
 from coinpy.lib.bitcoin.wallet.wallet import Wallet

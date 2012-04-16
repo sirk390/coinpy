@@ -4,7 +4,6 @@ Created on 26 Feb 2012
 
 @author: kris
 """
-import random
 
 class PeerReconnector():
     def __init__(self, addrpool, min_connections=4):

@@ -4,21 +4,12 @@ Created on 13 Feb 2012
 
 @author: kris
 """
-from coinpy.lib.database.bsddb_env import BSDDBEnv
-from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
-from coinpy.lib.script.standard_script_tools import tx_pubkeyhash_get_address,\
-    identify_script, tx_pubkey_get_pubkey
-from coinpy.tools.bitcoin.hash160 import hash160
-from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.model.constants.bitcoin import COIN, COINBASE_MATURITY,\
+
+from coinpy.model.constants.bitcoin import COINBASE_MATURITY,\
     CONFIRMATIONS
-from coinpy.tools.hex import hexstr
 from coinpy.lib.bitcoin.address import get_address_from_public_key
-from coinpy.model.address_version import ADDRESSVERSION
-from coinpy.tools.bitcoin.base58check import encode_base58check,\
-    decode_base58check
+from coinpy.tools.bitcoin.base58check import decode_base58check
 from coinpy.tools.observer import Observable
-from coinpy.model.wallet.controlled_output import ControlledOutput
 from coinpy.lib.bitcoin.wallet.coin_selector import CoinSelector
 from coinpy.lib.bitcoin.transactions.create_transaction import create_pubkeyhash_transaction
 from coinpy.lib.bitcoin.transactions.sign_transaction import sign_transaction

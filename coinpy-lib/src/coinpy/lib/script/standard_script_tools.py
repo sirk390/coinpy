@@ -4,8 +4,7 @@ Created on 16 Feb 2012
 
 @author: kris
 """
-from coinpy.model.scripts.opcodes import OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY,\
-    OP_HASH160, OP_PUSHDATA
+from coinpy.model.scripts.opcodes import OP_PUSHDATA
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 from coinpy.model.scripts.opcodes_info import is_pushdata
 from coinpy.lib.script.script_pubkeyhash import SCRIPT_PUBKEYHASH_OPCODES

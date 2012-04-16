@@ -4,7 +4,6 @@ Created on 7 Jan 2012
 
 @author: kris
 """
-from coinpy.model.constants.bitcoin import TARGET_INTERVAL
 from coinpy.model.protocol.structures.uint256 import Uint256
 
 def uint256_difficulty(bits):

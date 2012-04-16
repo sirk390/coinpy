@@ -5,10 +5,6 @@ Created on 17 Sep 2011
 @author: kris
 """
 from coinpy.node.node import Node
-from coinpy.node.logic.blockchain_server import BlockchainServer
-from coinpy.node.logic.blockchain_downloader import BlockchainDownloader
-from coinpy.model.protocol.messages.types import MESSAGE_TYPES
-from coinpy.node.trickler import Trickler
 from coinpy.node.addrpool import AddrPool
 from coinpy.node.addrpool_filler import AddrPoolFiller
 from coinpy.node.peer_reconnector import PeerReconnector

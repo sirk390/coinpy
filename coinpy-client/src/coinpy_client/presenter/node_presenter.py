@@ -4,7 +4,6 @@ Created on 22 Feb 2012
 
 @author: kris
 """
-from coinpy_client.view.node_view import NodeView
 from coinpy.node.version_exchange_node import VersionExchangeService
 
 class NodePresenter():

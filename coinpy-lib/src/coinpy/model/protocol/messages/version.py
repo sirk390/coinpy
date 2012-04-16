@@ -1,4 +1,3 @@
-import time
 from coinpy.model.protocol.messages.types import MSG_VERSION
 from coinpy.model.protocol.messages.message import Message 
 

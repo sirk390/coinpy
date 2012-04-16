@@ -4,13 +4,10 @@ Created on 7 Aug 2011
 
 @author: kris
 """
-from bsddb.db import *
 import bsddb
 from coinpy.lib.database.blockchain.serialization.s11n_txindex import TxIndexSerializer
 from coinpy.lib.database.blockchain.serialization.s11n_blockindex import BlockIndexSerializer
 from coinpy.model.protocol.structures.uint256 import Uint256
-import os
-from coinpy.lib.database.bsddb_env import BSDDBEnv
 
 class IndexDB():
     def __init__(self, runmode, bsddb_env, filename="blkindex.dat"):

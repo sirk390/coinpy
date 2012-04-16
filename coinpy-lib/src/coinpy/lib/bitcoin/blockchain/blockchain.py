@@ -17,7 +17,6 @@ from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
 from coinpy.model.protocol.structures.blocklocator import BlockLocator
 from coinpy.tools.reactor.asynch import asynch_method
 from coinpy.tools.observer import Observable
-import sys
 from coinpy.model.protocol.runmode import TESTNET
 
 class Blockchain(Observable):

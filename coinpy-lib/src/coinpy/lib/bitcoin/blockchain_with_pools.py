@@ -6,10 +6,7 @@ Created on 3 Jul 2011
 """
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK
-
-
 from coinpy.lib.bitcoin.pools.blockpool import BlockPool
-
 from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
 from coinpy.tools.reactor.asynch import asynch_method
 from collections import deque

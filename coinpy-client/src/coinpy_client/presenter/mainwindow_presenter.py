@@ -7,7 +7,6 @@ Created on 22 Feb 2012
 from coinpy_client.presenter.node_presenter import NodePresenter
 from coinpy.tools.observer import Observable
 from coinpy_client.presenter.pools_presenter import PoolsPresenter
-import os
 from coinpy_client.presenter.blockchain.blockchain_summary_presenter import BlockchainSummaryPresenter
 from coinpy_client.presenter.accountbook_presenter import AccountBookPresenter
 import traceback

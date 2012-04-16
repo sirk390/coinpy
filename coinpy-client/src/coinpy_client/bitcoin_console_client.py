@@ -6,8 +6,6 @@ Created on 22 Feb 2012
 """
  
 from coinpy.model.protocol.runmode import MAIN, TESTNET
-from coinpy.node.config.nodeparams import NodeParams
-from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 import random
 from coinpy_client.bitcoin_client import BitcoinClient
 import log

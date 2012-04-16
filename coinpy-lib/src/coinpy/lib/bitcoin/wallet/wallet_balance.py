@@ -4,10 +4,8 @@ Created on 16 Feb 2012
 
 @author: kris
 """
-from coinpy.lib.bitcoin.wallet.wallet import Wallet
 from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 from coinpy.tools.observer import Observable
-from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.model.constants.bitcoin import COINBASE_MATURITY
 
 # Listens to the blockchain and the wallet and recomputes the balance accordingly

@@ -1,8 +1,4 @@
-import socket
 import random
-import threading
-import time
-import traceback
 import struct
 from coinpy.tools.bitcoin.base58check import decode_base58check
 from coinpy.tools.observer import Observable

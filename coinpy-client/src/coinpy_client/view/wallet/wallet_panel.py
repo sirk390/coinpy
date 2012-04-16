@@ -6,10 +6,7 @@ Created on 14 Feb 2012
 """
 import wx
 from coinpy.tools.hex import hexstr
-from coinpy.lib.database.bsddb_env import BSDDBEnv
 import time
-from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
-from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
 from coinpy.model.wallet.wallet_keypair import WalletKeypair
 from coinpy.model.wallet.wallet_poolkey import WalletPoolKey
 from coinpy.model.wallet.wallet_name import WalletName

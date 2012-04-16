@@ -5,9 +5,6 @@ Created on 26 Jun 2011
 @author: kris
 """
 from coinpy.lib.serialization.common.serializer import Serializer
-from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
-from coinpy.lib.serialization.common.varsizelist import VarsizelistSerializer
-from coinpy.lib.serialization.structures.s11n_timenetaddr import TimenetaddrSerializer
 from coinpy.lib.serialization.structures.s11n_varstr import VarstrSerializer
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.model.protocol.messages.alert import AlertMessage

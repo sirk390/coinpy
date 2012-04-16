@@ -1,9 +1,6 @@
 import asyncore
 import socket
-import time
-from peerhandler import PeerHandler
 import traceback
-from peerconnection import PeerConnection
 from coinpy.tools.observer import Observable
 from coinpy.node.network.sockaddr import SockAddr
 

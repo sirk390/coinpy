@@ -6,7 +6,6 @@ Created on 21 Feb 2012
 """
 from coinpy_client.view.mainwindow import MainWindow
 import wx
-import threading
 from coinpy.tools.observer import Observable
 from coinpy_client.view.message_view import MessageView
 

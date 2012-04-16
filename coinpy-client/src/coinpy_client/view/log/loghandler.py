@@ -7,7 +7,6 @@ Created on 13 Feb 2012
 from logging import Handler, DEBUG, INFO, WARNING, ERROR
 from collections import deque
 import wx
-from wx.richtext import RichTextRange
 
 class GuiLogHandler(Handler):
     LOG_STYLES = { DEBUG  : (0, 0, 255),

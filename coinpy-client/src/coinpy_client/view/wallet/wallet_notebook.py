@@ -4,11 +4,8 @@ Created on 13 Feb 2012
 
 @author: kris
 """
-import wx
 import wx.aui
 from coinpy_client.view.wallet.wallet_panel import WalletPanel
-import wx.lib.scrolledpanel
-import os
 from coinpy.tools.observer import Observable
 from coinpy_client.view.guithread import guithread
 

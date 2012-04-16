@@ -4,25 +4,8 @@ Created on 13 Feb 2012
 
 @author: kris
 """
-from coinpy.tools.reactor.reactor import Reactor
-from coinpy.lib.database.bsddb_env import BSDDBEnv
-from coinpy.model.genesis import GENESIS
-from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
-from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
-from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
-from coinpy.lib.bitcoin.wallet.wallet import Wallet
-from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
-import threading
-import os
-from coinpy.tools.observer import Observable
-from coinpy.node.network.sockaddr import SockAddr
-from coinpy.node.network.bitcoin_port import BITCOIN_PORT
-from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
-import wx
-from coinpy_client.view.coinpy_gui import CoinpyGUI
+
 from coinpy_client.presenter.mainwindow_presenter import MainWindowPresenter
-from coinpy_client.view.message_view import MessageView
 
 class CoinpyPresenter():
     def __init__(self, service, view): 

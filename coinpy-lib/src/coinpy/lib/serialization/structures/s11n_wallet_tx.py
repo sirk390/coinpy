@@ -11,7 +11,6 @@ from coinpy.model.protocol.structures.wallet_tx import WalletTx
 from coinpy.tools.hex import decodehexstr, hexstr
 from coinpy.lib.serialization.common.varsizelist import VarsizelistSerializer
 from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
-from coinpy.lib.serialization.common import varsizelist
 from coinpy.lib.serialization.structures.s11n_varstr import VarstrSerializer
 from coinpy.lib.serialization.common.field import Field
 

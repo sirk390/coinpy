@@ -5,11 +5,6 @@ Created on 21 Feb 2012
 @author: kris
 """
 #wallets
-from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.lib.bitcoin.wallet.wallet import Wallet
-from coinpy.lib.bitcoin.wallet.wallet_balance import WalletBalance
-import os
-from coinpy_client.presenter.tx_creator_presenter import TransactionCreatorPresenter
 from coinpy_client.presenter.account_presenter import AccountPresenter
         #self.wallets = []           # id => Wallet
         #self.wallet_filenames = {}  # id => Wallet

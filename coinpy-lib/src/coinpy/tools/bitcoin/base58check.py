@@ -4,7 +4,6 @@
 '''
 
 import Crypto.Hash.SHA256 as SHA256
-import Crypto.Hash.RIPEMD160 as RIPEMD160
 from coinpy.tools.bitcoin.base256 import base256encode, base256decode
 from coinpy.tools.bitcoin.base58 import base58decode, base58encode
 

@@ -4,7 +4,6 @@ Created on 16 Feb 2012
 
 @author: kris
 """
-import types
 import traceback
 
 class Asynch(object):

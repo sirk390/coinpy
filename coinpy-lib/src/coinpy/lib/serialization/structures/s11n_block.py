@@ -5,11 +5,9 @@ Created on 26 Jun 2011
 @author: kris
 """
 from coinpy.lib.serialization.common.structure import Structure
-from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.common.varsizelist import VarsizelistSerializer
 from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
-from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
 from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
 from coinpy.model.protocol.structures.block import Block
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer

@@ -5,13 +5,8 @@ Created on 16 Apr 2012
 @author: kris
 """
 # no wallet dependency, but blockchain dependency
-from coinpy.node.version_exchange_node import VersionExchangeService
 from coinpy.node.logic.blockchain_downloader import BlockchainDownloader
 from coinpy.node.logic.blockchain_server import BlockchainServer
-from coinpy.node.peer_reconnector import PeerReconnector
-from coinpy.node.addrpool_filler import AddrPoolFiller
-from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
-from coinpy.node.addrpool import AddrPool
 from coinpy.node.basic_node import BasicNode
 
 class BitcoinNode(BasicNode):

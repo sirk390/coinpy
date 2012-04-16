@@ -4,8 +4,8 @@ Created on 2 Jul 2011
 
 @author: kris
 """
-from coinpy.model.scripts.opcodes import OP_PUBKEY, OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY,\
-    OP_HASH160, OP_PUBKEYHASH, OP_PUSHDATA, OP_CHECKSIGVERIFY, OP_CHECKMULTISIG,\
+from coinpy.model.scripts.opcodes import OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY,\
+    OP_HASH160, OP_PUSHDATA, OP_CHECKSIGVERIFY, OP_CHECKMULTISIG,\
     OP_CHECKMULTISIGVERIFY, OP_CODESEPARATOR
 from coinpy.tools.hex import hexstr
 from coinpy.model.scripts.opcodes_info import is_pushdata

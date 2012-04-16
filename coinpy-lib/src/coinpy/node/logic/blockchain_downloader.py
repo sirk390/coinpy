@@ -14,8 +14,7 @@ from coinpy.model.protocol.messages.getdata import GetdataMessage
 from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
 import traceback
 from coinpy.node.version_exchange_node import VersionExchangeService
-from coinpy.tools.reactor.asynch import Asynch, asynch_method
-import time
+from coinpy.tools.reactor.asynch import asynch_method
 from collections import deque
 from coinpy.node.node import Node
 

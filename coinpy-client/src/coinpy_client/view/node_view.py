@@ -5,7 +5,6 @@ Created on 14 Feb 2012
 @author: kris
 """
 import wx
-from coinpy.node.node import Node
 from coinpy.tools.id_pool import IdPool
 
 class NodeView(wx.Panel):

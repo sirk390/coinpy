@@ -4,7 +4,7 @@ Created on 22 Jun 2011
 
 @author: kris
 """
-from coinpy.model.constants.bitcoin import is_money_range, LOCKTIME_THRESHOLD
+from coinpy.model.constants.bitcoin import LOCKTIME_THRESHOLD
 
 class Tx():
     LOCKTIME_HEIGHT, LOCKTIME_BLOCKTIME = LOCKTIME_TYPES = range(2)
