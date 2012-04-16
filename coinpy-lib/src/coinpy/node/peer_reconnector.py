@@ -7,18 +7,18 @@ Created on 26 Feb 2012
 import random
 
 class PeerReconnector():
-    def __init__(self, addrpool, node, min_connections=4):
+    def __init__(self, addrpool, min_connections=4):
         self.addrpool = addrpool
-        self.node = node
         self.min_connections = min_connections
+        self.connecting_peers = set()
         
+    def install(self, node):
+        self.node = node
         self.node.subscribe(self.node.EVT_CONNECTED, self.on_peer_connected)
         self.node.subscribe(self.node.EVT_DISCONNECTED, self.on_peer_disconnected)
         self.addrpool.subscribe(self.addrpool.EVT_ADDED_ADDR, self.on_added_addr)
         self.check_connection_count()
-        
-        self.connecting_peers = set()
-        
+           
     def on_peer_connected(self, event):
         self.addrpool.connected(event.handler.sockaddr)
         self.connecting_peers.remove(event.handler.sockaddr)

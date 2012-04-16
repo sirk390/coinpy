@@ -121,7 +121,6 @@ class Wallet(Observable):
                 if debit > 0 and self.is_change(txout):
                     pass
                 elif debit > 0:
-                    print wallet_tx, hash, wallet_tx.time_received, address, name, -txout.value
                     yield (wallet_tx, hash, wallet_tx.time_received, address, name, -txout.value)
                 elif self.is_mine(txout):
                     yield (wallet_tx, hash, wallet_tx.time_received, address, name, txout.value)

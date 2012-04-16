@@ -10,7 +10,6 @@ from coinpy.model.genesis import GENESIS
 from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
 from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
-from coinpy.node.bitcoinnode import BitcoinNode
 from coinpy.node.network.bitcoin_port import BITCOIN_PORT
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.database.bsddb_env import BSDDBEnv
@@ -27,6 +26,7 @@ from coinpy.node.config.nodeparams import NodeParams
 from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 import logging.handlers
 from coinpy.tools.bsddb.bsddb_file_id import bsddb_read_file_uid
+from coinpy.node.bitcoin_node import BitcoinNode
 
 
 

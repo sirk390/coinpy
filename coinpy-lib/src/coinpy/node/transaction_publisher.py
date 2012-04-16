@@ -20,8 +20,8 @@ class TransactionPublisher():
     
     def on_publish_transaction(self, event):
         #trickle out tx inv, see main.cpp:2971 "Message: inventory"
-        if self.node.version_exchanged_nodes:
-            random_peer = random.sample(self.node.version_exchanged_nodes, 1)[0]
+        if self.node.version_service.version_exchanged_nodes:
+            random_peer = random.sample(self.node.version_service.version_exchanged_nodes, 1)[0]
             if not self.node.blockchain_with_pools.contains_transaction(event.txhash):
                 self.node.blockchain_with_pools.add_transaction(event.txhash, event.tx)
             self.node.send_message(random_peer, msg_inv([invitem(INV_TX, event.txhash)]))

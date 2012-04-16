@@ -12,7 +12,6 @@ from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
 from coinpy.lib.bitcoin.wallet.wallet import Wallet
 from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
-from coinpy.node.bitcoinnode import BitcoinNode
 import threading
 import os
 from coinpy.tools.observer import Observable

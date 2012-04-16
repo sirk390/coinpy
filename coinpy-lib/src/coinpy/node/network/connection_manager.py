@@ -36,8 +36,8 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         self.connection_factory = connection_factory
         self.reactor = reactor
             
-    def disconnect_peer(self, addr):
-        handler = self.peers[addr]
+    def disconnect_peer(self, sockaddr):
+        handler = self.peers[sockaddr]
         handler.clear_incomming_buffers()
         handler.handle_close()
 

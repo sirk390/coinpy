@@ -26,7 +26,7 @@ from coinpy.lib.serialization.messages.s11n_message import MessageSerializer
 """
 class Node(Observable):
     EVT_NEED_PEERS = Observable.createevent()
-    EVT_MESSAGE = Observable.createevent()
+    EVT_BASIC_MESSAGE = Observable.createevent()
     EVT_CONNECTING = Observable.createevent()
     EVT_CONNECTED = Observable.createevent()
     EVT_DISCONNECTED = Observable.createevent()
@@ -37,7 +37,6 @@ class Node(Observable):
         self.reactor = reactor
         self.params = params
         self.log = log
-        self.addr_me = netaddr(self.params.enabledservices, "192.168.1.1", 78)
         
         self.message_encoder = MessageSerializer(self.params.runmode, log)
         self.connection_factory = PeerConnectionFactory(self.reactor, self.message_encoder, log)
@@ -48,45 +47,21 @@ class Node(Observable):
 
     def __on_connected(self, event):
         event.handler.subscribe(PeerConnection.EVT_NEW_MESSAGE, self.__on_message)
-        self.on_connected(event)
+        self.fire(self.EVT_CONNECTED, handler=event.handler)
         
     def __on_connecting(self, event):
         self.fire(self.EVT_CONNECTING, handler=event.handler)
         
     def __on_disconnected(self, event):
-        self.on_disconnected(event)
+        self.fire(self.EVT_DISCONNECTED, handler=event.handler)
         
     def __on_message(self, event):
-        #self.log.info("Message from %s : %s" % (event.handler, event.message))
-        self.on_message(event)
-
-    """ --- redefined in subclasses to filter messages """
-    def on_connected(self, event):
-        self.fire(self.EVT_CONNECTED, handler=event.handler)
-    
-    def on_message(self, event):
-        self.fire_message_event(event.handler, event.message)
-        
-    def on_disconnected(self, event):
-        self.fire(self.EVT_DISCONNECTED, handler=event.handler)
-
-    """ --- """
-    def fire_message_event(self, handler, message):
-        self.fire(self.EVT_MESSAGE, message=message, handler=handler)
-        self.fire((self.EVT_MESSAGE, message.type), message=message, handler=handler)
+        handler, message = event.handler, event.message
+        self.fire(self.EVT_BASIC_MESSAGE, message=message, handler=handler)
       
-    #def check_bootstrap(self):
-    #    if len(self.connection_manager.known_peer_addresses) == 0:
-    #        self.fire(self.EVT_NEED_BOOTSTRAP)
-    #self.connection_manager.loop_iteration()
-        
     def connect_peer(self, addr):
         self.connection_manager.connect_peer(addr)
           
     def send_message(self, peer, message):
         peer.send_message(message)
-         
-    def misbehaving(self, peer, reason):
-        self.log.warning("peer misbehaving: %s" % reason)
-        self.connection_manager.disconnect_peer(peer)
 

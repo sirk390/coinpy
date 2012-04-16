@@ -9,6 +9,7 @@ from coinpy.model.protocol.messages.getaddr import msg_getaddr
 from coinpy.model.protocol.messages.types import MSG_ADDR
 from coinpy.node.node import Node
 from coinpy.node.network.sockaddr import SockAddr
+from coinpy.node.version_exchange_node import VersionExchangeService
 
 """
 AddrPoolFiller:
@@ -18,17 +19,18 @@ AddrPoolFiller:
         bootstrapping if no peers are connected
 """
 class AddrPoolFiller():
-    def __init__(self, bootstrapper, node, addr_pool, min_addrpool_size=10):
+    def __init__(self, bootstrapper, addr_pool, min_addrpool_size=10):
         self.bootstrapper = bootstrapper
-        self.node = node
         self.addr_pool = addr_pool
         self.min_addrpool_size = min_addrpool_size
         self.bootstrapper.subscribe(self.bootstrapper.EVT_FOUND_PEER, self.on_bootstrapped_peer)
-        self.node.subscribe((Node.EVT_MESSAGE, MSG_ADDR), self.on_addr)
-        self.node.subscribe(Node.EVT_CONNECTED, self.on_connected)
+    
+    def install(self, node):
+        self.node = node
+        self.node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_ADDR), self.on_addr)
+        self.node.subscribe(VersionExchangeService.EVT_VERSION_EXCHANGED, self.on_version_exchanged)
         self.node.subscribe(Node.EVT_DISCONNECTED, self.on_disconnected)
-        self.check_addrpool()
-        
+            
     def check_addrpool(self):
         if len(self.addr_pool.known_peers) < self.min_addrpool_size:
             if len(self.node.connection_manager.connected_peers):
@@ -40,7 +42,7 @@ class AddrPoolFiller():
                 self.bootstrapper.bootstrap()
     
     #might require a get_addr()
-    def on_connected(self, event):
+    def on_version_exchanged(self, event):
         self.check_addrpool()
         
     #might require a bootstrap

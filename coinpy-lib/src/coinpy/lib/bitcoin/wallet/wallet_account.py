@@ -107,7 +107,7 @@ class WalletAccount(Observable):
         #send newly confirmed transaction events
         for txhash in self.unconfirmed_transactions:
             if txhash in confirmed_transactions:
-                self.fire(self.EVT_CONFIRMED_TRANSACTION_ITEM, item=(txhash))
+                self.fire(self.EVT_CONFIRMED_TRANSACTION_ITEM, item=(txhash,))
         self.confirmed_transactions = confirmed_transactions
         self.unconfirmed_transactions = unconfirmed_transactions
     

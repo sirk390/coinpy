@@ -5,6 +5,7 @@ Created on 22 Feb 2012
 @author: kris
 """
 from coinpy_client.view.node_view import NodeView
+from coinpy.node.version_exchange_node import VersionExchangeService
 
 class NodePresenter():
     def __init__(self, node, view): 
@@ -14,7 +15,7 @@ class NodePresenter():
         node.subscribe(node.EVT_CONNECTED, self.on_connected)
         node.subscribe(node.EVT_CONNECTING, self.on_connecting_peer)
         node.subscribe(node.EVT_DISCONNECTED, self.on_disconnected_peer)
-        node.subscribe(node.EVT_VERSION_EXCHANGED, self.on_version_exchange)
+        node.subscribe(VersionExchangeService.EVT_VERSION_EXCHANGED, self.on_version_exchange)
         #
         for peer in self.node.connection_manager.connecting_peers:
             self.view.add_peer(peer.sockaddr)

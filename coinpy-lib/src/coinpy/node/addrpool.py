@@ -39,8 +39,9 @@ class AddrPool(Observable):
         #self.known_peers.add(sockaddr)
         pass
     
-    def misbehaving(self, sockaddr):
-        self.known_peers.remove(sockaddr)
+    def misbehaving(self, sockaddr, reason):
+        if sockaddr in self.known_peers:
+            self.known_peers.remove(sockaddr)
         self.banned_peers.add(sockaddr)
     
     ''' 
