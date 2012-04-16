@@ -7,7 +7,7 @@ Created on 2 Jul 2011
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
-from coinpy.model.protocol.structures.outpoint import outpoint
+from coinpy.model.protocol.structures.outpoint import Outpoint
 from coinpy.lib.serialization.common.serializer import Serializer
 
 class OutpointSerializer(Serializer):
@@ -22,4 +22,4 @@ class OutpointSerializer(Serializer):
 
     def deserialize(self, data, cursor):
         (hash, index), cursor = self.OUTPOINT.deserialize(data, cursor)
-        return (outpoint(hash, index), cursor)
+        return (Outpoint(hash, index), cursor)

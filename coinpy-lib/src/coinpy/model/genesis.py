@@ -6,10 +6,10 @@ Created on 7 Aug 2011
 """
 from coinpy.model.protocol.structures.block import Block
 from coinpy.model.protocol.structures.blockheader import BlockHeader
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.model.protocol.structures.tx_in import TxIn
 from coinpy.model.protocol.structures.tx import Tx
-from coinpy.model.protocol.structures.outpoint import outpoint
+from coinpy.model.protocol.structures.outpoint import Outpoint
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.model.scripts.opcodes import OP_PUSHDATA, OP_CHECKSIG
 from coinpy.tools.hex import decodehexstr
@@ -19,13 +19,13 @@ from coinpy.model.protocol.runmode import MAIN, TESTNET
 
 GENESIS_MAIN =  Block(
     BlockHeader(1, 
-                uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), #hash_prev
-                uint256.from_hexstr("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"), #merkle
+                Uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), #hash_prev
+                Uint256.from_hexstr("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"), #merkle
                 1231006505,  #time
                 486604799,   #bits
                 2083236893), #nonce
     [Tx(1, #version
-        [TxIn(outpoint(uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), 4294967295),     
+        [TxIn(Outpoint(Uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), 4294967295),     
                 Script([Instruction(OP_PUSHDATA, decodehexstr("ffff001d")),Instruction(OP_PUSHDATA, decodehexstr("04")),Instruction(OP_PUSHDATA, "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")]), #script
                 4294967295) ], #inlist
         [TxOut(5000000000, #value
@@ -35,13 +35,13 @@ GENESIS_MAIN =  Block(
 
 GENESIS_TESTNET =  Block(
     BlockHeader(1, 
-                uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), #hash_prev
-                uint256.from_hexstr("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"), #merkle
+                Uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), #hash_prev
+                Uint256.from_hexstr("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"), #merkle
                 1296688602,  #time
                 487063544,   #bits
                 384568319), #nonce
     [Tx(1, #version
-        [TxIn(outpoint(uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), 4294967295),     
+        [TxIn(Outpoint(Uint256.from_hexstr("0000000000000000000000000000000000000000000000000000000000000000"), 4294967295),     
                 Script([Instruction(OP_PUSHDATA, decodehexstr("ffff001d")),Instruction(OP_PUSHDATA, decodehexstr("04")),Instruction(OP_PUSHDATA, "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")]), #script
                 4294967295) ], #inlist
         [TxOut(5000000000, #value

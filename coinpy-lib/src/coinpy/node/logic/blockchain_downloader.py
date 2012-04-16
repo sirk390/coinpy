@@ -4,13 +4,13 @@ Created on 13 Sep 2011
 
 @author: kris
 """
-from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX, invitem
+from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX
 from coinpy.model.protocol.messages.types import MSG_INV, MSG_TX, MSG_BLOCK
-from coinpy.model.protocol.messages.getblocks import msg_getblocks
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.messages.getblocks import GetblocksMessage
+from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.lib.bitcoin.hash_block import hash_block
-from coinpy.model.protocol.messages.getdata import msg_getdata
+from coinpy.model.protocol.messages.getdata import GetdataMessage
 from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
 import traceback
 from coinpy.node.version_exchange_node import VersionExchangeService
@@ -59,7 +59,7 @@ class BlockchainDownloader():
         peer_heigth = event.version_message.start_height
         my_height = self.blockchain_with_pools.blockchain.get_height()
         if (peer_heigth > my_height and self.firstrequest):
-            self.push_getblocks(event.handler, uint256.zero())
+            self.push_getblocks(event.handler, Uint256.zero())
             self.firstrequest = False
         
     """def on_inv(self, peer, item):
@@ -112,7 +112,7 @@ class BlockchainDownloader():
         peer, end_hash = self.getblock_to_send.popleft()
         locator = self.blockchain_with_pools.blockchain.get_block_locator()
         self.log.info("requesting blocks from %s, block locator: %s" % (str(peer), str(locator)))
-        request = msg_getblocks(locator, end_hash)
+        request = GetblocksMessage(locator, end_hash)
         self.node.send_message(peer, request)
         
     def on_block(self, event):
@@ -163,11 +163,13 @@ class BlockchainDownloader():
         self.node.misbehaving(peer, reason)
 
     def cleanup_peer_tasks(self, peer):
-        self.blocks_to_process = filter(lambda (p, hash, blk): p != peer, self.blocks_to_process)
-        self.getblock_to_send = filter(lambda (p, end_hash): p != peer, self.getblock_to_send)        
-        self.items_to_download = filter(lambda (p, items): p != peer, self.items_to_download)     
-        self.requested_tx[peer].clear()
-        self.requested_blocks[peer].clear()
+        self.blocks_to_process = deque(filter(lambda (p, hash, blk): p != peer, self.blocks_to_process))
+        self.getblock_to_send = deque(filter(lambda (p, end_hash): p != peer, self.getblock_to_send))        
+        self.items_to_download = deque(filter(lambda (p, items): p != peer, self.items_to_download))   
+        if peer in self.requested_tx:
+            self.requested_tx[peer].clear()
+        if peer in self.requested_blocks:
+            self.requested_blocks[peer].clear()
         
     def on_peer_disconnected(self, event):
         self.cleanup_peer_tasks(event.handler)
@@ -182,7 +184,7 @@ class BlockchainDownloader():
                        str(peer),
                        ",".join([str(i.hash) for i in items[:5]])))
             
-        self.node.send_message(peer, msg_getdata(items))
+        self.node.send_message(peer, GetdataMessage(items))
         for item in items:
             if (item.type == INV_TX):
                 self.requested_tx[peer].add(item.hash)

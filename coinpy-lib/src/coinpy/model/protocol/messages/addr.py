@@ -6,12 +6,12 @@ Created on 26 Jun 2011
 """
 
 from coinpy.model.protocol.messages.types import MSG_ADDR
-from coinpy.model.protocol.messages.message import message
+from coinpy.model.protocol.messages.message import Message
 
-class addr_msg(message):
+class AddrMessage(Message):
     def __init__(self, 
                  timenetaddr_list):
-        super(addr_msg, self).__init__(MSG_ADDR)       
+        super(AddrMessage, self).__init__(MSG_ADDR)       
         self.timenetaddr_list = timenetaddr_list
         
     def __str__(self):

@@ -6,10 +6,10 @@ Created on 10 Jan 2012
 """
 from coinpy.tools.bitcoin.sha256 import double_sha256_2_input
 from coinpy.lib.bitcoin.hash_tx import hash_tx
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 
 """
-    hashes: list of bytestring hashes ( use uint256.get_bytestr() )
+    hashes: list of bytestring hashes ( use Uint256.get_bytestr() )
 """
 def next_merkle_level(hashes):
     n = len(hashes)
@@ -36,7 +36,7 @@ def get_merkle_tree(block):
 block:    block that contains the transaction
 index_tx: index of the transaction in the block
 
-Return value: [list of uint256] 
+Return value: [list of Uint256] 
 The first element is a hash of a transaction at the bottom of the merkle tree.  
 The last element is the merkle root.
 
@@ -46,16 +46,16 @@ def get_merkle_branch(block, index_tx):
     merkle_branch = []
     merkle_tree = get_merkle_tree(block)
     for level in merkle_tree:
-        merkle_branch.append(uint256.from_bytestr(level[min(index_tx^1, len(level)-1)]))
+        merkle_branch.append(Uint256.from_bytestr(level[min(index_tx^1, len(level)-1)]))
         index_tx = index_tx >> 1
     return (merkle_branch)
 
 """
-static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBranch, int nIndex)
+static Uint256 CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBranch, int nIndex)
     {
         if (nIndex == -1)
             return 0;
-        foreach(const uint256& otherside, vMerkleBranch)
+        foreach(const Uint256& otherside, vMerkleBranch)
         {
             if (nIndex & 1)
                 hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
@@ -73,6 +73,6 @@ def compute_merkle_root(block):
     hashes = [hash_tx(tx).get_bytestr() for tx in block.transactions]
     while (len(hashes) != 1):
         hashes = next_merkle_level(hashes)
-    return (uint256.from_bytestr(hashes[0]))
+    return (Uint256.from_bytestr(hashes[0]))
 
 

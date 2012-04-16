@@ -9,7 +9,7 @@ from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
-from coinpy.model.protocol.messages.getheaders import msg_getheaders
+from coinpy.model.protocol.messages.getheaders import GetheadersMessage
 
 class GetheadersMessageSerializer(Serializer):
     GETHEADERS = Structure([VarintSerializer(),
@@ -23,5 +23,5 @@ class GetheadersMessageSerializer(Serializer):
 
     def deserialize(self, data, cursor):
         version, hash_start, hash_stop = self.GETHEADERS.deserialize(data, cursor)
-        return (msg_getheaders(version, hash_start, hash_stop), cursor)
+        return (GetheadersMessage(version, hash_start, hash_stop), cursor)
 

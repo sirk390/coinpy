@@ -6,7 +6,7 @@ Created on 26 Jan 2012
 """
 from coinpy.model.constants.bitcoin import TARGET_INTERVAL, TARGET_TIMESPAN,\
     PROOF_OF_WORK_LIMIT, MEDIAN_TIME_SPAN
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.bitcoin.difficulty import compact_difficulty
 from coinpy.tools.stat import median
 

@@ -22,7 +22,7 @@ from coinpy.model.wallet.controlled_output import ControlledOutput
 from coinpy.lib.bitcoin.wallet.coin_selector import CoinSelector
 from coinpy.lib.bitcoin.transactions.create_transaction import create_pubkeyhash_transaction
 from coinpy.lib.bitcoin.transactions.sign_transaction import sign_transaction
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.model.protocol.structures.merkle_tx import MerkleTx
 from coinpy.lib.bitcoin.transactions.create_wallet_tx import create_wallet_tx
 from coinpy.lib.bitcoin.hash_tx import hash_tx
@@ -205,7 +205,7 @@ class WalletAccount(Observable):
         self.log.info("Sending %f to %s (fee:%f), change address: %s, hash:%s" % (amount, address, fee, change_address, str(txhash)))
         #Initially, create an empty MerkleTx (the tx is not yet in a block)
         merkle_tx = MerkleTx(tx, 
-                             uint256.zero(), 
+                             Uint256.zero(), 
                              [], 
                              4294967295)
         #Set the spend flags for the input transactions

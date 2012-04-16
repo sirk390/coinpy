@@ -8,8 +8,8 @@ Created on 4 Mar 2012
 #     Puts transactions in the wallet, relays unconfirmed wallet transactions to
 #     the node trickler. 
 import random
-from coinpy.model.protocol.messages.inv import msg_inv
-from coinpy.model.protocol.structures.invitem import invitem, INV_TX
+from coinpy.model.protocol.messages.inv import InvMessage
+from coinpy.model.protocol.structures.invitem import Invitem, INV_TX
 
 class TransactionPublisher():
     def __init__(self, reactor, node, account):
@@ -24,6 +24,6 @@ class TransactionPublisher():
             random_peer = random.sample(self.node.version_service.version_exchanged_nodes, 1)[0]
             if not self.node.blockchain_with_pools.contains_transaction(event.txhash):
                 self.node.blockchain_with_pools.add_transaction(event.txhash, event.tx)
-            self.node.send_message(random_peer, msg_inv([invitem(INV_TX, event.txhash)]))
+            self.node.send_message(random_peer, InvMessage([Invitem(INV_TX, event.txhash)]))
 
             

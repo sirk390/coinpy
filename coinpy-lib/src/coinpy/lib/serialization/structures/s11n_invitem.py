@@ -4,7 +4,7 @@ Created on 18 Jun 2011
 
 @author: kris
 """
-from coinpy.model.protocol.structures.invitem import INV_ITEMS, invitem
+from coinpy.model.protocol.structures.invitem import INV_ITEMS, Invitem
 from coinpy.lib.serialization.exceptions import FormatErrorException
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
@@ -25,5 +25,5 @@ class InvitemSerializer(Serializer):
         (type, hash), cursor = self.INVITEM_ENC.deserialize(data, cursor)
         if (type not in INV_ITEMS):
             raise FormatErrorException("Unknown inventory item")
-        return (invitem(type, hash), cursor)
+        return (Invitem(type, hash), cursor)
 

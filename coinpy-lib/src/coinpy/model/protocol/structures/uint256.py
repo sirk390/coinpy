@@ -7,27 +7,27 @@ Created on 25 Jun 2011
 from coinpy.tools.hex import decodehexstr
 from coinpy.tools.bitcoin.base256 import base256encode
 
-class uint256():
+class Uint256():
     def __init__(self, bytestr=None):
         #internal representation: little endian 32 byte string
         self.bytestr = bytestr
     
     @staticmethod
     def zero():
-        return uint256("\0" * 32)
+        return Uint256("\0" * 32)
     
     @staticmethod
     def from_bytestr(bytestr):
-        return uint256(bytestr=bytestr)
+        return Uint256(bytestr=bytestr)
     
     #input big endian hexstr
     @staticmethod
     def from_hexstr(hexstr):
-        return (uint256(decodehexstr(hexstr)[::-1]))
+        return (Uint256(decodehexstr(hexstr)[::-1]))
 
     @staticmethod
     def from_bignum(value):
-        return (uint256(base256encode(value, 32)[::-1]))
+        return (Uint256(base256encode(value, 32)[::-1]))
 
     def get_hexstr(self):
         return "".join(("%02x" % ord(c)) for c in self.bytestr[::-1])
@@ -60,13 +60,13 @@ class uint256():
         return hash(self.bytestr)
         
 if __name__ == '__main__':
-    a = uint256.from_hexstr("2d216583913526ace30f51687f3fb0b1d416faef805c8d7bcb6b1b8331f34af8")
-    b = uint256.from_hexstr("00000000098bce17bb6a38cf3c35edccf57e692d0a93d7e6a650eeaf28c79")
+    a = Uint256.from_hexstr("2d216583913526ace30f51687f3fb0b1d416faef805c8d7bcb6b1b8331f34af8")
+    b = Uint256.from_hexstr("00000000098bce17bb6a38cf3c35edccf57e692d0a93d7e6a650eeaf28c79")
 
     print a.get_bignum()
-    print uint256.from_bytestr(a.get_bytestr())
+    print Uint256.from_bytestr(a.get_bytestr())
     print "".join(["%02x" % ord(c) for c in a.get_bytestr()[::-1]])
-    print uint256.from_hexstr("98bce17bb6a38cf3c35edccf57e692d0a93d7e6a650eeaf28c79030000000000")
+    print Uint256.from_hexstr("98bce17bb6a38cf3c35edccf57e692d0a93d7e6a650eeaf28c79030000000000")
     print (b)
-    print uint256.from_bytestr(b.get_bytestr())
+    print Uint256.from_bytestr(b.get_bytestr())
     

@@ -5,7 +5,7 @@ Created on 13 Jun 2011
 @author: kris
 """
 
-class netaddr():
+class Netaddr():
     def __init__(self, services, ip, port):
         self.services = services    #int (bitfield)
         self.ip = ip                #string "a.b.c.d"

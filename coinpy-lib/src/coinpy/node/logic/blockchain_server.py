@@ -8,12 +8,11 @@ from coinpy.model.protocol.messages.types import MSG_GETDATA, MSG_GETBLOCKS,\
     MSG_GETHEADERS, MSG_INV, MSG_TX, MSG_BLOCK, MSG_HEADERS
 from coinpy.node.node import Node
 from coinpy.tools.observer import Observable
-from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK, invitem
-from coinpy.model.protocol.messages.tx import msg_tx
+from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK, Invitem
+from coinpy.model.protocol.messages.tx import TxMessage
 from coinpy.tools.functools import first
-from coinpy.model.protocol.messages.block import msg_block
-from coinpy.model.protocol.structures.uint256 import uint256
-from coinpy.model.protocol.messages.inv import msg_inv
+from coinpy.model.protocol.messages.block import BlockMessage
+from coinpy.model.protocol.messages.inv import InvMessage
 from coinpy.node.version_exchange_node import VersionExchangeService
 
 
@@ -43,14 +42,14 @@ class BlockchainServer(Observable):
         for inv in event.message.invitems:
             if inv.type == INV_TX and self.blockchain_with_pools.contains_transaction(inv.hash):
                 tx = self.blockchain_with_pools.get_transaction(inv.hash)
-                self.node.send_message(event.handler, msg_tx(tx))
+                self.node.send_message(event.handler, TxMessage(tx))
             if inv.type == INV_BLOCK and self.blockchain_with_pools.contains_block(inv.hash):
                 block = self.blockchain_with_pools.get_block(inv.hash)
-                self.node.send_message(event.handler, msg_block(block))
+                self.node.send_message(event.handler, BlockMessage(block))
                 if self.hash_continue and inv.hash == self.hash_continue:
                     hash_best = self.blockchain.database.get_mainchain()
                     self.log.info("sending hashContinue: %s" % (str(hash_best)))
-                    self.node.send_message(event.handler, msg_inv([invitem(INV_BLOCK, hash_best)]))
+                    self.node.send_message(event.handler, InvMessage([Invitem(INV_BLOCK, hash_best)]))
                 
     def on_getblocks(self, event):
         firstfound = first(event.message.block_locator.blockhashlist, 
@@ -60,9 +59,9 @@ class BlockchainServer(Observable):
         while blkhash and blkhash != event.message.hash_stop and i < 500:
             blkhash = self.blockchain.get_next_in_mainchain(blkhash)
             if blkhash:
-                inv_to_send.append(invitem(INV_BLOCK, blkhash))
+                inv_to_send.append(Invitem(INV_BLOCK, blkhash))
             i += 1
-        self.node.send_message(event.handler, msg_inv(inv_to_send))
+        self.node.send_message(event.handler, InvMessage(inv_to_send))
         self.hash_continue = blkhash 
         self.log.info("sending reply to getblocks: %d items" % (len(inv_to_send)))
    

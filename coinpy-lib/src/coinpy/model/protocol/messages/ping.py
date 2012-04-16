@@ -4,10 +4,10 @@ Created on 21 Feb 2012
 
 @author: kris
 """
-from coinpy.model.protocol.messages.message import message
+from coinpy.model.protocol.messages.message import Message
 from coinpy.model.protocol.messages.types import MSG_PING
 
-class PingMessage(message):
+class PingMessage(Message):
     def __init__(self):
         super(PingMessage, self).__init__(MSG_PING)       
             

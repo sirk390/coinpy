@@ -9,7 +9,7 @@ from coinpy.model.protocol.structures.tx_out import TxOut
 from coinpy.lib.script.script_pubkeyhash import make_script_pubkeyhash,\
     make_script_pubkeyhash_sig
 from coinpy.model.protocol.structures.tx_in import TxIn
-from coinpy.model.protocol.structures.outpoint import outpoint
+from coinpy.model.protocol.structures.outpoint import Outpoint
 from coinpy.model.scripts.script import Script
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.model.scripts.opcodes import OP_PUSHDATA
@@ -29,7 +29,7 @@ def create_pubkeyhash_transaction(controlled_output_list, address, change_adress
     amount_in = sum(output.txout.value for output in controlled_output_list) 
     amount_change = int(amount_in - amount - fee)
     #assert amount_change > 0
-    in_list = [TxIn(previous_output=outpoint(output.txhash, output.index), 
+    in_list = [TxIn(previous_output=Outpoint(output.txhash, output.index), 
                              script=Script([])) for output in controlled_output_list]
     out_list = [TxOut(value=amount, script=make_script_pubkeyhash(address)),
                 TxOut(value=amount_change, script=make_script_pubkeyhash(change_adress))]

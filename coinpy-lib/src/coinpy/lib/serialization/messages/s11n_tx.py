@@ -6,7 +6,7 @@ Created on 23 Jun 2011
 """
 
 from coinpy.lib.serialization.common.serializer import Serializer
-from coinpy.model.protocol.messages.tx import msg_tx
+from coinpy.model.protocol.messages.tx import TxMessage
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 
 class TxMessageSerializer(Serializer):
@@ -18,5 +18,5 @@ class TxMessageSerializer(Serializer):
 
     def deserialize(self, data, cursor=0):
         tx, cursor = self.txencoder.deserialize(data, cursor)
-        return (msg_tx(tx), cursor)
+        return (TxMessage(tx), cursor)
 

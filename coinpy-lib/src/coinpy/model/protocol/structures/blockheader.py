@@ -4,7 +4,7 @@ Created on 6 Jul 2011
 
 @author: kris
 """
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 
 class BlockHeader():
     def __init__(self, version, hash_prev, hash_merkle, time, bits, nonce):
@@ -15,7 +15,7 @@ class BlockHeader():
 
     def target(self):
         exp, value = self.bits >> 24, self.bits & 0xFFFFFF
-        return uint256.from_bignum(value * 2**(8*(exp - 3)))
+        return Uint256.from_bignum(value * 2**(8*(exp - 3)))
                             
     def work(self):
         return ((1 << 256) / (self.target().get_bignum() + 1))

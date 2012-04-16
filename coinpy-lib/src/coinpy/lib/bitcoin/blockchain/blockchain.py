@@ -10,7 +10,7 @@ from coinpy.lib.bitcoin.hash_tx import hash_tx
 import traceback
 from coinpy.lib.vm.vm import TxValidationVM
 from coinpy.lib.bitcoin.blockchain.branch import Branch
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.bitcoin.difficulty import compact_difficulty
 from coinpy.tools.stat import median
 from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
@@ -220,7 +220,7 @@ class Blockchain(Observable):
             actual_timespan = TARGET_TIMESPAN*4;
     
         # Retarget
-        new_target = uint256.from_bignum(header_blocknow.target().get_bignum() * actual_timespan / TARGET_TIMESPAN)
+        new_target = Uint256.from_bignum(header_blocknow.target().get_bignum() * actual_timespan / TARGET_TIMESPAN)
         if new_target > PROOF_OF_WORK_LIMIT[self.database.runmode]:
             new_target = PROOF_OF_WORK_LIMIT[self.database.runmode]
         new_bits = compact_difficulty(new_target)
@@ -231,7 +231,7 @@ class Blockchain(Observable):
     def get_median_time_past(self, hashprev):
         block_times = []
         i = 0
-        while hashprev != uint256.zero() and i < MEDIAN_TIME_SPAN:
+        while hashprev != Uint256.zero() and i < MEDIAN_TIME_SPAN:
             blk = self.database.get_block_handle(hashprev)
             blkheader = blk.get_blockheader()
             block_times.append(blkheader.time)

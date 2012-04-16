@@ -6,7 +6,6 @@ Created on 21 Feb 2012
 """
 
 
-from coinpy.model.protocol.messages.verack import msg_verack
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.model.protocol.messages.ping import PingMessage
 

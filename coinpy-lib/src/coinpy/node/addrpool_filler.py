@@ -5,16 +5,15 @@ Created on 26 Feb 2012
 @author: kris
 """
 import random
-from coinpy.model.protocol.messages.getaddr import msg_getaddr
+from coinpy.model.protocol.messages.getaddr import GetaddrMessage
 from coinpy.model.protocol.messages.types import MSG_ADDR
 from coinpy.node.node import Node
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.node.version_exchange_node import VersionExchangeService
 
-"""
-AddrPoolFiller:
-    This objects listens to a node and fills an 'addr_pool' passed as a parameter
-    until it contains 'min_addrpool_size' addresses using:
+""" Fill 'addr_pool' by bootstrapping and sending get_addr() messages.
+ 
+AddrPoolFiller fills 'addr_pool' until it contains 'min_addrpool_size' addresses using:
         get_addr() messages if some peers are connected
         bootstrapping if no peers are connected
 """
@@ -36,7 +35,7 @@ class AddrPoolFiller():
             if len(self.node.connection_manager.connected_peers):
                 #take a random connected peer and request more peer addresses
                 peer = random.sample(self.node.connection_manager.connected_peers, 1)[0]
-                self.node.send_message(peer, msg_getaddr())
+                self.node.send_message(peer, GetaddrMessage())
             else:
                 #bootstrap
                 self.bootstrapper.bootstrap()

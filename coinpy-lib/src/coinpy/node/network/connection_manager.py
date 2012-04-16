@@ -5,7 +5,6 @@ from peerhandler import PeerHandler
 import traceback
 from peerconnection import PeerConnection
 from coinpy.tools.observer import Observable
-from coinpy.model.protocol.messages.getaddr import msg_getaddr
 from coinpy.node.network.sockaddr import SockAddr
 
 PEER_RECONNECT_INTERVAL = 5

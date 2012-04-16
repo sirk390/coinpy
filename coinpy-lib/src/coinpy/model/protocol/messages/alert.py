@@ -6,9 +6,9 @@ Created on 26 Jun 2011
 """
 
 from coinpy.model.protocol.messages.types import MSG_ALERT
-from coinpy.model.protocol.messages.message import message
+from coinpy.model.protocol.messages.message import Message
 
-class AlertMessage(message):
+class AlertMessage(Message):
     def __init__(self, 
                  payload,
                  signature):

@@ -5,11 +5,11 @@ Created on 7 Jan 2012
 @author: kris
 """
 from coinpy.model.constants.bitcoin import TARGET_INTERVAL
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 
 def uint256_difficulty(bits):
     exp, value = bits >> 24, bits & 0xFFFFFF
-    return (uint256.from_bignum(value * 2 ** (8 * (exp - 3))))
+    return (Uint256.from_bignum(value * 2 ** (8 * (exp - 3))))
 
 def compact_difficulty(uin256):
     shr = 0

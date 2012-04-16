@@ -5,9 +5,9 @@ Created on 22 Jun 2011
 @author: kris
 """
 from coinpy.model.protocol.messages.types import MSG_GETHEADERS
-from coinpy.model.protocol.messages.message import message
+from coinpy.model.protocol.messages.message import Message
 
-class msg_getheaders(message):
+class GetheadersMessage(Message):
     def __init__(self, 
                  start_count,
                  hash_start,

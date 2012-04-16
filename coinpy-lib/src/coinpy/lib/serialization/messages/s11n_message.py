@@ -15,7 +15,6 @@ from coinpy.lib.serialization.messages.s11n_tx import TxMessageSerializer
 from coinpy.lib.serialization.messages.s11n_getdata import GetdataMessageSerializer
 from coinpy.lib.serialization.messages.s11n_addr import AddrMessageSerializer
 from coinpy.lib.serialization.messages.s11n_getaddr import GetAddrMessageSerializer
-from coinpy.model.protocol.messages.getaddr import msg_getaddr
 from coinpy.model.protocol.runmode import MAIN
 from coinpy.tools.bitcoin.sha256 import sha256checksum
 from coinpy.lib.serialization.messages.s11n_block import BlockMessageSerializer

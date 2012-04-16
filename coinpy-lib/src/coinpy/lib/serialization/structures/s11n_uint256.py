@@ -4,7 +4,7 @@ Created on 25 Jun 2011
 
 @author: kris
 """
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 import struct
 from coinpy.lib.serialization.exceptions import MissingDataException
 from coinpy.lib.serialization.common.serializer import Serializer
@@ -23,4 +23,4 @@ class Uint256Serializer(Serializer):
         if (len(data) - cursor) < 32:
             raise MissingDataException("%s: Not enought data for uint256" % (self.desc))
         bytestr, = struct.unpack_from("32s", data, cursor)
-        return (uint256.from_bytestr(bytestr), cursor + 32)
+        return (Uint256.from_bytestr(bytestr), cursor + 32)

@@ -8,7 +8,7 @@ from bsddb.db import *
 import bsddb
 from coinpy.lib.database.blockchain.serialization.s11n_txindex import TxIndexSerializer
 from coinpy.lib.database.blockchain.serialization.s11n_blockindex import BlockIndexSerializer
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 import os
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 
@@ -93,6 +93,6 @@ class IndexDB():
         self.db.put("\x0dhashBestChain", hash.get_bytestr(), txn=self.dbtxn)
         
     def get_hashbestchain(self):
-        return uint256.from_bytestr(self.db.get("\x0dhashBestChain", txn=self.dbtxn))
+        return Uint256.from_bytestr(self.db.get("\x0dhashBestChain", txn=self.dbtxn))
  
 

@@ -8,7 +8,7 @@ Created on 26 Jun 2011
 """
     timestamped netaddr
 """
-class timenetaddr():
+class Timenetaddr():
     def __init__(self, timestamp, netaddr):
         self.timestamp = timestamp  
         self.netaddr = netaddr

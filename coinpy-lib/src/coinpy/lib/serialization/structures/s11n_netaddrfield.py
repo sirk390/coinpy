@@ -6,9 +6,9 @@ Created on 13 Jun 2011
 """
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.structures.s11n_ipaddrfield import IPAddrSerializer
-from coinpy.model.protocol.structures.netaddr import netaddr
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.common.structure import Structure
+from coinpy.model.protocol.structures.netaddr import Netaddr
 
 
 class NetAddrSerializer(Serializer):
@@ -24,5 +24,5 @@ class NetAddrSerializer(Serializer):
 
     def deserialize(self, data, cursor):
         (services, ip, port), cursor = self.NETADDR.deserialize(data, cursor)
-        return (netaddr(services, ip, port), cursor)
+        return (Netaddr(services, ip, port), cursor)
 

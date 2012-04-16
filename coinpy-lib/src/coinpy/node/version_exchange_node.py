@@ -5,14 +5,14 @@ Created on 18 Jun 2011
 @author: kris
 """
 from coinpy.model.protocol.services import SERVICES_NONE, SERVICES_NODE_NETWORK
-from coinpy.model.protocol.structures.netaddr import netaddr
 from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_VERACK
-from coinpy.model.protocol.messages.verack import msg_verack
-from coinpy.model.protocol.messages.version import msg_version
+from coinpy.model.protocol.messages.verack import VerackMessage
+from coinpy.model.protocol.messages.version import VersionMessage
 import time
 from coinpy.tools.observer import Observable
 from coinpy.node.node import Node
 from coinpy.node.logic.status.version_status import VersionStatus
+from coinpy.model.protocol.structures.netaddr import Netaddr
 
 
 class VersionExchangeService():
@@ -26,7 +26,7 @@ class VersionExchangeService():
         self.version_statuses = {}
         self.version_exchanged_nodes = set()
         #todo: remove usage of node.params and node.addr_me
-        self.addr_me = netaddr(self.params.enabledservices, "192.168.1.1", 78)
+        self.addr_me = Netaddr(self.params.enabledservices, "192.168.1.1", 78)
 
     def install(self, node):
         self.node = node
@@ -83,11 +83,11 @@ class VersionExchangeService():
             self.node.emit_message(self.EVT_VERSION_EXCHANGED, handler=handler, version_message=self.version_statuses[handler].version_message)
           
     def send_version(self, handler):
-        version = msg_version(version = self.params.version, 
+        version = VersionMessage(version = self.params.version, 
                      services=self.params.enabledservices, 
                      timestamp=time.time(), 
                      addr_me=self.addr_me, 
-                     addr_you=netaddr(SERVICES_NONE, handler.sockaddr.ip, handler.sockaddr.port), 
+                     addr_you=Netaddr(SERVICES_NONE, handler.sockaddr.ip, handler.sockaddr.port), 
                      nonce=self.params.nonce, 
                      sub_version_num=self.params.sub_version_num,
                      start_height=self.get_blockchain_height())
@@ -96,10 +96,10 @@ class VersionExchangeService():
         handler.send_message(version)
 
     def send_verack(self, handler):
-        verack = msg_verack()
+        verack = VerackMessage()
         self.log.info("Sending verack(%s): %s" % (handler.sockaddr, verack))
         self.version_statuses[handler].verack_sent = True
-        handler.send_message(msg_verack()) 
+        handler.send_message(VerackMessage()) 
          
     def is_supported_version(self, version):
         return (version >= 32000) #or 32200?

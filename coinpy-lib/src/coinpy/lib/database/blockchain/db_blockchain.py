@@ -6,7 +6,7 @@ Created on 25 Jul 2011
 """
 
 from coinpy.lib.database.blockchain.block_storage import BlockStorage
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.database.blockchain.objects.blockindex import DbBlockIndex
 from coinpy.model.protocol.runmode import MAIN
 from coinpy.lib.database.blockchain.indexdb import IndexDB
@@ -41,7 +41,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
     def create(self, genesis_block):
         file, blockpos = self.blockstore.saveblock(genesis_block)
         self.blockstore.commit()
-        genesis_index = DbBlockIndex(self.version, uint256.zero(), file, blockpos, 0, genesis_block.blockheader)
+        genesis_index = DbBlockIndex(self.version, Uint256.zero(), file, blockpos, 0, genesis_block.blockheader)
         self.indexdb.create(hash_block(genesis_block), genesis_index)
     
     def open_or_create(self, genesisblock):
@@ -84,7 +84,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         if not self.indexdb.contains_block(blockhash):
             return None
         blockindex = self.indexdb.get_blockindex(blockhash)
-        if (blockindex.hash_next == uint256.zero()):
+        if (blockindex.hash_next == Uint256.zero()):
             return None
         return blockindex.hash_next
     
@@ -92,7 +92,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         file, blockpos = self.blockstore.saveblock(block)
         prevblock = self.get_block_handle(block.blockheader.hash_prev)
         
-        idx = DbBlockIndex(self.version, uint256.zero(), file, blockpos, prevblock.get_height()+1, block.blockheader)
+        idx = DbBlockIndex(self.version, Uint256.zero(), file, blockpos, prevblock.get_height()+1, block.blockheader)
         self.indexdb.set_blockindex(blockhash, idx)
         if prevblock.hash == self.get_mainchain():
             prevblock.blockindex.hash_next = blockhash
@@ -106,7 +106,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
     """    
     def _find_fork(self, altchainhash):
         hash = altchainhash
-        while hash != uint256.zero():
+        while hash != Uint256.zero():
             handle = self.get_block_handle(hash)
             if handle.is_mainchain():
                 return hash
@@ -125,11 +125,11 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         hashfork = self._find_fork(new_mainchain_hash)
         #set hash_next to 0 in previous mainchain and unindex transactions
         for hash, blkindex in self._iterate_branch(hashfork, self.indexdb.get_hashbestchain()):
-            blkindex.hash_next = uint256.zero()
+            blkindex.hash_next = Uint256.zero()
             self.indexdb.set_blockindex(hash, blkindex)
             self._unindex_transactions(hash)
         #set hash_next to next in new mainchain and index transactions
-        next = uint256.zero()
+        next = Uint256.zero()
         for hash, blkindex in self._iterate_branch(hashfork, new_mainchain_hash):
             blkindex.hash_next = next
             self.indexdb.set_blockindex(hash, blkindex)
@@ -187,24 +187,24 @@ if __name__ == '__main__':
         hashBestChain"""
     db = DBBlockChain(MAIN, directory="../../data")
     db.open()
-    from coinpy.model.protocol.structures.uint256 import uint256
+    from coinpy.model.protocol.structures.uint256 import Uint256
     print db.indexdb.hashbestchain()
-    print db.contains_block(uint256.from_hexstr("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"))
-    print db.contains_block(uint256.from_hexstr("00000000139a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"))
-    it = db.get_block_iterator(uint256.from_hexstr("000000000000029b4b03122dc75e22952e574ded1ba7caef1fd81c1d11f08e73"))
+    print db.contains_block(Uint256.from_hexstr("00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"))
+    print db.contains_block(Uint256.from_hexstr("00000000139a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"))
+    it = db.get_block_iterator(Uint256.from_hexstr("000000000000029b4b03122dc75e22952e574ded1ba7caef1fd81c1d11f08e73"))
     print it.get_block()
     print db.indexdb.hashbestchain()
     print db.get_block_iterator(db.indexdb.hashbestchain())
     
     #
-    print db.contains_transaction(uint256.from_hexstr("f8780c27a0af1eb62968a5ab20417f706706f3fa7316775ae0f59850bb757c72"))
-    print db.get_transaction_iterator(uint256.from_hexstr("f8780c27a0af1eb62968a5ab20417f706706f3fa7316775ae0f59850bb757c72"))
-    it = db.get_transaction_iterator(uint256.from_hexstr("f8780c27a0af1eb62968a5ab20417f706706f3fa7316775ae0f59850bb757c72"))
+    print db.contains_transaction(Uint256.from_hexstr("f8780c27a0af1eb62968a5ab20417f706706f3fa7316775ae0f59850bb757c72"))
+    print db.get_transaction_iterator(Uint256.from_hexstr("f8780c27a0af1eb62968a5ab20417f706706f3fa7316775ae0f59850bb757c72"))
+    it = db.get_transaction_iterator(Uint256.from_hexstr("f8780c27a0af1eb62968a5ab20417f706706f3fa7316775ae0f59850bb757c72"))
     
     print db.get_block_iterator(db.indexdb.hashbestchain()).get_block()
     #db.addblock("hello")
     #db.load_owner_transactions(owner1)
-    #print db.load_txindex(uint256.from_hexstr("00004b78031f6f406c23cb7d1d0990d56f39107febe8c982a5f75a87254143ea"))
+    #print db.load_txindex(Uint256.from_hexstr("00004b78031f6f406c23cb7d1d0990d56f39107febe8c982a5f75a87254143ea"))
 
     
 

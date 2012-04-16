@@ -4,7 +4,7 @@ Created on 26 Jun 2011
 
 @author: kris
 """
-from coinpy.model.protocol.messages.getaddr import msg_getaddr
+from coinpy.model.protocol.messages.getaddr import GetaddrMessage
 from coinpy.lib.serialization.common.serializer import Serializer
 
 class GetAddrMessageSerializer(Serializer):
@@ -12,7 +12,7 @@ class GetAddrMessageSerializer(Serializer):
         return ("")
     
     def deserialize(self, data, cursor):
-        return (msg_getaddr(), cursor)
+        return (GetaddrMessage(), cursor)
 
 
     

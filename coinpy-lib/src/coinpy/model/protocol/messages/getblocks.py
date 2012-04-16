@@ -5,23 +5,23 @@ Created on 22 Jun 2011
 @author: kris
 """
 from coinpy.model.protocol.messages.types import MSG_GETBLOCKS
-from coinpy.model.protocol.messages.message import message
+from coinpy.model.protocol.messages.message import Message
 
 '''
 class msg_getblocks()
 
 Example:
     getblocks = msg_getblocks(32200, 
-              [uint256.from_hexstr("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")], #genesis
-               uint256.zero(),
+              [Uint256.from_hexstr("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")], #genesis
+               Uint256.zero(),
               )
     peer.send_message(getblocks)
 '''
-class msg_getblocks(message):
+class GetblocksMessage(Message):
     def __init__(self, 
                  block_locator,
                  hash_stop):
-        super(msg_getblocks, self).__init__(MSG_GETBLOCKS)       
+        super(GetblocksMessage, self).__init__(MSG_GETBLOCKS)       
         self.block_locator = block_locator
         self.hash_stop = hash_stop
         

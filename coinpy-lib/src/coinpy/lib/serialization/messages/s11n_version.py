@@ -8,7 +8,7 @@ from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.structures.s11n_netaddrfield import NetAddrSerializer
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.structures.s11n_varstr import VarstrSerializer
-from coinpy.model.protocol.messages.version import msg_version
+from coinpy.model.protocol.messages.version import VersionMessage
 from coinpy.lib.serialization.common.serializer import Serializer
 
 class VersionMessageSerializer(Serializer):
@@ -33,7 +33,7 @@ class VersionMessageSerializer(Serializer):
     
     def deserialize(self, data, cursor):
         result, cursor = self.VERSION_STRUCT.deserialize(data, cursor)
-        return (msg_version(*result), cursor)
+        return (VersionMessage(*result), cursor)
 
 
     

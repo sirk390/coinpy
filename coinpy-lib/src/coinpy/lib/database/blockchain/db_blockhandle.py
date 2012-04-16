@@ -5,7 +5,7 @@ Created on 13 Aug 2011
 @author: kris
 """
 
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.model.blockchain.block_handle import BlockHandle
 
 
@@ -32,11 +32,11 @@ class DBBlockHandle(BlockHandle):
         return self.blockindex.height
 
     def is_mainchain(self):
-        return (self.blockindex.hash_next != uint256.zero() or 
+        return (self.blockindex.hash_next != Uint256.zero() or 
                 self.hash == self.indexdb.get_hashbestchain())
 
     def hasprev(self):
-        return self.blockindex.blockheader.hash_prev != uint256.zero()
+        return self.blockindex.blockheader.hash_prev != Uint256.zero()
     
 
     def __eq__(self, other):

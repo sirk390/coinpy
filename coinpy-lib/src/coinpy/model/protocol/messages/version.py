@@ -1,8 +1,8 @@
 import time
 from coinpy.model.protocol.messages.types import MSG_VERSION
-from coinpy.model.protocol.messages.message import message 
+from coinpy.model.protocol.messages.message import Message 
 
-class msg_version(message):
+class VersionMessage(Message):
     def __init__(self, 
                  version,  #209
                  services, 
@@ -12,7 +12,7 @@ class msg_version(message):
                  nonce, 
                  sub_version_num,
                  start_height):
-        super(msg_version, self).__init__(MSG_VERSION)
+        super(VersionMessage, self).__init__(MSG_VERSION)
         
         self.version = version
         self.services = services

@@ -5,11 +5,11 @@ Created on 18 Jun 2011
 @author: kris
 """
 from coinpy.model.protocol.messages.types import MSG_INV
-from coinpy.model.protocol.messages.message import message 
+from coinpy.model.protocol.messages.message import Message 
 
-class msg_inv(message):
+class InvMessage(Message):
     def __init__(self, items):
-        super(msg_inv, self).__init__(MSG_INV)
+        super(InvMessage, self).__init__(MSG_INV)
         self.items = items
         
     def __str__(self):

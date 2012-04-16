@@ -8,7 +8,7 @@ from coinpy.lib.serialization.structures.s11n_block import BlockSerializer
 from coinpy.model.constants.bitcoin import MAX_BLOCK_SIZE, PROOF_OF_WORK_LIMIT,\
     MEDIAN_TIME_SPAN
 from coinpy.lib.bitcoin.merkle_tree import compute_merkle_root
-from coinpy.model.protocol.structures.uint256 import uint256
+from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.model.blockchain.checkpoints import verify_checkpoints,\
     get_checkpoint
@@ -42,7 +42,7 @@ class BlockVerifier():
     
     def check_proof_of_work(self, hash, block):
         target = block.blockheader.target()
-        if (target <= uint256.zero() or target > PROOF_OF_WORK_LIMIT[self.runmode]):
+        if (target <= Uint256.zero() or target > PROOF_OF_WORK_LIMIT[self.runmode]):
             raise Exception("proof of work: value out of range : %x" % (block.blockheader.bits))
         if (hash > target):
             raise Exception("proof of work: hash doesn't match target hash:%s, target:%s" % (hash, target))
