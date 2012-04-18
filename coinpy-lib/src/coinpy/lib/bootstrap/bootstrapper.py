@@ -12,7 +12,7 @@ class Bootstrapper(Observable):
     
     def __init__(self, reactor, runmode, log):
         super(Bootstrapper, self).__init__(reactor)
-        self.log = log  #.getChild("bootstrap")
+        self.log = log #.getChild("bootstrap")
         self.runmode = runmode
         self.reactor = reactor
         self.ircbootstrapper = IrcBootstrapper(reactor, runmode, log=log)

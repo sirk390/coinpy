@@ -6,7 +6,7 @@ Created on 3 Jul 2011
 """
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.invitem import INV_TX, INV_BLOCK
-from coinpy.lib.bitcoin.pools.blockpool import BlockPool
+from coinpy.lib.bitcoin.pools.orphanblockpool import OrphanBlockPool
 from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
 from coinpy.tools.reactor.asynch import asynch_method
 from collections import deque
@@ -29,7 +29,7 @@ class BlockchainWithPools(Observable):
                  transactionpool = {}):
         super(BlockchainWithPools, self).__init__(reactor)
         self.blockchain = blockchain
-        self.orphanblocks =  BlockPool(log)
+        self.orphanblocks =  OrphanBlockPool(log)
         self.orphantransactions = orphantransactions
         self.transactionpool = transactionpool
         self.log = log
@@ -62,7 +62,7 @@ class BlockchainWithPools(Observable):
             #Add to orphan blockpool
             self.log.info("Adding ophan block: %s" % (str( hash)))
             self.orphanblocks.add_block(sender, hash, block)
-            sender, missing_hash = self.orphanblocks.get_missing_root()
+            sender, missing_hash = self.orphanblocks.get_orphan_root(hash)
             self.fire(self.EVT_MISSING_BLOCK, peer=sender, missing_hash=missing_hash)
             self.fire(self.EVT_ADDED_ORPHAN_BLOCK, hash=hash)
             return
@@ -73,8 +73,16 @@ class BlockchainWithPools(Observable):
         #if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
         #return error("CheckBlock() : block timestamp too far in the future");     
         yield self.blockchain.appendblock(hash, block)
-        #self.log.info("Appended block %d prev:%s, hash=%s" % (blockhandle.get_height(), str(blockhandle.get_blockheader().hash_prev), str(blockhandle.hash)))
-
+        
+        #recursively process any orphan blocks that depended on this one
+        descendent_blocks = self.orphanblocks.pop_descendant_blocks(hash)
+        for sender, blkhash, block in descendent_blocks:
+            self.fire(self.EVT_REMOVED_ORPHAN_TX, hash=blkhash)
+        for sender, blkhash, block in descendent_blocks:
+            self.blockverifier.accept_block(blkhash, block, self.blockchain)
+            yield self.blockchain.appendblock(blkhash, block)
+            
+        
     def get_transaction(self, hash):
         if hash in self.transactionpool:
             return self.transactionpool[hash]
@@ -95,7 +103,7 @@ class BlockchainWithPools(Observable):
         
     def get_block(self, blkhash):
         if blkhash in self.orphanblocks:
-            return self.orphanblocks[blkhash]
+            return self.orphanblocks.get_block(blkhash)
         if self.blockchain.contains_block(blkhash):
             return self.blockchain.get_block(blkhash)
         return None

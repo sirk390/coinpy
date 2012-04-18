@@ -29,7 +29,10 @@ class NodeView(wx.Panel):
         
         self.listitem_id_pool = IdPool()
         self.connections = {} # SockAddr => listitem_id
- 
+
+    def contains_peer(self, sockaddr):    
+        return sockaddr in self.connections
+    
     def add_peer(self, sockaddr):    
         id = self.listitem_id_pool.get_id()
         self.connections[sockaddr] = id

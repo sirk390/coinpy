@@ -21,7 +21,8 @@ class PeerReconnector():
            
     def on_peer_connected(self, event):
         self.addrpool.log_success(time.time(), event.handler.sockaddr)
-        self.connecting_peers.remove(event.handler.sockaddr)
+        if event.handler.sockaddr in self.connecting_peers: #not true for inbound connections
+            self.connecting_peers.remove(event.handler.sockaddr)
         
     def on_peer_disconnected(self, event):
         addr = event.handler.sockaddr

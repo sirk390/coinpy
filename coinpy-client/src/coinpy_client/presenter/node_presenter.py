@@ -26,6 +26,8 @@ class NodePresenter():
         self.view.add_peer(event.handler.sockaddr)
       
     def on_connected(self, event):
+        if not self.view.contains_peer(event.handler.sockaddr): 
+            self.view.add_peer(event.handler.sockaddr) #inbound connections are immediatly "connected"
         self.view.set_peer_status(event.handler.sockaddr, "Connected", (230, 255, 230))
 
     def on_version_exchange(self, event):
