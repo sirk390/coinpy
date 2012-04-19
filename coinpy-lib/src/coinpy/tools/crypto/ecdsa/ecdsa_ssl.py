@@ -29,11 +29,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import ctypes
-import ctypes.util
 
 # ctypes.util.find_library ('ssl')
 # 
-ssl = ctypes.cdll.LoadLibrary (ctypes.util.find_library ('libeay32'))
+from coinpy.tools.crypto.ssl.ssl import ssl
 
 # this specifies the curve used with ECDSA.
 NID_secp256k1 = 714 # from openssl/obj_mac.h

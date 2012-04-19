@@ -15,6 +15,7 @@ from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
 from coinpy.lib.serialization.structures.s11n_wallet_tx import WalletTxSerializer
 import bsddb
 from coinpy.model.wallet.wallet_database_interface import WalletDatabaseInterface
+from coinpy.lib.database.wallet.serialization.master_key_serializer import MasterKeySerializer
 
 class BSDDBWalletDatabase(WalletDatabaseInterface):
     def __init__(self, bsddb_env, filename):
@@ -23,6 +24,7 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         self.varstr_serializer = VarstrSerializer()
         self.uint256_serializer = Uint256Serializer("")
         self.wallet_tx_serializer = WalletTxSerializer()
+        self.master_key_serializer = MasterKeySerializer()
         self.reset_wallet()
         self.db = bsddb.db.DB(self.bsddb_env.dbenv)
         self.dbflags = bsddb.db.DB_THREAD
@@ -34,7 +36,15 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         dbtxn.commit()
         self._read_wallet()
 
-   
+    def create(self):
+        self.dbtxn = self.bsddb_env.dbenv.txn_begin()
+        self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags|bsddb.db.DB_CREATE, txn=self.dbtxn)
+        #create 100 pools keys, no addresses, or transactions are added
+        
+        self.dbtxn.commit()
+
+
+    
     def begin_updates(self):
         self.dbtxn = self.bsddb_env.dbenv.txn_begin()
         
@@ -67,6 +77,8 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
             self.set_label(address, label)
     
     def reset_wallet(self):
+        self.master_keys = {}
+        self.crypted_keys = {}
         self.keypairs = {}
         self.names = {}
         self.settings = []
@@ -85,6 +97,17 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
             private_key, _ = self.varstr_serializer.deserialize(value, value_cursor)
             self.keypairs[public_key] = WalletKeypair(public_key, private_key)
     
+    def _read_crypted_keys(self):
+        for key, key_cursor, value, value_cursor in self._read_entries("ckey"):
+            public_key, _ = self.varstr_serializer.deserialize(key, key_cursor)
+            crypted_secret, _ = self.varstr_serializer.deserialize(value, value_cursor)
+            self.crypted_keys[public_key] = crypted_secret
+
+    def _read_master_keys(self):
+        for key, key_cursor, value, value_cursor in self._read_entries("mkey"):
+            id,  = struct.unpack_from("<I", key, key_cursor)
+            self.master_keys[id], cursor = self.master_key_serializer.deserialize(value, value_cursor)
+
     def _read_names(self):
         for key, key_cursor, value, value_cursor in self._read_entries("name"):
             address, _ = self.varstr_serializer.deserialize(key, key_cursor)
@@ -108,6 +131,8 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def _read_wallet(self):
         self.reset_wallet()
         self._read_keys()
+        self._read_crypted_keys()
+        self._read_master_keys()
         self._read_names()
         self._read_txs()
         self._read_poolkeys()
@@ -152,6 +177,9 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def del_poolkey(self, num):
         del self.poolkeys[num]
         self.db.delete("\x04pool" + struct.pack("<I", num))
+
+    def get_master_keys(self):
+        return (self.master_keys)
 
     def get_version(self):
         return (struct.unpack("<I", self.db["\x07version"])[0])
