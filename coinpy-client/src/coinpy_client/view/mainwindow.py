@@ -21,6 +21,7 @@ from coinpy_client.view.blockchain.blockchain_summary_view import BlockchainSumm
 
 class MainWindow(wx.Frame, Observable):
     EVT_CMD_OPEN_WALLET = Observable.createevent()
+    EVT_CMD_NEW_WALLET = Observable.createevent()
     EVT_CMD_CLOSE_WALLET = Observable.createevent()
     EVT_CMD_CLOSE = Observable.createevent()
     
@@ -36,6 +37,8 @@ class MainWindow(wx.Frame, Observable):
 
         # File
         file_menu = wx.Menu()
+        file_menu.Append(wx.ID_NEW, "New")
+        self.Bind(wx.EVT_MENU, self.on_cmd_new_wallet, id=wx.ID_NEW)
         file_menu.Append(wx.ID_OPEN, "Open")
         self.Bind(wx.EVT_MENU, self.on_cmd_open_wallet, id=wx.ID_OPEN)
         file_menu.Append(wx.ID_EXIT, "Exit")
@@ -122,6 +125,15 @@ class MainWindow(wx.Frame, Observable):
         logger.addHandler(handler)
         return logger
     
+    def on_cmd_new_wallet(self, event):
+        dlg = wx.FileDialog(
+            self, message="Select a wallet.dat filename",
+            defaultDir=os.getcwd(), 
+            defaultFile="wallet.dat",
+            style=wx.SAVE | wx.CHANGE_DIR)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.fire(self.EVT_CMD_NEW_WALLET, file=dlg.GetPath())
+
     def on_cmd_open_wallet(self, event):
         dlg = wx.FileDialog(
             self, message="Select a wallet.dat file",
@@ -182,7 +194,7 @@ class MainWindow(wx.Frame, Observable):
         
 if __name__ == '__main__':
     app = wx.App(False)
-    mainwindow = MainWindow(None, size=(1000,400))
+    mainwindow = MainWindow(None, None, size=(1000,400))
     mainwindow.Show()
     app.MainLoop()
        

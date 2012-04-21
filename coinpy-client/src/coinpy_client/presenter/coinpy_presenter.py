@@ -8,20 +8,20 @@ Created on 13 Feb 2012
 from coinpy_client.presenter.mainwindow_presenter import MainWindowPresenter
 
 class CoinpyPresenter():
-    def __init__(self, service, view): 
-        self.service = service
+    def __init__(self, client, view): 
+        self.client = client
         self.view = view
         self.view.subscribe(self.view.EVT_CMD_CLOSE, self.on_command_close)
-        self.mainwindow_presenter = MainWindowPresenter(self.service, view.mainwindow)
+        self.mainwindow_presenter = MainWindowPresenter(self.client, view.mainwindow)
       
     def on_command_close(self, event):
-        self.service.stop(self.on_service_exited)
+        self.client.stop(self.on_service_exited)
         
     def on_service_exited(self):
         self.view.stop()
 
     def run(self):
-        self.service.start()
+        self.client.start()
         self.view.mainloop()
         #self.service.run()
        

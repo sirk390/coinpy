@@ -12,28 +12,25 @@ from coinpy.lib.script.standard_script_tools import identify_script
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 from coinpy.lib.script.script_pubkey import make_script_pubkey_sig
 
-
-## signs: 'tx.in_list' with the keys in 'controlled_output_list' 
-#   'tx.in_list' and 'controlled_output_list'  they must be of the same 
-#   length and must be given in the same order)
-def sign_transaction(tx, controlled_output_list):
+""""""
+def sign_transaction(tx, txout_list, secret_list):
     #Sign the current transaction 
     result_scripts = []
-    for input, output in zip(tx.in_list, controlled_output_list):
+    for input, txout, secret in zip(tx.in_list, txout_list, secret_list):
         script_save = input.script
-        input.script = output.txout.script
+        input.script = txout.script
         #Serialize and append hash type
         enctx = TxSerializer().serialize(tx) + b"\x01\x00\x00\x00"
         #Get hash 
         hash = doublesha256(enctx)
         key = KEY()
-        key.set_privkey(output.keypair.private_key)
+        key.set_secret(secret)
         signature = key.sign(hash) + "\x01" # append hash_type SIGHASH_ALL
-        script_type = identify_script(output.txout.script)
+        script_type = identify_script(txout.script)
         # if unknown script type, return None
         result = None
         if script_type == TX_PUBKEYHASH:
-            result = make_script_pubkeyhash_sig(output.keypair.public_key, signature)
+            result = make_script_pubkeyhash_sig(key.get_pubkey(), signature)
         if script_type == TX_PUBKEY:
             result =  make_script_pubkey_sig(signature)
         result_scripts.append(result)

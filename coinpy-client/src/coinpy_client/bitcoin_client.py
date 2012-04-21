@@ -65,6 +65,13 @@ class BitcoinClient():
             self.dbenv_handles[normdir] = BSDDBEnv(normdir)
         return self.dbenv_handles[normdir]
     
+    def new_wallet(self, filename):
+        directory, basename = os.path.split(filename)
+        dbenv = self.get_dbenv_handle(directory)
+        
+        wallet_db = BSDDBWalletDatabase(dbenv, basename)
+        wallet_db.create()
+    
     def open_wallet(self, filename):
         directory, basename = os.path.split(filename)
         dbenv = self.get_dbenv_handle(directory)

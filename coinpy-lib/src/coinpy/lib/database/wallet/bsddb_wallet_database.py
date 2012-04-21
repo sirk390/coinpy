@@ -58,18 +58,13 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         if len(self.poolkeys) == 0:
             raise Exception("get_receive_key: No keys remaining")
         num, poolkey = next(self.poolkeys.iteritems())
-        return self.keypairs[poolkey.public_key].public_key
-
-    def _search_poolkey(self, public_key):
-        for num, poolkey in self.poolkeys.iteritems():
-            if poolkey.public_key == public_key:
-                return num
-        return None
+        return poolkey.public_key
         
     def allocate_key(self, public_key, address, label=None, ischange=False):
-        num = self._search_poolkey(public_key)
+        num = self.poolkeys_by_public_key[public_key].poolnum
         if num is None:
             raise Exception("allocate_pool_key: Can't find pool public_key")
+        del self.poolkeys_by_public_key[public_key]
         del self.poolkeys[num]
         self.db.delete("\x04pool" + struct.pack("<q", num), txn=self.dbtxn)
 
@@ -79,12 +74,13 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def reset_wallet(self):
         self.master_keys = {}
         self.crypted_keys = {}
-        self.keypairs = {}
+        self.keys = {}
         self.names = {}
         self.settings = []
         self.txs = {}
         self.poolkeys = {}
-    
+        self.poolkeys_by_public_key = {}
+        
     def _read_entries(self, label):
         for key, value in self.db.items():
             lab, key_cursor = self.varstr_serializer.deserialize(key, 0)
@@ -95,7 +91,7 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         for key, key_cursor, value, value_cursor in self._read_entries("key"):
             public_key, _ = self.varstr_serializer.deserialize(key, key_cursor)
             private_key, _ = self.varstr_serializer.deserialize(value, value_cursor)
-            self.keypairs[public_key] = WalletKeypair(public_key, private_key)
+            self.keys[public_key] = WalletKeypair(public_key, private_key)
     
     def _read_crypted_keys(self):
         for key, key_cursor, value, value_cursor in self._read_entries("ckey"):
@@ -127,7 +123,8 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
             time, = struct.unpack_from("<q", value, 4)
             public_key, _ = self.varstr_serializer.deserialize(value, 12)
             self.poolkeys[poolnum] = WalletPoolKey(poolnum, version, time, public_key)
-        
+            self.poolkeys_by_public_key[public_key] = self.poolkeys[poolnum]
+            
     def _read_wallet(self):
         self.reset_wallet()
         self._read_keys()
@@ -137,8 +134,11 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         self._read_txs()
         self._read_poolkeys()
        
-    def get_keypairs(self):
-        return self.keypairs.values()
+    def get_keys(self):
+        return self.keys
+
+    def get_crypted_keys(self):
+        return self.crypted_keys
 
     def get_wallet_txs(self):
         return self.txs

@@ -8,7 +8,7 @@ Created on 21 Feb 2012
 import wx
 
 class PoolsPanel(wx.Panel):
-    def __init__(self, parent, size):
+    def __init__(self, parent, size=(600,180)):
         super(PoolsPanel, self).__init__(parent, size=size) #, style=wx.SIMPLE_BORDER
         
         
@@ -56,6 +56,6 @@ class PoolsPanel(wx.Panel):
 if __name__ == '__main__':
     app = wx.App(False)
     frame = wx.Frame(None)
-    pools = PoolPanel(frame)
+    pools = PoolsPanel(frame)
     frame.Show()
     app.MainLoop()

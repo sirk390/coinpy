@@ -15,6 +15,17 @@ from coinpy.model.address_version import ADDRESSVERSION
 from coinpy.tools.bitcoin.base58check import encode_base58check
 from coinpy.tools.observer import Observable
 from coinpy.model.wallet.controlled_output import ControlledOutput
+from coinpy.model.protocol.structures.outpoint import Outpoint
+import time
+from coinpy.lib.database.wallet.crypter.passphrase import decrypt_masterkey
+from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
+from coinpy.lib.database.wallet.crypter.crypter import Crypter
+from coinpy.tools.bitcoin.sha256 import doublesha256
+from coinpy.tools.hex import hexstr
+
+# Wrong passphrase, missing passphrase, or missing master_key
+class KeyDecryptException(Exception):
+    pass
 
 '''
     Wallet implementes the basic satoshi wallet logic.
@@ -29,9 +40,14 @@ class Wallet(Observable):
         self.wallet_database = wallet_database
         self.wallet_database.open()
         self.runmode = runmode
-        self.keypairs = {} # not so usefull; remove field ?
-        for keypair in self.wallet_database.get_keypairs():
-            self.keypairs[hash160(keypair.public_key)] = keypair
+        self.addresses = {}
+        self.crypter = Crypter()
+        self.plain_masterkeys = []
+
+        for public_key, keypair in self.wallet_database.get_keys().iteritems():
+            self.addresses[hash160(public_key)] = (public_key, False)
+        for public_key, secret in self.wallet_database.get_crypted_keys().iteritems():
+            self.addresses[hash160(public_key)] = (public_key, True)
     
     def begin_updates(self):
         self.wallet_database.begin_updates()
@@ -59,25 +75,38 @@ class Wallet(Observable):
         self.wallet_database.del_transaction(hashtx)
 
     """
-        yields ( WalletKeyPair, WalletName, WalletPoolKey ) entries.
-                WalletName, WalletPoolKey can be None
+        yields ( public_key, private_key, address, description ) entries.
     """
     def iterkeys(self):
         names = self.wallet_database.get_names()
-        poolkeys= {}
-        for k in self.wallet_database.get_poolkeys().values():
-            poolkeys[k.public_key] = k
-        for key in self.wallet_database.keypairs.values():
-            address = get_address_from_public_key(self.runmode, key.public_key)
-            name = (address in names) and names[address] or None
-            poolkey = (key.public_key in poolkeys) and poolkeys[key.public_key] or None
-            yield (key, name, poolkey)
+        for address, (public_key, is_crypted) in self.addresses.iteritems():
+            b58addr = encode_base58check(chr(ADDRESSVERSION[self.runmode]) + address)
+            description = self.get_address_description(public_key)
+            yield (public_key, "", b58addr, description)
             
+    def get_address_description(self, public_key):
+        address = hash160(public_key)
+        description = ""
+        if public_key in self.wallet_database.poolkeys_by_public_key:
+            poolkey = self.wallet_database.poolkeys_by_public_key[public_key]
+            description = "Pool (id:%d, time:%s)" % (poolkey.poolnum, time.strftime("%Y-%m-%d %H:%m:%S", time.gmtime(poolkey.time)))
+        else:
+            b58addr = encode_base58check(chr(ADDRESSVERSION[self.runmode]) + address)
+            if b58addr in self.wallet_database.get_names():
+                description = "Receive (\"%s\")" % self.wallet_database.get_names()[b58addr].name
+            else: 
+                description = "Change" 
+        _, is_crypted = self.addresses[address]
+        if is_crypted:
+            description += "(encrypted)"
+        return description
+        
     def iter_my_outputs(self):
         for hash, wallet_tx in self.wallet_database.get_wallet_txs().iteritems():
             for index, txout in enumerate(wallet_tx.merkle_tx.tx.out_list):
                 if not wallet_tx.is_spent(index) and self.is_mine(txout):
-                    yield ControlledOutput(hash, wallet_tx.merkle_tx.tx, index, txout, self.get_keypair_for_output(txout))
+                    yield (wallet_tx.merkle_tx.tx, Outpoint(hash, index), txout)
+                    #yield ControlledOutput(hash, wallet_tx.merkle_tx.tx, index, txout, self.get_keypair_for_output(txout))
     ''''
         A TxIn is "debit" if the previous output is in the wallet and is mine.
         If it is, get_debit_txin will return the value spent.
@@ -136,13 +165,8 @@ class Wallet(Observable):
         return self.wallet_database.get_names()
     
     def have_key_for_addresss(self, address):
-        return (address in self.keypairs)
-    
-    def get_keypair_for_address(self, address):
-        return (self.keypairs[address]) 
-    
-    def have_key(self, pubkey):
-        pass
+        return (address in self.addresses)
+
     
     def extract_adress(self, txout):
         script_type = identify_script(txout.script)
@@ -155,10 +179,42 @@ class Wallet(Observable):
             return hash160(tx_pubkey_get_pubkey(txout.script))
         return None 
     
-    def get_keypair_for_output(self, txout):
+    def is_passphrase_required(self, txout):
         address = self.extract_adress(txout)
-        return self.keypairs[address]
+        _, is_crypted = self.addresses[address]
+        return is_crypted
     
+    def unlock(self, passphrases):
+        for pphrase in passphrases:
+            for mkey in self.get_master_keys().values():
+                self.plain_masterkeys.append(decrypt_masterkey(mkey, pphrase))
+ 
+    """ Return a private key for a txout as binary bignum. 
+    
+        Requires unlock() if this key in encrypted  """
+    def get_private_key_secret(self, txout):
+        address = self.extract_adress(txout)
+        public_key, is_crypted = self.addresses[address]
+        if not is_crypted:
+            k = KEY()
+            k.set_privkey(self.keypairs[address].private_key)
+            return k.get_secret()
+        crypted_secret = self.wallet_database.get_crypted_keys()[public_key]
+        for key in self.plain_masterkeys:
+            self.crypter.set_key(key, doublesha256(public_key))
+            secret = self.crypter.decrypt(crypted_secret)
+            k = KEY()
+            is_compressed = len(public_key) == 33
+            k.set_secret(secret, is_compressed)
+            if k.get_pubkey() == public_key:
+                return secret
+        raise KeyDecryptException("Can't decrypt private key, wallet not unlocked or incorrect masterkey")
+            
+    def lock(self):
+        self.plain_masterkeys = []
+      
+        
+
     def is_mine(self, txout):
         address = self.extract_adress(txout)
         if not address: # if unknown script type, return False
@@ -175,7 +231,9 @@ class Wallet(Observable):
         address = self.extract_adress(txout)
         return self.is_mine(txout) and (address not in self.get_names())
   
-
+    def get_master_keys(self):
+        return self.wallet_database.get_master_keys()
+    
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import MAIN, TESTNET
     from coinpy.tools.reactor.reactor import Reactor

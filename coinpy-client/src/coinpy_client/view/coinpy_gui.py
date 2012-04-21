@@ -35,6 +35,6 @@ class CoinpyGUI(Observable):
 if __name__ == '__main__':
     def on_exit(event):
         print "exited"
-    mainview = CoinpyGUI()
+    mainview = CoinpyGUI(None)
     mainview.mainloop()
     

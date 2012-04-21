@@ -16,6 +16,7 @@ from coinpy.tools.observer import Observable
 from coinpy_client.view.wallet.send_view import SendView
 from coinpy_client.view.wallet.balance import BalancePanel
 from coinpy_client.view.wallet.receive_view import ReceiveView
+from coinpy_client.view.wallet.enter_passphrase_view import EnterPassphraseView
 
 class WalletPanel(wx.Panel, Observable):
     EVT_SEND = Observable.createevent()
@@ -32,10 +33,10 @@ class WalletPanel(wx.Panel, Observable):
         self.keylist = wx.ListCtrl(self, style=wx.LC_REPORT, size=(400,100))
         self.keylist.InsertColumn(0, "Public Key")
         self.keylist.InsertColumn(1, "Private Key")
-        self.keylist.InsertColumn(2, "Pool")
-        self.keylist.InsertColumn(3, "Pool Time")
-        self.keylist.InsertColumn(4, "Address")
-        self.keylist.InsertColumn(5, "Name")
+        self.keylist.InsertColumn(2, "Address")
+        self.keylist.InsertColumn(3, "Description")
+        self.keylist.SetColumnWidth(2, 250)
+        self.keylist.SetColumnWidth(3, 250)
         self.show_hide_private_keys_button = wx.Button(self, label="Show Private Keys")
         self.txhistory_list = wx.ListCtrl(self,style=wx.LC_REPORT, size=(400,100))
         self.txhistory_list.InsertColumn(0, "Date")
@@ -67,9 +68,10 @@ class WalletPanel(wx.Panel, Observable):
         self.send_button.Bind(wx.EVT_BUTTON, self.on_send)
         self.receive_button.Bind(wx.EVT_BUTTON, self.on_receive)
         
-        # ChildViews
+        # ChildViews (could be moved into some View directory service)
         self.send_view = SendView(reactor, self)
         self.receive_view = ReceiveView(reactor, self)
+        self.enter_passphrase_view = EnterPassphraseView(reactor, self)
         
         # Initialize private data
         self.show_private_keys = False
@@ -86,27 +88,21 @@ class WalletPanel(wx.Panel, Observable):
     def on_receive(self, event):
         self.fire(self.EVT_RECEIVE)
                     
-    def add_key(self, id, key, poolkey, name):
+    def add_key(self, id, public_key, private_key, address, description):
         itemid = self.keylist_idpool.get_id()
-        self.keys[itemid] = (key, poolkey, name)
+        self.keys[itemid] = (public_key, private_key, address, description)
         self.key_itemids[id] = itemid
         
-        index = self.keylist.InsertStringItem(self.keylist.GetItemCount(), hexstr(key.public_key))
+        index = self.keylist.InsertStringItem(self.keylist.GetItemCount(), hexstr(public_key))
         self.keylist.SetItemData(index, itemid)
-        self.keylist.SetStringItem(index, 1, self.private_key_mask(hexstr(key.private_key)))
-        if poolkey:
-            self.keylist.SetStringItem(index, 2, "%d" % (poolkey.poolnum))
-            timestr = time.strftime("%Y-%m-%d %H:%m:%S", time.gmtime(poolkey.time))
-            self.keylist.SetStringItem(index, 3, timestr)
-        if name:
-            self.keylist.SetStringItem(index, 4, name.address)
-            self.keylist.SetStringItem(index, 5, name.name)
+        self.keylist.SetStringItem(index, 1, self.private_key_mask(hexstr(private_key)))
+        self.keylist.SetStringItem(index, 2, address)
+        self.keylist.SetStringItem(index, 3, description)
 
-    def set_key_label(self, id, address, label):
+    def set_key_description(self, id, description):
         itemid = self.key_itemids[id]
         index = self.keylist.FindItemData(-1, itemid)
-        self.keylist.SetStringItem(index, 4, address)
-        self.keylist.SetStringItem(index, 5, label)
+        self.keylist.SetStringItem(index, 3, description)
     
     def select_key(self, id):
         itemid = self.key_itemids[id]
@@ -157,8 +153,8 @@ class WalletPanel(wx.Panel, Observable):
         self.show_private_keys = not self.show_private_keys
         for i in range(self.keylist.GetItemCount()):
             id = self.keylist.GetItemData(i)
-            key, _, _ = self.keys[id]
-            self.keylist.SetStringItem(i, 1,self.private_key_mask(hexstr(key.private_key)))
+            public_key, private_key, address, description = self.keys[id]
+            self.keylist.SetStringItem(i, 1,self.private_key_mask(hexstr(private_key)))
         button_label = ("Hide" if self.show_private_keys else "Show") + " Private Keys"
         self.show_hide_private_keys_button.SetLabel(button_label)
         
@@ -171,8 +167,6 @@ if __name__ == '__main__':
     app = wx.App(False)
     frame = wx.Frame(None)
     wallet_panel = WalletPanel(None, frame)
-    wallet_panel.add_key(WalletKeypair("public_key1", "private_key2"), 
-                         WalletPoolKey(3, 3, time.time(), "public_key1"),
-                         WalletName("name1", "adress1"))
+    wallet_panel.add_key("1", "public_key1", "private_key2", "adress1", "decription")
     frame.Show()
     app.MainLoop()

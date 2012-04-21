@@ -19,14 +19,14 @@ def main(runmode):
     data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
     params = ClientParams(data_directory,
                           runmode=runmode,
-                          port=8080,
+                          port=8333,
                           nonce=random.randint(0, 2**64),
                           sub_version_num="/coinpy:0.0.1/",
                           targetpeers=1)
     reactor = Reactor()
     view = CoinpyGUI(reactor)
-    service = BitcoinClient(reactor, view.get_logger(), params)
-    presenter = CoinpyPresenter(service, view)
+    client = BitcoinClient(reactor, view.get_logger(), params)
+    presenter = CoinpyPresenter(client, view)
     presenter.run()
 
 #testnet faucet: mhFwRrjRNt8hYeWtm9LwqCpCgXjF38RJqn

@@ -6,7 +6,7 @@ Created on 21 Feb 2012
 """
 #wallets
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.lib.bitcoin.wallet.wallet import Wallet
+from coinpy.lib.bitcoin.wallet.wallet import Wallet, KeyDecryptException
 import os
 from coinpy.lib.bitcoin.address import is_valid_bitcoin_address
 from coinpy.tools.float import is_float
@@ -20,8 +20,8 @@ class AccountPresenter():
         self.messages_view = messages_view
         
         #show account balance
-        for key, name, poolkey in  self.account.wallet.iterkeys():
-            self.wallet_view.add_key(key.public_key, key, poolkey, name)
+        for public_key, private_key, address, description in  self.account.wallet.iterkeys():
+            self.wallet_view.add_key(public_key, public_key, private_key, address, description)
         wallet_view.balance.set_balance(account.get_confirmed_balance(), account.get_unconfirmed_balance(), account.get_blockchain_height())
         #show transaction history
         for wallet_tx, hash, date, address, name, amount, confirmed in self.account.iter_transaction_history():
@@ -30,7 +30,7 @@ class AccountPresenter():
         self.account.subscribe(self.account.EVT_BALANCE_CHANGED, self.on_balance_changed)
         self.account.subscribe(self.account.EVT_NEW_TRANSACTION_ITEM, self.on_new_transaction_item)
         self.account.subscribe(self.account.EVT_CONFIRMED_TRANSACTION_ITEM, self.on_confirmed_transaction_item)
-        self.account.subscribe(self.account.EVT_NEW_ADDRESS_LABEL, self.on_new_address_label)
+        self.account.subscribe(self.account.EVT_NEW_ADDRESS_DESCRIPTION, self.on_new_address_description)
                                
         wallet_view.subscribe(wallet_view.EVT_SEND, self.on_send)
         wallet_view.subscribe(wallet_view.EVT_RECEIVE, self.on_receive)
@@ -38,6 +38,7 @@ class AccountPresenter():
         wallet_view.send_view.subscribe(wallet_view.send_view.EVT_SELECT_VALUE, self.on_select_send_value)
         wallet_view.receive_view.subscribe(wallet_view.receive_view.EVT_SET_LABEL, self.on_set_receive_label)
 
+        wallet_view.enter_passphrase_view.subscribe(wallet_view.enter_passphrase_view.EVT_ENTERED_PASSPHRASE, self.on_entered_passphrase)
 
 
     def close(self):
@@ -54,8 +55,8 @@ class AccountPresenter():
         txhash, = event.item
         self.wallet_view.set_confirmed(txhash, True)
     
-    def on_new_address_label(self, event):
-        self.wallet_view.set_key_label(event.public_key, event.address, event.label)
+    def on_new_address_description(self, event):
+        self.wallet_view.set_key_description(event.public_key, event.description)
         self.wallet_view.select_key(event.public_key)
         
     def on_send(self, event):
@@ -81,9 +82,23 @@ class AccountPresenter():
         if not is_float(amount_str):
             self.messages_view.error("Incorrect amount: %s" % (amount_str))
             return
-        self.account.send_transaction(int(float(amount_str) * COIN), address, 0)
+        self.planned_tx = self.account.create_transaction(int(float(amount_str) * COIN), address, 0)
         self.wallet_view.send_view.close()
-    
+        if self.account.is_passphrase_required(self.planned_tx):
+            self.wallet_view.enter_passphrase_view.open()
+        else:
+            self.send_transaction(self.planned_tx)
+            
+    def on_entered_passphrase(self, event):
+        passphrase = self.wallet_view.enter_passphrase_view.get_passphrase()
+        self.send_transaction(self.planned_tx, [passphrase])
+        
+    def send_transaction(self, planned_tx, passphrases=[]): 
+        try:
+            self.account.send_transaction(planned_tx, passphrases)
+        except KeyDecryptException as e:
+            self.messages_view.error("Unable to decrypt the private keys: please verify the passphrase and try again.")
+        
 if __name__ == '__main__':
     #n4MsBRWD7VxKGsqYRSLaFZC6hQrsrKLaZo
     import wx
@@ -111,5 +126,4 @@ if __name__ == '__main__':
     
     frame.Show()
     app.MainLoop()
-
 

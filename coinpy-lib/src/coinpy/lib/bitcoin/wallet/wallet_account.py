@@ -19,6 +19,8 @@ from coinpy.lib.bitcoin.transactions.create_wallet_tx import create_wallet_tx
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 import time
 import random
+from coinpy.model.planned_transaction import PlannedTransaction
+from coinpy.lib.bitcoin.wallet.wallet import KeyDecryptException
 
 
 class WalletAccount(Observable):
@@ -26,7 +28,7 @@ class WalletAccount(Observable):
     EVT_PUBLISH_TRANSACTION = Observable.createevent() 
     EVT_NEW_TRANSACTION_ITEM = Observable.createevent() 
     EVT_CONFIRMED_TRANSACTION_ITEM = Observable.createevent() 
-    EVT_NEW_ADDRESS_LABEL = Observable.createevent() 
+    EVT_NEW_ADDRESS_DESCRIPTION = Observable.createevent() 
 
     def __init__(self, reactor, log, name, wallet, blockchain):
         super(WalletAccount, self).__init__(reactor)
@@ -67,16 +69,16 @@ class WalletAccount(Observable):
         #fillin confirmed/unconfirmed outputs (allows to compute the balance)
         self.confirmed_outputs = []
         self.unconfirmed_outputs = []
-        for output in self.wallet.iter_my_outputs():
+        for tx, outpoint, txout in self.wallet.iter_my_outputs():
             confirmed = False
-            if (self.blockchain.contains_transaction(output.txhash) and
-                self.blockchain.get_transaction_handle(output.txhash).get_block().is_mainchain()):
-                height = self.blockchain.get_transaction_handle(output.txhash).get_block().get_height()
-                confirmed = self.is_confirmed(output.tx, height)
+            if (self.blockchain.contains_transaction(outpoint.hash) and
+                self.blockchain.get_transaction_handle(outpoint.hash).get_block().is_mainchain()):
+                height = self.blockchain.get_transaction_handle(outpoint.hash).get_block().get_height()
+                confirmed = self.is_confirmed(tx, height)
             if confirmed:
-                self.confirmed_outputs.append([output.tx, output.txout])
+                self.confirmed_outputs.append([tx, txout])
             else:
-                self.unconfirmed_outputs.append([output.tx, output.txout])
+                self.unconfirmed_outputs.append([tx, txout])
         confirmed_transactions = {}
         unconfirmed_transactions = {}
         #compute the balance
@@ -168,52 +170,74 @@ class WalletAccount(Observable):
     
     def set_receive_label(self, address, label):
         self.wallet.begin_updates()
-        public_key = self.wallet.get_keypair_for_address(decode_base58check(address)[1:]).public_key
+        public_key, is_crypted = self.wallet.addresses[decode_base58check(address)[1:]]
         self.wallet.allocate_key(public_key, label)
         self.wallet.commit_updates()
-        self.fire(self.EVT_NEW_ADDRESS_LABEL, public_key=public_key, address=address, label=label)
+        
+        new_description = self.wallet.get_address_description(public_key)
+        self.fire(self.EVT_NEW_ADDRESS_DESCRIPTION, public_key=public_key, description=new_description)
 
     """
     
         amount: value in COIN.
     """
-    def send_transaction(self, amount, address, fee):
-        outputs = list(self.iter_my_outputs())
+    def create_transaction(self, amount, address, fee):
+        outputs = [(outpoint, txout) for (tx, outpoint, txout) in self.iter_my_outputs()]
         selected_outputs = self.coin_selector.select_coins(outputs, (amount + fee))
-        self.wallet.begin_updates() # begin transaction on wallet to allocate a pool_key
-
+        
         change_public_key = self.wallet.get_receive_key()
         change_address = get_address_from_public_key(self.wallet.runmode, change_public_key)
-        self.wallet.allocate_key(change_public_key, ischange=True)
-        
         tx = create_pubkeyhash_transaction(selected_outputs, 
                                         decode_base58check(address)[1:],  #remove ADDRESSVERSION[runmode] byte
                                         decode_base58check(change_address)[1:],  #remove ADDRESSVERSION[runmode] byte
                                         amount, 
                                         fee)
-        sign_transaction(tx, selected_outputs)
-        txhash = hash_tx(tx)
-        self.log.info("Sending %f to %s (fee:%f), change address: %s, hash:%s" % (amount, address, fee, change_address, str(txhash)))
+        return (PlannedTransaction(selected_outputs, amount, address, change_public_key, change_address, fee, tx))        
+    
+    def is_passphrase_required(self, planned_transaction):
+        for outpoint, txout in planned_transaction.selected_outputs:
+            if self.wallet.is_passphrase_required(txout):
+                return True
+        return False
+    
+    def send_transaction(self, planned_tx, passphrases):
+        try:
+            self.wallet.unlock(passphrases)
+            privkey_list = []
+            for outpoint, txout in planned_tx.selected_outputs:
+                privkey_list.append(self.wallet.get_private_key_secret(txout))
+        finally:
+            self.wallet.lock()
+        sign_transaction(planned_tx.tx, 
+                              [txout for outpoint, txout in planned_tx.selected_outputs], 
+                              privkey_list)
+        txhash = hash_tx(planned_tx.tx)
+        self.log.info("Sending %f to %s (fee:%f), change address: %s, hash:%s" % (planned_tx.amount, planned_tx.address, planned_tx.fee, planned_tx.change_address, str(txhash)))
         #Initially, create an empty MerkleTx (the tx is not yet in a block)
-        merkle_tx = MerkleTx(tx, 
+        merkle_tx = MerkleTx(planned_tx.tx, 
                              Uint256.zero(), 
                              [], 
                              4294967295)
+        self.wallet.begin_updates()
+        self.wallet.allocate_key(planned_tx.change_public_key, ischange=True)
         #Set the spend flags for the input transactions
-        for output in selected_outputs:
-            input_wallet_tx = self.wallet.get_transaction(output.txhash)
-            input_wallet_tx.set_spent(output.index)
-            self.wallet.set_transaction(output.txhash, input_wallet_tx)
+        for outpoint, txout in planned_tx.selected_outputs:
+            input_wallet_tx = self.wallet.get_transaction(outpoint.hash)
+            input_wallet_tx.set_spent(outpoint.index)
+            self.wallet.set_transaction(outpoint.hash, input_wallet_tx)
         #Add the wallet_tx (contains supporting transations)
-        txtime = time.time()
+        txtime = int(time.time())
         wallet_tx = create_wallet_tx(self.blockchain, merkle_tx, txtime)
         self.wallet.add_transaction(txhash, wallet_tx)
         self.wallet.commit_updates()
-        self.fire(self.EVT_NEW_TRANSACTION_ITEM, item=(tx, txhash, txtime, address, "", -amount, False))
+        self.fire(self.EVT_NEW_TRANSACTION_ITEM, item=(planned_tx.tx, txhash, txtime, planned_tx.address, "", -planned_tx.amount, False))
         
         self.compute_balances()# we could only compute delta here
-        self.fire(self.EVT_PUBLISH_TRANSACTION, txhash=txhash, tx=tx)
+        self.fire(self.EVT_PUBLISH_TRANSACTION, txhash=txhash, tx=planned_tx.tx)
         self.last_tx_publish[txhash] = txtime
-        
+        #update description of change address
+        new_description = self.wallet.get_address_description(planned_tx.change_public_key)
+        self.fire(self.EVT_NEW_ADDRESS_DESCRIPTION, public_key=planned_tx.change_public_key, description=new_description)
+
 if __name__ == '__main__':
    pass

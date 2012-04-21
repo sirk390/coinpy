@@ -118,7 +118,7 @@ class KEY:
         n = ssl.BN_bn2bin(bn, mb_secret)
         return mb_secret.raw.rjust(32, "\x00")
     
-    def set_secret (self, secret, compressed=True):
+    def set_secret (self, secret, compressed=False):
         if len(secret) != 32:
             raise Exception("set_secret: secret must be 32 bytes")
         bn = ssl.BN_bin2bn(secret,32, 0);

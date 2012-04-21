@@ -20,17 +20,17 @@ from coinpy.tools.bitcoin.hash160 import hash160
 from coinpy.lib.bitcoin.transactions.sign_transaction import sign_transaction
 
 """
+    output_list: list of (Outpoint, TxOut) tuples
     address: 20byte bytestring address 
     change_adress: 20byte bytestring address 
     amount: value in COINS.
     fee: value in COINS.
 """
-def create_pubkeyhash_transaction(controlled_output_list, address, change_adress, amount, fee):
-    amount_in = sum(output.txout.value for output in controlled_output_list) 
+def create_pubkeyhash_transaction(output_list, address, change_adress, amount, fee):
+    amount_in = sum(txout.value for outpoint, txout in output_list) 
     amount_change = int(amount_in - amount - fee)
     #assert amount_change > 0
-    in_list = [TxIn(previous_output=Outpoint(output.txhash, output.index), 
-                             script=Script([])) for output in controlled_output_list]
+    in_list = [TxIn(previous_output=outpoint, script=Script([])) for outpoint, txout in output_list]
     out_list = [TxOut(value=amount, script=make_script_pubkeyhash(address)),
                 TxOut(value=amount_change, script=make_script_pubkeyhash(change_adress))]
     return Tx(version=1, in_list=in_list, out_list=out_list, locktime=0)
