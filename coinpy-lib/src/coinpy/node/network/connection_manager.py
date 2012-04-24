@@ -14,8 +14,8 @@ class ConnectionManager(asyncore.dispatcher, Observable):
     EVT_CONNECTING_PEER = Observable.createevent()
     EVT_DISCONNECTED_PEER = Observable.createevent()
 
-    def __init__(self, reactor, sockaddr, connection_factory, log):
-        Observable.__init__(self, reactor)
+    def __init__(self, sockaddr, connection_factory, log):
+        Observable.__init__(self)
         asyncore.dispatcher.__init__(self)
         self.log = log
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -30,7 +30,6 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         self.connected_peers = set()  # set(handler,...)
         
         self.connection_factory = connection_factory
-        self.reactor = reactor
             
     def disconnect_peer(self, sockaddr):
         handler = self.peers[sockaddr]

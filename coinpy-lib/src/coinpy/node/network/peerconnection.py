@@ -7,14 +7,14 @@ Created on 18 Jun 2011
 from coinpy.node.network.peerhandler import PeerHandler
 from coinpy.lib.serialization.exceptions import MissingDataException
 from coinpy.tools.observer import Observable
+from coinpy.tools.reactor.reactor import reactor
 
 class PeerConnection(PeerHandler):
     EVT_NEW_MESSAGE = Observable.createevent()
     #TODO: merge with PeerHandler?
-    def __init__(self, sockaddr, reactor, msg_serializer, sock, log):
-        PeerHandler.__init__(self, reactor, sockaddr, sock)
+    def __init__(self, sockaddr, msg_serializer, sock, log):
+        PeerHandler.__init__(self, sockaddr, sock)
         #self.subscribe(self.EVT_CONNECT, self.on_connect)
-        self.reactor = reactor
         self.msg_serializer = msg_serializer
         self.incommingbuffer = ""
         self.log = log
@@ -43,7 +43,7 @@ class PeerConnection(PeerHandler):
         self.fire(self.EVT_NEW_MESSAGE, handler=self, message=msg)
         #self.on_message(msg)
         #call again for the rest of the message
-        self.reactor.call(self._process_incomming_buffer)
+        reactor.call(self._process_incomming_buffer)
         
     def send_message(self, message):
         self.send(self.msg_serializer.serialize(message))

@@ -10,7 +10,10 @@ from coinpy.node.network.peerconnection import PeerConnection
 from coinpy.tools.observer import Observable
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.serialization.messages.s11n_message import MessageSerializer
+from coinpy.tools.reactor.asyncore_plugin import AsyncorePlugin
+from coinpy.tools.reactor.reactor import reactor
 
+reactor.install(AsyncorePlugin())
 """Node: connect, disconnect peers, send and receive bitcoin messages. 
 
 No logic included.
@@ -22,16 +25,15 @@ class Node(Observable):
     EVT_CONNECTED = Observable.createevent()
     EVT_DISCONNECTED = Observable.createevent()
             
-    def __init__(self, reactor, params, log, min_connection_count=5):
-        super(Node, self).__init__(reactor)
+    def __init__(self, params, log, min_connection_count=5):
+        super(Node, self).__init__()
         self.min_connection_count = min_connection_count
-        self.reactor = reactor
         self.params = params
         self.log = log
         
         self.message_encoder = MessageSerializer(self.params.runmode, log)
-        self.connection_factory = PeerConnectionFactory(self.reactor, self.message_encoder, log)
-        self.connection_manager = ConnectionManager(reactor, SockAddr('localhost', self.params.port), self.connection_factory, log)
+        self.connection_factory = PeerConnectionFactory(self.message_encoder, log)
+        self.connection_manager = ConnectionManager(SockAddr('localhost', self.params.port), self.connection_factory, log)
         self.connection_manager.subscribe(ConnectionManager.EVT_CONNECTED_PEER, self.__on_connected)
         self.connection_manager.subscribe(ConnectionManager.EVT_CONNECTING_PEER, self.__on_connecting)
         self.connection_manager.subscribe(ConnectionManager.EVT_DISCONNECTED_PEER, self.__on_disconnected)

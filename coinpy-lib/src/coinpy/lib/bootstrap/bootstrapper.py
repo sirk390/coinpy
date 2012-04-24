@@ -10,12 +10,11 @@ from coinpy.lib.bootstrap.irc_bootstrapper import IrcBootstrapper
 class Bootstrapper(Observable):
     EVT_FOUND_PEER = Observable.createevent()
     
-    def __init__(self, reactor, runmode, log):
-        super(Bootstrapper, self).__init__(reactor)
+    def __init__(self, runmode, log):
+        super(Bootstrapper, self).__init__()
         self.log = log #.getChild("bootstrap")
         self.runmode = runmode
-        self.reactor = reactor
-        self.ircbootstrapper = IrcBootstrapper(reactor, runmode, log=log)
+        self.ircbootstrapper = IrcBootstrapper(runmode, log=log)
         self.ircbootstrapper.subscribe(IrcBootstrapper.EVT_FOUND_PEER, self.on_found_peer)
         
     def on_found_peer(self, event):

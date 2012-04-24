@@ -7,12 +7,14 @@ Created on 29 Feb 2012
 import wx
 from coinpy.tools.observer import Observable
 from coinpy_client.view.guithread import guithread
+from coinpy.tools.reactor.future import Future
+from coinpy.tools.reactor.asynch import asynch_method
+from coinpy_client.view.action_cancelled import ActionCancelledException
+from coinpy.tools.reactor.reactor import reactor
 
-class EnterPassphraseView(wx.Dialog, Observable):
-    EVT_ENTERED_PASSPHRASE = Observable.createevent()
-    def __init__(self, reactor, parent, size=(250, 150)):
+class EnterPassphraseView(wx.Dialog):
+    def __init__(self, parent, size=(250, 150)):
         wx.Dialog.__init__(self, parent, size=size, title="Enter Passphrase", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-        Observable.__init__(self,reactor)
 
         # Create Controls
         self.passphrase_label = wx.StaticText(self, -1, "Passphrase:")
@@ -47,6 +49,7 @@ class EnterPassphraseView(wx.Dialog, Observable):
         
         # Bind Events
         ok_button.Bind(wx.EVT_BUTTON, self.on_ok)
+        cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel)
         self.hide_characters_checkbox.Bind(wx.EVT_CHECKBOX, self.on_hide_characters_checkbox)
         
     def on_hide_characters_checkbox(self, event):
@@ -63,33 +66,43 @@ class EnterPassphraseView(wx.Dialog, Observable):
         self.passphrase_textctrl = new_passphrase_textctrl
         new_passphrase_textctrl.Show(True)
         self.formsizer.Layout()
-        
-    @guithread  
+    
     def open(self):
         self.Show(True)
-
-    def on_ok(self, event):
-        self.Show(False)
-        self.fire(self.EVT_ENTERED_PASSPHRASE)
+        self.Raise()
         
-    def on_cancel(self):
+    def on_ok(self, event):
+        self.future.set_result(self.passphrase_textctrl.GetValue().encode("utf-8"))
         self.Show(False)
+        self.passphrase_textctrl.SetValue("")
+        
+    def on_cancel(self, event):
+        self.Show(False)
+        self.future.set_error( (ActionCancelledException(), "cancelled"))
+        self.passphrase_textctrl.SetValue("")
                
     def get_passphrase(self):
-        return self.passphrase_textctrl.GetValue()
+        reactor.call(self.open)
+        self.future = Future()
+        return self.future
         
     def set_passphrase(self, passphrase):
         return self.passphrase_textctrl.SetValue(passphrase)
             
     
 if __name__ == '__main__':
-    from coinpy.tools.reactor.reactor import Reactor
-    app = wx.App(False)
-    s = EnterPassphraseView(None, None)
-    def on_entered(event):
-        print "OK", s.get_passphrase()
-        s.close()
-    s.subscribe(s.EVT_ENTERED_PASSPHRASE, on_entered)
-    s.open()
-    app.MainLoop()
+    from coinpy.tools.reactor.reactor import reactor
+    from coinpy.tools.reactor.wx_plugin import WxPlugin
+    
+    reactor.install(WxPlugin())
+    
+    @asynch_method
+    def request_passphrase():
+        f = yield EnterPassphraseView(None).get_passphrase()
+        print "OK:", f
+        reactor.stop()
+    
+    request_passphrase()
+        
 
+    reactor.run()

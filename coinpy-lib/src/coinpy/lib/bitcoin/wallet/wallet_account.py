@@ -21,6 +21,7 @@ import time
 import random
 from coinpy.model.planned_transaction import PlannedTransaction
 from coinpy.lib.bitcoin.wallet.wallet import KeyDecryptException
+from coinpy.tools.reactor.reactor import reactor
 
 
 class WalletAccount(Observable):
@@ -30,8 +31,8 @@ class WalletAccount(Observable):
     EVT_CONFIRMED_TRANSACTION_ITEM = Observable.createevent() 
     EVT_NEW_ADDRESS_DESCRIPTION = Observable.createevent() 
 
-    def __init__(self, reactor, log, name, wallet, blockchain):
-        super(WalletAccount, self).__init__(reactor)
+    def __init__(self, log, name, wallet, blockchain):
+        super(WalletAccount, self).__init__()
         self.name = name
         self.wallet = wallet
         self.blockchain = blockchain
@@ -161,7 +162,7 @@ class WalletAccount(Observable):
     """"""
     def schedule_republish_transactions(self):
         seconds = random.randint(5*60, 30*60)
-        self.reactor.schedule_later(seconds, self.republish_transactions)
+        reactor.call_later(seconds, self.republish_transactions)
 
     def get_receive_address(self):
         public_key = self.wallet.get_receive_key()
@@ -205,7 +206,7 @@ class WalletAccount(Observable):
             self.wallet.unlock(passphrases)
             privkey_list = []
             for outpoint, txout in planned_tx.selected_outputs:
-                privkey_list.append(self.wallet.get_private_key_secret(txout))
+                privkey_list.append(self.wallet.get_txout_private_key_secret(txout))
         finally:
             self.wallet.lock()
         sign_transaction(planned_tx.tx, 

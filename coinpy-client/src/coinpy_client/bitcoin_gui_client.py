@@ -12,7 +12,6 @@ import random
 from coinpy_client.view.coinpy_gui import CoinpyGUI
 from coinpy_client.presenter.coinpy_presenter import CoinpyPresenter
 from coinpy_client.bitcoin_client import BitcoinClient
-from coinpy.tools.reactor.reactor import Reactor
 from coinpy_client.model.client_params import ClientParams
 
 def main(runmode):
@@ -22,10 +21,9 @@ def main(runmode):
                           port=8333,
                           nonce=random.randint(0, 2**64),
                           sub_version_num="/coinpy:0.0.1/",
-                          targetpeers=1)
-    reactor = Reactor()
-    view = CoinpyGUI(reactor)
-    client = BitcoinClient(reactor, view.get_logger(), params)
+                          targetpeers=10)
+    view = CoinpyGUI()
+    client = BitcoinClient(view.get_logger(), params)
     presenter = CoinpyPresenter(client, view)
     presenter.run()
 

@@ -10,9 +10,9 @@ from coinpy_client.view.guithread import guithread
 
 class SendView(wx.Dialog, Observable):
     EVT_SELECT_VALUE= Observable.createevent()
-    def __init__(self, reactor, parent, size=(300, 200)):
+    def __init__(self, parent, size=(300, 200)):
         wx.Dialog.__init__(self, parent, size=size, title="Send", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-        Observable.__init__(self,reactor)
+        Observable.__init__(self)
 
         # Create Controls
         self.address_label = wx.StaticText(self, -1, "To:")

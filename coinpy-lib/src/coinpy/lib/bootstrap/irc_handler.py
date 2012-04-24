@@ -16,8 +16,8 @@ class IrcHandler(asyncore.dispatcher_with_send, Observable):
     EVT_DISCONNECT = Observable.createevent()
     EVT_RECV_LINE = Observable.createevent()
    
-    def __init__(self, reactor, log, sockaddr):
-        Observable.__init__(self, reactor)
+    def __init__(self, log, sockaddr):
+        Observable.__init__(self)
         asyncore.dispatcher_with_send.__init__(self)
         self.sockaddr = sockaddr
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -11,6 +11,10 @@ import os
 from coinpy.lib.bitcoin.address import is_valid_bitcoin_address
 from coinpy.tools.float import is_float
 from coinpy.model.constants.bitcoin import COIN
+from coinpy.tools.reactor.asynch import asynch_method
+import traceback
+from coinpy.tools.hex import hexstr
+from coinpy_client.view.action_cancelled import ActionCancelledException
  
 class AccountPresenter():
     def __init__(self, account, wallet_view, messages_view): 
@@ -19,9 +23,11 @@ class AccountPresenter():
         self.wallet_view = wallet_view
         self.messages_view = messages_view
         
+        self.are_shown_private_keys = False
+        
         #show account balance
-        for public_key, private_key, address, description in  self.account.wallet.iterkeys():
-            self.wallet_view.add_key(public_key, public_key, private_key, address, description)
+        for public_key, is_crypted, address, description in  self.account.wallet.iterkeys():
+            self.wallet_view.add_key(public_key, public_key, "***", address, description)
         wallet_view.balance.set_balance(account.get_confirmed_balance(), account.get_unconfirmed_balance(), account.get_blockchain_height())
         #show transaction history
         for wallet_tx, hash, date, address, name, amount, confirmed in self.account.iter_transaction_history():
@@ -34,11 +40,10 @@ class AccountPresenter():
                                
         wallet_view.subscribe(wallet_view.EVT_SEND, self.on_send)
         wallet_view.subscribe(wallet_view.EVT_RECEIVE, self.on_receive)
+        wallet_view.subscribe(wallet_view.EVT_SHOWHIDE_PRIVATE_KEYS, self.on_show_hide_private_keys)
         
         wallet_view.send_view.subscribe(wallet_view.send_view.EVT_SELECT_VALUE, self.on_select_send_value)
         wallet_view.receive_view.subscribe(wallet_view.receive_view.EVT_SET_LABEL, self.on_set_receive_label)
-
-        wallet_view.enter_passphrase_view.subscribe(wallet_view.enter_passphrase_view.EVT_ENTERED_PASSPHRASE, self.on_entered_passphrase)
 
 
     def close(self):
@@ -73,6 +78,7 @@ class AccountPresenter():
         label = self.wallet_view.receive_view.get_label()
         self.account.set_receive_label(receive_address, label)
         
+    @asynch_method  
     def on_select_send_value(self, event): 
         address = self.wallet_view.send_view.address()
         amount_str = self.wallet_view.send_view.amount() 
@@ -82,23 +88,50 @@ class AccountPresenter():
         if not is_float(amount_str):
             self.messages_view.error("Incorrect amount: %s" % (amount_str))
             return
-        self.planned_tx = self.account.create_transaction(int(float(amount_str) * COIN), address, 0)
+        planned_tx = self.account.create_transaction(int(float(amount_str) * COIN), address, 0)
         self.wallet_view.send_view.close()
-        if self.account.is_passphrase_required(self.planned_tx):
-            self.wallet_view.enter_passphrase_view.open()
-        else:
-            self.send_transaction(self.planned_tx)
-            
-    def on_entered_passphrase(self, event):
-        passphrase = self.wallet_view.enter_passphrase_view.get_passphrase()
-        self.send_transaction(self.planned_tx, [passphrase])
         
-    def send_transaction(self, planned_tx, passphrases=[]): 
+        passphrases = []
         try:
+            if self.account.is_passphrase_required(planned_tx):
+                passphrase = yield self.wallet_view.enter_passphrase_view.get_passphrase()
+                passphrases.append(passphrase)
             self.account.send_transaction(planned_tx, passphrases)
         except KeyDecryptException as e:
             self.messages_view.error("Unable to decrypt the private keys: please verify the passphrase and try again.")
-        
+        except ActionCancelledException:
+            pass
+        except Exception:
+            traceback.print_exc()
+    
+
+    @asynch_method  
+    def on_show_hide_private_keys(self, event):
+        if self.are_shown_private_keys:
+            for public_key, is_crypted, address, description in  self.account.wallet.iterkeys():
+                self.wallet_view.set_key_private_key(public_key, "***")
+            self.are_shown_private_keys = not self.are_shown_private_keys
+        else:
+            crypted = False
+            for public_key, is_crypted, address, description in  self.account.wallet.iterkeys():
+                crypted = crypted or is_crypted
+            try:
+                if crypted:
+                    passphrase = yield self.wallet_view.enter_passphrase_view.get_passphrase()
+                    self.account.wallet.unlock([passphrase])
+                for public_key, is_crypted, address, description in  self.account.wallet.iterkeys():
+                    private_key = self.account.wallet.get_private_key_secret(public_key) 
+                    self.wallet_view.set_key_private_key(public_key, hexstr(private_key))
+                self.are_shown_private_keys = not self.are_shown_private_keys
+            except KeyDecryptException:
+                self.messages_view.error("Unable to decrypt the private keys: please verify the passphrase and try again.")
+            except ActionCancelledException:
+                pass
+            except Exception:
+                traceback.print_exc()
+            finally:
+                self.account.wallet.lock()
+
 if __name__ == '__main__':
     #n4MsBRWD7VxKGsqYRSLaFZC6hQrsrKLaZo
     import wx

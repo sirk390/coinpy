@@ -10,6 +10,7 @@ from coinpy.model.protocol.messages.types import MSG_ADDR
 from coinpy.node.node import Node
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.node.logic.version_exchange import VersionExchangeService
+from coinpy.tools.reactor.reactor import reactor
 
 """Fill 'addr_pool' by bootstrapping and sending get_addr() messages.
  
@@ -29,7 +30,9 @@ class AddrPoolFiller():
         self.node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_ADDR), self.on_addr)
         self.node.subscribe(VersionExchangeService.EVT_VERSION_EXCHANGED, self.on_version_exchanged)
         self.node.subscribe(Node.EVT_DISCONNECTED, self.on_disconnected)
-            
+        
+        reactor.call(self.check_addrpool)
+        
     def check_addrpool(self):
         if len(self.addr_pool.known_peers) < self.min_addrpool_size:
             if len(self.node.connection_manager.connected_peers):

@@ -21,10 +21,11 @@ from coinpy_client.view.wallet.enter_passphrase_view import EnterPassphraseView
 class WalletPanel(wx.Panel, Observable):
     EVT_SEND = Observable.createevent()
     EVT_RECEIVE = Observable.createevent()
+    EVT_SHOWHIDE_PRIVATE_KEYS = Observable.createevent()
     
-    def __init__(self, reactor, parent):
+    def __init__(self, parent):
         wx.Panel.__init__(self, parent) #, style=wx.SIMPLE_BORDER
-        Observable.__init__(self, reactor)
+        Observable.__init__(self)
         
         # Controls
         self.balance = BalancePanel(self)
@@ -37,7 +38,7 @@ class WalletPanel(wx.Panel, Observable):
         self.keylist.InsertColumn(3, "Description")
         self.keylist.SetColumnWidth(2, 250)
         self.keylist.SetColumnWidth(3, 250)
-        self.show_hide_private_keys_button = wx.Button(self, label="Show Private Keys")
+        self.show_hide_private_keys_button = wx.Button(self, label="Show Hide Private Keys")
         self.txhistory_list = wx.ListCtrl(self,style=wx.LC_REPORT, size=(400,100))
         self.txhistory_list.InsertColumn(0, "Date")
         self.txhistory_list.InsertColumn(1, "Address")
@@ -69,18 +70,19 @@ class WalletPanel(wx.Panel, Observable):
         self.receive_button.Bind(wx.EVT_BUTTON, self.on_receive)
         
         # ChildViews (could be moved into some View directory service)
-        self.send_view = SendView(reactor, self)
-        self.receive_view = ReceiveView(reactor, self)
-        self.enter_passphrase_view = EnterPassphraseView(reactor, self)
-        
+        self.send_view = SendView(self)
+        self.receive_view = ReceiveView(self)
+        self.enter_passphrase_view = EnterPassphraseView(self)
         # Initialize private data
-        self.show_private_keys = False
         self.keylist_idpool = IdPool()
         self.keys = {}
         self.key_itemids = {}
         
         self.itemdata_ids = IdPool()
         self.tx_history_items = {} # id => itemdata_ids
+        
+    def create_enter_passphrase_view(self):
+        return EnterPassphraseView(self)
         
     def on_send(self, event):
         self.fire(self.EVT_SEND)
@@ -95,7 +97,7 @@ class WalletPanel(wx.Panel, Observable):
         
         index = self.keylist.InsertStringItem(self.keylist.GetItemCount(), hexstr(public_key))
         self.keylist.SetItemData(index, itemid)
-        self.keylist.SetStringItem(index, 1, self.private_key_mask(hexstr(private_key)))
+        self.keylist.SetStringItem(index, 1, private_key)
         self.keylist.SetStringItem(index, 2, address)
         self.keylist.SetStringItem(index, 3, description)
 
@@ -104,6 +106,11 @@ class WalletPanel(wx.Panel, Observable):
         index = self.keylist.FindItemData(-1, itemid)
         self.keylist.SetStringItem(index, 3, description)
     
+    def set_key_private_key(self, id, private_key):
+        itemid = self.key_itemids[id]
+        index = self.keylist.FindItemData(-1, itemid)
+        self.keylist.SetStringItem(index, 1, private_key)
+
     def select_key(self, id):
         itemid = self.key_itemids[id]
         index = self.keylist.FindItemData(-1, itemid)
@@ -138,26 +145,15 @@ class WalletPanel(wx.Panel, Observable):
                   
     def set_confirmed(self, id, confirmed):
         itemdata = self.tx_history_items[id]
-        index = self.list.FindItemData(-1, itemdata)
+        index = self.txhistory_list.FindItemData(-1, itemdata)
         self.txhistory_list.SetStringItem(index, 4, confirmed)
         if confirmed:
             self.txhistory_list.SetItemBackgroundColour(index, (255, 255, 255))
         else:
             self.txhistory_list.SetItemBackgroundColour(index, (255, 230, 230))
            
-
-    def private_key_mask(self, private_key):
-        return (private_key if self.show_private_keys else "***" )
-    
     def on_show_hide_private_keys(self, event):
-        self.show_private_keys = not self.show_private_keys
-        for i in range(self.keylist.GetItemCount()):
-            id = self.keylist.GetItemData(i)
-            public_key, private_key, address, description = self.keys[id]
-            self.keylist.SetStringItem(i, 1,self.private_key_mask(hexstr(private_key)))
-        button_label = ("Hide" if self.show_private_keys else "Show") + " Private Keys"
-        self.show_hide_private_keys_button.SetLabel(button_label)
-        
+        self.fire(self.EVT_SHOWHIDE_PRIVATE_KEYS)
         
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import MAIN, TESTNET

@@ -10,8 +10,8 @@ class AccountSet(Observable):
     EVT_ADDED_ACCOUNT = Observable.createevent()
     EVT_REMOVED_ACCOUNT = Observable.createevent()
 
-    def __init__(self, reactor):
-        super(AccountSet, self).__init__(reactor)
+    def __init__(self):
+        super(AccountSet, self).__init__()
         self.accounts = set()
   
     def add_account(self, account):

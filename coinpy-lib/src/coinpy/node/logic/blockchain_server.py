@@ -16,8 +16,8 @@ from coinpy.node.logic.version_exchange import VersionExchangeService
 
 
 class BlockchainServer(Observable):
-    def __init__(self, reactor, node, blockchain_with_pools, log):
-        super(BlockchainServer, self).__init__(reactor)
+    def __init__(self, node, blockchain_with_pools, log):
+        super(BlockchainServer, self).__init__()
         self.blockchain_with_pools = blockchain_with_pools
         self.blockchain = blockchain_with_pools.blockchain
         self.node = node

@@ -9,8 +9,8 @@ import random
 
 class AddrPool(Observable):
     EVT_ADDED_ADDR = Observable.createevent()
-    def __init__(self, reactor):
-        super(AddrPool, self).__init__(reactor)
+    def __init__(self):
+        super(AddrPool, self).__init__()
         self.known_peers = set()
         self.banned_peers = set()
     

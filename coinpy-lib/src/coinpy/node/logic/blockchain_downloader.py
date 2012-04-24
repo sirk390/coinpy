@@ -21,12 +21,11 @@ from coinpy.node.logic.version_exchange import VersionExchangeService
 class BlockchainDownloader():
     # TODO: protect againts hosts that don't respond to GETDATA(timeout => misbehaving)
     # or don't respond to GETBLOCKS(much harder)
-    def __init__(self, reactor, blockchain_with_pools, node, log):
+    def __init__(self, blockchain_with_pools, node, log):
         self.blockchain_with_pools = blockchain_with_pools
         self.node = node
 
         self.log = log
-        self.reactor = reactor
         
         
         self.requested_tx = {}
@@ -136,7 +135,7 @@ class BlockchainDownloader():
         if not self.processing_block:
             self.log.debug("start_processing")
             self.processing_block = True
-            self.reactor.call_asynch(self._process_blocks())
+            self._process_blocks()
 
     @asynch_method
     def _process_blocks(self):

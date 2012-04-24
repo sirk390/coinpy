@@ -22,12 +22,11 @@ class BlockchainWithPools(Observable):
     EVT_REMOVED_TX = Observable.createevent()
     
     def __init__(self, 
-                 reactor,
                  blockchain, 
                  log,
                  orphantransactions = {},
                  transactionpool = {}):
-        super(BlockchainWithPools, self).__init__(reactor)
+        super(BlockchainWithPools, self).__init__()
         self.blockchain = blockchain
         self.orphanblocks =  OrphanBlockPool(log)
         self.orphantransactions = orphantransactions
@@ -47,10 +46,6 @@ class BlockchainWithPools(Observable):
         self.fire(self.EVT_ADDED_TX, hash=txhash)
         self.transactionpool[txhash] = tx
     
-    """
-        Asynch method: send to reactor.call_asych( )
-        Adds a block to the BlockchainWithPools
-    """
     @asynch_method
     def add_block(self, sender, hash, block):
         if self.contains_block(hash):

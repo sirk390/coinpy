@@ -9,9 +9,8 @@ from coinpy.node.network.sockaddr import SockAddr
 class IrcBootstrapper(Observable):
     EVT_FOUND_PEER = Observable.createevent()
     
-    def __init__(self, reactor, runmode, log, ircserver=SockAddr("92.243.23.21", 6667)):#irc.lfnet.org
-        super(IrcBootstrapper, self).__init__(reactor)
-        self.reactor = reactor
+    def __init__(self, runmode, log, ircserver=SockAddr("92.243.23.21", 6667)):#irc.lfnet.org
+        super(IrcBootstrapper, self).__init__()
         self.log = log
         self.runmode = runmode
         self.ircserver = ircserver
@@ -21,7 +20,7 @@ class IrcBootstrapper(Observable):
     def start(self):
         if (not self.running):
             self.running = True
-            self.irc_handler = IrcHandler(self.reactor, self.log, self.ircserver)
+            self.irc_handler = IrcHandler(self.log, self.ircserver)
             self.irc_handler.subscribe(IrcHandler.EVT_CONNECT, self.on_irc_connected)
             self.irc_handler.subscribe(IrcHandler.EVT_RECV_LINE, self.on_irc_recv_line)
             self.irc_handler.subscribe(IrcHandler.EVT_DISCONNECT, self.on_irc_disconnected)

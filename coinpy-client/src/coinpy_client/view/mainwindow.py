@@ -25,12 +25,12 @@ class MainWindow(wx.Frame, Observable):
     EVT_CMD_CLOSE_WALLET = Observable.createevent()
     EVT_CMD_CLOSE = Observable.createevent()
     
-    def __init__(self, reactor, parent, id=-1, title="", pos=wx.DefaultPosition,
+    def __init__(self, parent, id=-1, title="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE |
                                             wx.SUNKEN_BORDER |
                                             wx.CLIP_CHILDREN):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
-        Observable.__init__(self, reactor)
+        Observable.__init__(self)
     
         # Create Menu
         mb = wx.MenuBar()
@@ -72,7 +72,7 @@ class MainWindow(wx.Frame, Observable):
         self._mgr = wx.aui.AuiManager()
         self._mgr.SetManagedWindow(self)
         
-        self.nb_wallet = WalletNotebook(reactor, self)
+        self.nb_wallet = WalletNotebook(self)
         self.log_panel = LogPanel(self)
         self.node_view = NodeView(self)
         self.pools_view = PoolsPanel(self, size=(250,300))

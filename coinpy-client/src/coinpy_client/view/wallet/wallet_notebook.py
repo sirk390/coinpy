@@ -10,11 +10,11 @@ from coinpy.tools.observer import Observable
 from coinpy_client.view.guithread import guithread
 
 class WalletNoteBookPage(wx.Panel): #.lib.scrolledpanel.ScrolledPanel
-    def __init__(self, reactor, parent):
+    def __init__(self, parent):
         super(WalletNoteBookPage, self).__init__(parent)
         
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.wallet_panel = WalletPanel(reactor, self)
+        self.wallet_panel = WalletPanel(self)
         self.sizer.Add(self.wallet_panel, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
         #self.SetupScrolling()
@@ -23,9 +23,8 @@ class WalletNotebook(wx.aui.AuiNotebook, Observable):
     EVT_CLOSE_WALLET = Observable.createevent()
     EVT_OPEN_WALLET = Observable.createevent()
     
-    def __init__(self, reactor, parent):
-        Observable.__init__(self, reactor)
-        self.reactor = reactor
+    def __init__(self, parent):
+        Observable.__init__(self)
         wx.aui.AuiNotebook.__init__(self, parent, -1,  wx.DefaultPosition, wx.Size(400, 300))
         
         #page = WalletNoteBookPage(self)
@@ -35,7 +34,7 @@ class WalletNotebook(wx.aui.AuiNotebook, Observable):
         
     @guithread
     def add_wallet_view(self, id, label):
-        page = WalletNoteBookPage(self.reactor, self)
+        page = WalletNoteBookPage(self)
         self.pages[id] = page
         self.AddPage(page, label)
         index = self.GetPageIndex(page)

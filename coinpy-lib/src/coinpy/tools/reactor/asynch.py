@@ -5,99 +5,46 @@ Created on 16 Feb 2012
 @author: kris
 """
 import traceback
+from coinpy.tools.reactor.future import Future
+from coinpy.tools.reactor.reactor import reactor
 
-class Asynch(object):
-    def __init__(self, coroutine, callback=None, callback_args=[]):
-        self.coroutine = coroutine
-        self.stack = [self.coroutine]
-        self.value = None
-        self.completed = False
-        self.return_value = None
-        self.callback = callback
-        self.callback_args = callback_args
-        
-    def run(self):
-        try:
-            if isinstance(self.value, Exception):
-                result = self.stack[-1].throw(self.value)
-            else:
-                result = self.stack[-1].send(self.value)
-        except StopIteration as e:
-            if (len(self.stack) == 1):
-                self.completed = True
-                self.return_value = self.value
-                if self.callback:
-                    self.callback(result=self.return_value, *self.callback_args)
-            else:
-                self.stack.pop()
-            return
-        except Exception as e:
-            if (len(self.stack) == 1):
-                self.completed = True
-                self.return_value = e
-                if self.callback:
-                    self.callback(error=traceback.format_exc(), *self.callback_args)
-            else:
-                self.stack.pop()
-            result = Exception(traceback.format_exc())
-        if type(result) is Asynch:
-            self.stack.append(result.coroutine)
-            self.value = None
-        else:
-            self.value = result  
-            
-    def run_synchronously(self):
-        while not self.completed:
-            self.run()
-        return self.return_value
-    
-def asynch_method(method):
-    """Decorator for async methods"""
-    def new_method(*args):
-        return Asynch(method(*args))
-    return new_method
-
-if __name__ == '__main__':
-    #Example 
-    def slow_func_0_1(x):
-        print "slow_func_0_1"
-        return x + 1
-    def slow_func_0_2(x):
-        print "slow_func_0_2"
-        return x + 1
-    
-    @asynch_method
-    def slow_func1(x):
-        print "slow_func1"
-        x = yield slow_func_0_1(x)
-        x = yield slow_func_0_2(x)
-        yield x
-
-    @asynch_method
-    def slow_func2(x):
-        print "slow_func2"
-        raise Exception("test")
-    
-    @asynch_method
-    def asynch_func1(a):
-        print "asynch_func1"
-        b = yield slow_func1(a)
-        b = 9
-        try:
-            c = yield slow_func2(b)
-        except:
-            print "error"
-            c = 9
-        yield c
-        
-    def print_result_callback(result=None, error=None):
+"""
+Note: in case of error, the error contains "(exception, traceback_string)"
+"""
+def process_coroutines(gen, future, result=None, error=None):
+    try:
         if error:
-            raise error
-        print "result", result
+            exc, tbstr = error
+            result = gen.throw(exc)
+        else:
+            result = gen.send(result)
+    except StopIteration as e:
+        future.set_result(result)
+        return
+    except Exception as e:
+        #print traceback.format_exc()
+        future.set_error( (e, traceback.format_exc()) )
+        return
+    if type(result) is Future:
+        result.set_callback(process_coroutines, (gen, future))
+    else:
+        reactor.call(process_coroutines, gen, future, result=result)
 
-    a = asynch_func1(1)
-    a.callback = print_result_callback
-    while not a.completed:
-        a.run()
-    print a.return_value
+def asynch_method(method):
+    """  Decorator inspired by twistedMatrix.inlineCallbacks.
     
+     Can be used for both CPU bound methods and IO bound methods.
+         - yield a 'Future'. The method will continue at
+         the same point when the 'Future' completes.
+         - yield nothing, and the method will continue when the reactor has time. 
+         This enables to share CPU time.
+         
+     - should we add a reactor argument to this decorator?
+     - or add an keyword-only argument to the method (python > 3.0)
+    """
+    def new_method(*args):
+        future = Future()
+        gen = method(*args)
+        reactor.call(process_coroutines, gen, future)
+        return future
+    return new_method

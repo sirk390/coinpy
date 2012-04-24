@@ -1,3 +1,5 @@
+from coinpy.tools.reactor.reactor import reactor
+
 class Event(object):
     def __str__(self):
         return (str(self.__dict__))
@@ -5,8 +7,7 @@ class Event(object):
 class Observable(object):
     lastevent = 0
     
-    def __init__(self, reactor):
-        self.reactor = reactor
+    def __init__(self):
         self.listeners = {}
         
     @classmethod 
@@ -29,9 +30,6 @@ class Observable(object):
             for k, v in attrs.iteritems():
                 setattr(e, k, v)
             for fn in self.listeners[eventtype]:
-                if self.reactor: #speed up by remove test?
-                    self.reactor.call(fn, e)
-                else:
-                    fn(e)
+                reactor.call(fn, e)
            
         

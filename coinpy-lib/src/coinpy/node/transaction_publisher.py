@@ -14,8 +14,7 @@ Transactions are trickled out by selecting a random node.
 trickle out tx inv: see main.cpp:2971 "Message: inventory"
 """
 class TransactionPublisher():
-    def __init__(self, reactor, node, account):
-        self.reactor = reactor
+    def __init__(self, node, account):
         self.node = node
         self.account = account
         self.account.subscribe(self.account.EVT_PUBLISH_TRANSACTION, self.on_publish_transaction)

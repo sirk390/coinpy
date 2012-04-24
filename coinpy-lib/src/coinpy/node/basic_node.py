@@ -19,10 +19,10 @@ Handles the following tasks:
     - keep a list of banned peers.
 """
 class BasicNode(Node):
-    def __init__(self, reactor, get_blockchain_height, params, log):
-        super(BasicNode, self).__init__(reactor, params, log)
-        self.addr_pool = AddrPool(reactor)
-        self.bootstrapper = Bootstrapper(reactor, params.runmode, self.log)
+    def __init__(self, get_blockchain_height, params, log):
+        super(BasicNode, self).__init__(params, log)
+        self.addr_pool = AddrPool()
+        self.bootstrapper = Bootstrapper(params.runmode, self.log)
         
         self.add_service(PeerReconnector(self.addr_pool, min_connections=params.targetpeers))
         self.version_service = VersionExchangeService(get_blockchain_height, params, log)

@@ -35,8 +35,8 @@ class KeyDecryptException(Exception):
 class Wallet(Observable):
     EVT_NEW_TRANSACTION = Observable.createevent()
     
-    def __init__(self, reactor, wallet_database, runmode):
-        super(Wallet, self).__init__(reactor)
+    def __init__(self, wallet_database, runmode):
+        super(Wallet, self).__init__()
         self.wallet_database = wallet_database
         self.wallet_database.open()
         self.runmode = runmode
@@ -82,7 +82,7 @@ class Wallet(Observable):
         for address, (public_key, is_crypted) in self.addresses.iteritems():
             b58addr = encode_base58check(chr(ADDRESSVERSION[self.runmode]) + address)
             description = self.get_address_description(public_key)
-            yield (public_key, "", b58addr, description)
+            yield (public_key, is_crypted, b58addr, description)
             
     def get_address_description(self, public_key):
         address = hash160(public_key)
@@ -96,9 +96,6 @@ class Wallet(Observable):
                 description = "Receive (\"%s\")" % self.wallet_database.get_names()[b58addr].name
             else: 
                 description = "Change" 
-        _, is_crypted = self.addresses[address]
-        if is_crypted:
-            description += "(encrypted)"
         return description
         
     def iter_my_outputs(self):
@@ -192,12 +189,16 @@ class Wallet(Observable):
     """ Return a private key for a txout as binary bignum. 
     
         Requires unlock() if this key in encrypted  """
-    def get_private_key_secret(self, txout):
+
+    def get_txout_private_key_secret(self, txout):
         address = self.extract_adress(txout)
         public_key, is_crypted = self.addresses[address]
-        if not is_crypted:
+        return self.get_private_key_secret(public_key)
+    
+    def get_private_key_secret(self, public_key):
+        if public_key in self.wallet_database.keys: # private key is not crypted
             k = KEY()
-            k.set_privkey(self.keypairs[address].private_key)
+            k.set_privkey(self.wallet_database.keys[public_key].private_key)
             return k.get_secret()
         crypted_secret = self.wallet_database.get_crypted_keys()[public_key]
         for key in self.plain_masterkeys:
