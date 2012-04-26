@@ -6,6 +6,7 @@ Created on 13 Feb 2012
 """
 
 from coinpy_client.presenter.mainwindow_presenter import MainWindowPresenter
+from coinpy.tools.reactor.reactor import reactor
 
 class CoinpyPresenter():
     def __init__(self, client, view): 
@@ -15,15 +16,14 @@ class CoinpyPresenter():
         self.mainwindow_presenter = MainWindowPresenter(self.client, view.mainwindow)
       
     def on_command_close(self, event):
-        self.client.stop(self.on_service_exited)
+        reactor.stop(self.on_service_exited)
         
     def on_service_exited(self):
         self.view.stop()
 
     def run(self):
-        self.client.start()
-        self.view.mainloop()
-        #self.service.run()
+        self.view.start()
+        reactor.run()
        
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import MAIN, TESTNET

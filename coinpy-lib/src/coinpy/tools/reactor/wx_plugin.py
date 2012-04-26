@@ -6,7 +6,7 @@ Created on 23 Apr 2012
 """
 import wx
 
-class WxPlugin():
+class WxPlugin(object):
     def __init__(self):
         self.app = wx.App(False) 
         self.evtloop = wx.EventLoop() 

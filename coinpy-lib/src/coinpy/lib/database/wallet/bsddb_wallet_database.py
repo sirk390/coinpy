@@ -31,20 +31,19 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         
     def open(self):
         #self.bsddb_env.dbenv.fileid_reset(self.filename)
-        dbtxn = self.bsddb_env.dbenv.txn_begin()
-        self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags, txn=dbtxn)
-        dbtxn.commit()
+        self.dbtxn = self.bsddb_env.dbenv.txn_begin()
+        self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags, txn=self.dbtxn)
+        self.dbtxn.commit()
+        self.dbtxn = None
         self._read_wallet()
 
     def create(self):
+        #create empty database
         self.dbtxn = self.bsddb_env.dbenv.txn_begin()
         self.db.open(self.filename, "main", bsddb.db.DB_BTREE, self.dbflags|bsddb.db.DB_CREATE, txn=self.dbtxn)
-        #create 100 pools keys, no addresses, or transactions are added
-        
         self.dbtxn.commit()
-
-
-    
+        self.dbtxn = None
+   
     def begin_updates(self):
         self.dbtxn = self.bsddb_env.dbenv.txn_begin()
         
@@ -149,6 +148,15 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def get_poolkeys(self):
         return self.poolkeys
     
+    def add_poolkey(self, poolkey):
+        self.db.put("\x04pool" + struct.pack("<q", poolkey.poolnum), 
+                    struct.pack("<I", poolkey.version) + \
+                    struct.pack("<q", poolkey.time) + \
+                    self.varstr_serializer.serialize(poolkey.public_key), 
+                    txn=self.dbtxn)
+        self.poolkeys[poolkey.poolnum] = poolkey
+        self.poolkeys_by_public_key[poolkey.public_key] = self.poolkeys[poolkey.poolnum]
+
     def set_label(self, address, label):
         self.names[address] = WalletName(label, address)         
         address = self.varstr_serializer.serialize(address)
@@ -178,6 +186,19 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
         del self.poolkeys[num]
         self.db.delete("\x04pool" + struct.pack("<I", num))
 
+    def add_master_key(self, master_key):
+        id = max(self.master_keys.keys() + [0]) + 1
+        key = "\x04mkey" + struct.pack("<I", id)
+        value = self.master_key_serializer.serialize(master_key)
+        self.db.put(key, value, txn=self.dbtxn)
+        self.master_keys[id] = master_key
+    
+    def add_crypted_key(self, public_key, crypted_secret):
+        self.db.put("\x04ckey" + self.varstr_serializer.serialize(public_key), 
+                    self.varstr_serializer.serialize(crypted_secret), 
+                    txn=self.dbtxn)
+        self.crypted_keys[public_key] = crypted_secret
+            
     def get_master_keys(self):
         return (self.master_keys)
 
@@ -187,10 +208,12 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
     def set_version(self, version):
         self.db["\x07version"] = struct.pack("<I", version)
     
+    """ Return wallet's BlockLocator or None if not found """
     def get_block_locator(self):
-        serializer = BlockLocatorSerializer()
-        block_locator, cursor = serializer.deserialize(self.db["\x09bestblock"], 0)           
-        return block_locator
+        if self.db.has_key("\x09bestblock"):
+            serializer = BlockLocatorSerializer()
+            block_locator, cursor = serializer.deserialize(self.db["\x09bestblock"], 0)           
+            return block_locator
 
     def set_blocklocator(self, blocklocator):
         serializer = BlockLocatorSerializer()

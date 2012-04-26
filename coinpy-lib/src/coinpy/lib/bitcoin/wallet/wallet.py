@@ -17,11 +17,13 @@ from coinpy.tools.observer import Observable
 from coinpy.model.wallet.controlled_output import ControlledOutput
 from coinpy.model.protocol.structures.outpoint import Outpoint
 import time
-from coinpy.lib.database.wallet.crypter.passphrase import decrypt_masterkey
+from coinpy.lib.database.wallet.crypter.passphrase import decrypt_masterkey,\
+    new_masterkey
 from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
 from coinpy.lib.database.wallet.crypter.crypter import Crypter
 from coinpy.tools.bitcoin.sha256 import doublesha256
 from coinpy.tools.hex import hexstr
+from coinpy.model.wallet.wallet_poolkey import WalletPoolKey
 
 # Wrong passphrase, missing passphrase, or missing master_key
 class KeyDecryptException(Exception):
@@ -38,23 +40,43 @@ class Wallet(Observable):
     def __init__(self, wallet_database, runmode):
         super(Wallet, self).__init__()
         self.wallet_database = wallet_database
-        self.wallet_database.open()
         self.runmode = runmode
         self.addresses = {}
         self.crypter = Crypter()
         self.plain_masterkeys = []
-
+    
+    def open(self):
+        self.wallet_database.open()
+        self.load()
+        
+    def create(self, passphrase):
+        self.wallet_database.begin_updates()
+        crypter = Crypter()
+        #first create masterkey
+        master_key =  new_masterkey(passphrase)
+        plain_masterkey = decrypt_masterkey(master_key, passphrase)
+        self.wallet_database.add_master_key(master_key)
+        #create transaction pool
+        for i in range(100):
+            k = KEY()
+            k.generate(True)
+            public_key = k.get_pubkey()
+            crypter.set_key(plain_masterkey, doublesha256(public_key))
+            crypted_secret = crypter.encrypt(k.get_secret())
+            self.wallet_database.add_crypted_key(public_key, crypted_secret)
+            pool_key = WalletPoolKey(i, 60000, time.time(), public_key)
+            self.wallet_database.add_poolkey(pool_key)
+            
+            
+        self.wallet_database.commit_updates()
+        self.load()
+        
+    def load(self):
         for public_key, keypair in self.wallet_database.get_keys().iteritems():
             self.addresses[hash160(public_key)] = (public_key, False)
         for public_key, secret in self.wallet_database.get_crypted_keys().iteritems():
             self.addresses[hash160(public_key)] = (public_key, True)
-    
-    def begin_updates(self):
-        self.wallet_database.begin_updates()
-        
-    def commit_updates(self):
-        self.wallet_database.commit_updates()
-        
+     
     def get_receive_key(self):
         return self.wallet_database.get_receive_key()
         
@@ -222,8 +244,11 @@ class Wallet(Observable):
             return False
         return self.have_key_for_addresss(address)
 
+    """ Return the wallet's besthash as Uint256() or None if not supported """
     def get_besthash_reference(self):
-        return self.wallet_database.get_block_locator().highest()
+        locator = self.wallet_database.get_block_locator()
+        if locator:
+            return self.wallet_database.get_block_locator().highest()
     
     def is_change(self, txout): 
         # Fix to be implemented in main client, see wallet.cpp:390

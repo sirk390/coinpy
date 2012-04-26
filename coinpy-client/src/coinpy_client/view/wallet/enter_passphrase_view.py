@@ -80,7 +80,7 @@ class EnterPassphraseView(wx.Dialog):
         self.Show(False)
         self.future.set_error( (ActionCancelledException(), "cancelled"))
         self.passphrase_textctrl.SetValue("")
-               
+        
     def get_passphrase(self):
         reactor.call(self.open)
         self.future = Future()

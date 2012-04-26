@@ -6,7 +6,7 @@ Created on 19 Apr 2012
 """
 from coinpy.tools.hex import hexstr
 
-"""    MasterKey
+"""MasterKey
  
     crypted_key:                  binstring
     salt:                         binstring
@@ -45,7 +45,7 @@ class MasterKey():
                  salt, 
                  derivation_method, 
                  derive_iterations, 
-                 other_derivation_parameters):
+                 other_derivation_parameters=""):
         self.crypted_key = crypted_key
         self.salt = salt
         self.derivation_method = derivation_method

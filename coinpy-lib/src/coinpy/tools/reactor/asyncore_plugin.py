@@ -6,7 +6,7 @@ Created on 23 Apr 2012
 """
 import asyncore
 
-class AsyncorePlugin():
+class AsyncorePlugin(object):
     def __init__(self):
         self.donework = False
     

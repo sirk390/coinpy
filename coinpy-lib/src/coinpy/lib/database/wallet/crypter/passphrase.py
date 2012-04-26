@@ -9,9 +9,12 @@ from coinpy.lib.database.wallet.crypter.crypter import Crypter,\
 from coinpy.tools.crypto.ssl.ssl import ssl
 import ctypes
 from coinpy.tools.hex import hexstr
+from coinpy.tools.crypto.random.random import Random
+import time
+from coinpy.model.wallet.masterkey import MasterKey
 
 """Derive (key, initialization_vector) from passphrase and derivation parameters"""
-def derive_key_from_passphrase(passphrase, salt, derive_iterations, derive_method):
+def derive_key_from_passphrase(passphrase, salt, derive_iterations, deriv_method):
     passphrase = passphrase.encode("utf-8")
     chKey = ctypes.create_string_buffer (WALLET_CRYPTO_KEY_SIZE)
     chIV = ctypes.create_string_buffer (WALLET_CRYPTO_KEY_SIZE)
@@ -33,6 +36,31 @@ def decrypt_masterkey(master_key, passphrase):
     return plain_masterkey
 
 
+"""Create a new masterkey"""
+def new_masterkey(passphrase):
+    rand = Random()
+    crypter = Crypter()
+    plain_master_key = rand.get_random_bytes(WALLET_CRYPTO_KEY_SIZE)
+    rand.add_system_seeds()
+    salt = rand.get_random_bytes(WALLET_CRYPTO_SALT_SIZE)
+    deriv_method = MasterKey.DERIVMETHOD_EVP_SHA512
+    
+    target_seconds = 0.1 #100ms
+    # estimate number of derivations for 100ms per decrypt using 25000 iterations.
+    start_time = time.time()
+    derive_key_from_passphrase(passphrase, salt, 25000, deriv_method)
+    estimate1 = int((25000.0 * target_seconds) / (time.time() - start_time))
+    # try it and take the mean of the estimate1 and estimate2
+    start_time = time.time()
+    derive_key_from_passphrase(passphrase, salt, estimate1, deriv_method)
+    estimate2 = int(estimate1 * target_seconds / (time.time() - start_time))
+    deriv_iterations = (estimate1 + estimate2) / 2
+    # use it
+    key, init_vect = derive_key_from_passphrase(passphrase, salt, deriv_iterations, deriv_method)
+    crypter.set_key(key, init_vect)
+    crypted_key = crypter.encrypt(plain_master_key)
+    return MasterKey(crypted_key, salt, deriv_method, deriv_iterations)
+
 if __name__ == '__main__':
     from coinpy.tools.hex import decodehexstr
     from coinpy.tools.hex import hexstr
@@ -52,7 +80,7 @@ if __name__ == '__main__':
     crypter2 = Crypter()
     crypter2.set_key(plain_masterkey, doublesha256(public_key))
     secret = crypter2.decrypt(crypted_secret)
-    print secret
+    print hexstr(secret)
     #Test the secret
     k = KEY()
     k.set_secret(secret)
@@ -60,4 +88,9 @@ if __name__ == '__main__':
     k2 = KEY()
     k2.set_pubkey(public_key)
     print k2.verify("sign something", sig)
-
+    
+    #Create a new masterkey
+    m =  new_masterkey("hello hello")
+    print m
+    print hexstr(decrypt_masterkey(m, "hello hello" ))
+        

@@ -58,13 +58,13 @@ class Reactor():
             self.plugin_types.append(type(plugin))
             
     def run(self):
-        while not self.terminate:
+        while not self.terminate:  #50ms per loop (latency for new incoming events)
             # run plugins
             working = True
             t = time.time()
             isactive = [True for p in self.plugins]
             haswork = False
-            while working:  #max 200ms
+            while working:  #max 50ms
                 for i, p in enumerate(self.plugins):
                     if isactive[i]:
                         isactive[i] = p.run()

@@ -57,7 +57,8 @@ class WalletAccount(Observable):
     '''
      
     Set the followings attributes:
-        - is_blockchain_synched : True if the blockchain is height is greater than the wallet height.
+        - status_unknown : True if no BlockLocator() was found in the wallet.
+        - is_blockchain_synched : only valid if not status_unknown, True if the blockchain is height is greater than the wallet height.
         - confirmed_outputs : 
         - unconfirmed_outputs : 
         - confirmed_transactions : 
@@ -65,7 +66,10 @@ class WalletAccount(Observable):
     '''
     def compute_balances(self):
         #improvement: could only check if all my transactions are present in the blockchain
-        self.is_blockchain_synched = self.blockchain.contains_block(self.get_besthash())
+        wallet_besthash = self.wallet.get_besthash_reference()
+        self.status_unknown = not wallet_besthash
+        if not self.status_unknown:
+            self.is_blockchain_synched = self.blockchain.contains_block(wallet_besthash)
         
         #fillin confirmed/unconfirmed outputs (allows to compute the balance)
         self.confirmed_outputs = []

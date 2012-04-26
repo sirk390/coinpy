@@ -55,7 +55,7 @@ class BitcoinClient():
                                 targetpeers=clientparams.targetpeers)
         self.node = BitcoinNode(self.blockchain_with_pools, nodeparams, self.log)
         # TMP: Add seed
-        # self.node.addr_pool.addpeer(SockAddr("127.0.0.1", BITCOIN_PORT[clientparams.runmode]))
+        self.node.addr_pool.addpeer(SockAddr("127.0.0.1", BITCOIN_PORT[clientparams.runmode]))
         # Wallets
         self.account_set = AccountSet()
         
@@ -66,13 +66,24 @@ class BitcoinClient():
             self.dbenv_handles[normdir] = BSDDBEnv(normdir)
         return self.dbenv_handles[normdir]
     
-    def new_wallet(self, filename):
+    def new_wallet(self, filename, passphrase):
         directory, basename = os.path.split(filename)
         dbenv = self.get_dbenv_handle(directory)
         
         wallet_db = BSDDBWalletDatabase(dbenv, basename)
         wallet_db.create()
-    
+        
+        wallet = Wallet(wallet_db, self.clientparams.runmode)
+        wallet.create(passphrase)
+        #add file uid to list
+        dbenv.open_file_uids.add(bsddb_read_file_uid(filename))
+        
+        
+        account = WalletAccount(self.log, basename, wallet, self.blockchain)
+        TransactionPublisher(self.node, account)
+        self.account_set.add_account(account)
+        self.account_infos[account] = (dbenv, directory, basename)
+            
     def open_wallet(self, filename):
         directory, basename = os.path.split(filename)
         dbenv = self.get_dbenv_handle(directory)
@@ -83,6 +94,7 @@ class BitcoinClient():
         dbenv.open_file_uids.add(uid)
         wallet_db = BSDDBWalletDatabase(dbenv, basename)
         wallet = Wallet(wallet_db, self.clientparams.runmode)
+        wallet.open()
         account = WalletAccount(self.log, basename, wallet, self.blockchain)
         TransactionPublisher(self.node, account)
         self.account_set.add_account(account)
@@ -94,12 +106,4 @@ class BitcoinClient():
         dbenv.open_file_uids.remove(uid)
         self.account_set.remove_account(account)
         del self.account_infos[account]
-        
-    def start(self):
-        reactor.start()
-
-    def stop(self, callback):
-        reactor.stop(callback)
  
-    def run(self):
-        reactor.run()

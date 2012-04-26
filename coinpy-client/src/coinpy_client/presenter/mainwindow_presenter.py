@@ -10,6 +10,9 @@ from coinpy_client.presenter.pools_presenter import PoolsPresenter
 from coinpy_client.presenter.blockchain.blockchain_summary_presenter import BlockchainSummaryPresenter
 from coinpy_client.presenter.accountbook_presenter import AccountBookPresenter
 import traceback
+from coinpy.tools.reactor.asynch import asynch_method
+from coinpy_client.view.wallet.enter_passphrase_view import EnterPassphraseView
+from coinpy.lib.database.wallet.crypter.passphrase import new_masterkey
 
 class MainWindowPresenter(Observable):
     #    EVT_WALLET_OPENED = Observable.createevent()
@@ -26,9 +29,14 @@ class MainWindowPresenter(Observable):
         self.mainwindow_view.subscribe(self.mainwindow_view.EVT_CMD_OPEN_WALLET, self.on_cmd_open_wallet)
         self.mainwindow_view.subscribe(self.mainwindow_view.EVT_CMD_NEW_WALLET, self.on_cmd_new_wallet)
         self.mainwindow_view.subscribe(self.mainwindow_view.EVT_CMD_CLOSE_WALLET, self.on_cmd_close_wallet)
-        
+    
+    @asynch_method
     def on_cmd_new_wallet(self, event):
-        self.client.new_wallet(event.file)
+        try:
+            passphrase = yield EnterPassphraseView(self.mainwindow_view).get_passphrase()
+            self.client.new_wallet(event.file, passphrase)
+        except:
+            self.mainwindow_view.messages_view.error(str(exc))
         
     def on_cmd_open_wallet(self, event):
         try:
