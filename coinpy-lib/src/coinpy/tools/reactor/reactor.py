@@ -68,12 +68,12 @@ class Reactor():
                 for i, p in enumerate(self.plugins):
                     if isactive[i]:
                         isactive[i] = p.run()
-                # process all workqueue items
-                while (len(self.workqueue) > 0):
+                # process workqueue items
+                if self.workqueue:
                     fn, args, kwargs = self.workqueue.popleft()
                     r = fn(*args, **kwargs)
-                didwork = any(isactive) or self.workqueue
-                haswork = haswork or didwork
+                didwork = any(isactive)
+                haswork = haswork or didwork or self.workqueue
                 working = didwork and (time.time() < t + 0.05)                
             #process scheduled items (latency 50ms)
             t = time.time()
