@@ -16,6 +16,7 @@ from coinpy.lib.serialization.structures.s11n_wallet_tx import WalletTxSerialize
 import bsddb
 from coinpy.model.wallet.wallet_database_interface import WalletDatabaseInterface
 from coinpy.lib.database.wallet.serialization.master_key_serializer import MasterKeySerializer
+from coinpy.lib.bitcoin.address import BitcoinAddress
 
 class BSDDBWalletDatabase(WalletDatabaseInterface):
     def __init__(self, bsddb_env, filename):
@@ -105,8 +106,9 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
 
     def _read_names(self):
         for key, key_cursor, value, value_cursor in self._read_entries("name"):
-            address, _ = self.varstr_serializer.deserialize(key, key_cursor)
+            address_bytestr, _ = self.varstr_serializer.deserialize(key, key_cursor)
             name, _ = self.varstr_serializer.deserialize(value, value_cursor)
+            address = BitcoinAddress.from_base58addr(address_bytestr)
             self.names[address] = WalletName(name, address)
 
     def _read_txs(self):
@@ -159,7 +161,7 @@ class BSDDBWalletDatabase(WalletDatabaseInterface):
 
     def set_label(self, address, label):
         self.names[address] = WalletName(label, address)         
-        address = self.varstr_serializer.serialize(address)
+        address = self.varstr_serializer.serialize(address.to_base58addr())
         name = self.varstr_serializer.serialize(label)
         self.db.put("\x04name" + address, name, txn=self.dbtxn)
 

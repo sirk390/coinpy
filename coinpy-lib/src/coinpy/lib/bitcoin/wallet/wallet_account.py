@@ -7,7 +7,7 @@ Created on 13 Feb 2012
 
 from coinpy.model.constants.bitcoin import COINBASE_MATURITY,\
     CONFIRMATIONS
-from coinpy.lib.bitcoin.address import get_address_from_public_key
+from coinpy.lib.bitcoin.address import BitcoinAddress
 from coinpy.tools.bitcoin.base58check import decode_base58check
 from coinpy.tools.observer import Observable
 from coinpy.lib.bitcoin.wallet.coin_selector import CoinSelector
@@ -170,12 +170,12 @@ class WalletAccount(Observable):
 
     def get_receive_address(self):
         public_key = self.wallet.get_receive_key()
-        address = get_address_from_public_key(self.wallet.runmode, public_key)
-        return address
+        return BitcoinAddress.from_publickey(public_key, self.wallet.runmode)
     
-    def set_receive_label(self, address, label):
+    def set_receive_label(self, address_base58, label):
+        address = BitcoinAddress.from_base58addr(address_base58)
         self.wallet.begin_updates()
-        public_key, is_crypted = self.wallet.addresses[decode_base58check(address)[1:]]
+        public_key, is_crypted = self.wallet.addresses[address] #decode_base58check(address)[1:]
         self.wallet.allocate_key(public_key, label)
         self.wallet.commit_updates()
         
@@ -191,10 +191,10 @@ class WalletAccount(Observable):
         selected_outputs = self.coin_selector.select_coins(outputs, (amount + fee))
         
         change_public_key = self.wallet.get_receive_key()
-        change_address = get_address_from_public_key(self.wallet.runmode, change_public_key)
+        change_address = BitcoinAddress.from_publickey(change_public_key, self.wallet.runmode)
         tx = create_pubkeyhash_transaction(selected_outputs, 
-                                        decode_base58check(address)[1:],  #remove ADDRESSVERSION[runmode] byte
-                                        decode_base58check(change_address)[1:],  #remove ADDRESSVERSION[runmode] byte
+                                        address.get_hash160(), #decode_base58check(address)[1:],  #remove ADDRESSVERSION[runmode] byte
+                                        change_address.get_hash160(), #decode_base58check(change_address)[1:],  #remove ADDRESSVERSION[runmode] byte
                                         amount, 
                                         fee)
         return (PlannedTransaction(selected_outputs, amount, address, change_public_key, change_address, fee, tx))        
@@ -217,7 +217,7 @@ class WalletAccount(Observable):
                               [txout for outpoint, txout in planned_tx.selected_outputs], 
                               privkey_list)
         txhash = hash_tx(planned_tx.tx)
-        self.log.info("Sending %f to %s (fee:%f), change address: %s, hash:%s" % (planned_tx.amount, planned_tx.address, planned_tx.fee, planned_tx.change_address, str(txhash)))
+        self.log.info("Sending %f to %s (fee:%f), change address: %s, hash:%s" % (planned_tx.amount, str(planned_tx.address), planned_tx.fee, str(planned_tx.change_address), str(txhash)))
         #Initially, create an empty MerkleTx (the tx is not yet in a block)
         merkle_tx = MerkleTx(planned_tx.tx, 
                              Uint256.zero(), 

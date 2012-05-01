@@ -37,6 +37,7 @@ class BlockchainServer(Observable):
         pass
             
     def on_getdata(self, event):
+        # todo: deserializing 500 block from disk is slow, gui freezes
         for inv in event.message.invitems:
             if inv.type == INV_TX and self.blockchain_with_pools.contains_transaction(inv.hash):
                 tx = self.blockchain_with_pools.get_transaction(inv.hash)

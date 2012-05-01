@@ -10,4 +10,4 @@ class WalletName(object):
         self.name, self.address = name, address
         
     def __str__(self):
-        return "WalletName(%s:%s)" % (self.name, self.address)
+        return "WalletName(%s:%s)" % (self.name, str(self.address))

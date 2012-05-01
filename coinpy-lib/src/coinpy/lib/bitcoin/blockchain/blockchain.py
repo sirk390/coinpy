@@ -114,6 +114,9 @@ class Blockchain(Observable):
     def get_block(self, blockhash):
         return self.database.get_block_handle(blockhash).get_block()
 
+    def get_bestblock(self):
+        return self.database.get_mainchain()
+    
     def get_height(self):
         handlebest = self.database.get_block_handle(self.database.get_mainchain())
         return handlebest.get_height()
@@ -130,12 +133,18 @@ class Blockchain(Observable):
         #self.log.info("Connecting block : %d (%d transactions)" % (block_handle.get_height(), len(block_handle.get_block().transactions)))    
         for tx in block_handle.get_block().transactions:
             if not tx.iscoinbase():
-                txhash = hash_tx(tx)
-                for index in range(len(tx.in_list)):
-                    yield self._connect_txin(tx, txhash, index, block_handle)
-                    
+                self._connect_tx(tx, block_handle.get_height())
+        yield block_handle
+        
     @asynch_method      
-    def _connect_txin(self, tx, txhash, index, block_handle):
+    def _connect_tx(self, tx, height):
+        txhash = hash_tx(tx)
+        for index in range(len(tx.in_list)):
+            yield self._connect_txin(tx, txhash, index, height)
+        yield
+
+    @asynch_method      
+    def _connect_txin(self, tx, txhash, index, height):
         txin = tx.in_list[index]
         #fetch inputs
         txprev_handle = self.database.get_transaction_handle(txin.previous_output.hash)
@@ -143,7 +152,7 @@ class Blockchain(Observable):
         #check matured coinbase.
         if (txprev.iscoinbase()):
             blockprev = txprev_handle.get_block()
-            if (block_handle.get_height() - blockprev.get_height() < COINBASE_MATURITY):
+            if (height - blockprev.get_height() < COINBASE_MATURITY):
                 raise Exception("#trying to spend unmatured coins.")
         #verify scripts
         if not self.vm.validate(tx, index, txprev.out_list[txin.previous_output.index].script, tx.in_list[index].script):
@@ -151,7 +160,7 @@ class Blockchain(Observable):
         #check double-spend
         if (txprev_handle.is_output_spent(txin.previous_output.index)):
             spending_tx = txprev_handle.get_spending_transaction(txin.previous_output.index)
-            raise Exception( "Output allready spent in block:%s,tx:%s. Output:%s:%d of block:%s allready spent in tx:%s of block:%s" %(str(block_handle.hash), str(txhash), str(txin.previous_output.hash), txin.previous_output.index, str(txprev_handle.get_block().hash), spending_tx.hash, str(spending_tx.get_block().hash)))
+            raise Exception( "Output allready spent at height:%d, tx:%s. Output:%s:%d of block:%s allready spent in tx:%s of block:%s" %(height, str(txhash), str(txin.previous_output.hash), txin.previous_output.index, str(txprev_handle.get_block().hash), spending_tx.hash, str(spending_tx.get_block().hash)))
         #mark spent
         txprev_handle.mark_spent(txin.previous_output.index, True, txhash)
         #self.log.info("txin %s:%d connected" % (str(txin.previous_output.hash), txin.previous_output.index))    

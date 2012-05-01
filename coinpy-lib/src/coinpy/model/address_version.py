@@ -8,3 +8,4 @@ Created on 18 Feb 2012
 from coinpy.model.protocol.runmode import MAIN, TESTNET
 
 ADDRESSVERSION = {MAIN: 0x00, TESTNET: 0x6F}
+ADDRESSVERSIONRUNMODE = dict((versionbyte, runmode) for runmode,  versionbyte in ADDRESSVERSION.iteritems())

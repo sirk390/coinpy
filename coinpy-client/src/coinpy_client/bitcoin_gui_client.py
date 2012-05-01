@@ -13,12 +13,13 @@ from coinpy_client.view.coinpy_gui import CoinpyGUI
 from coinpy_client.presenter.coinpy_presenter import CoinpyPresenter
 from coinpy_client.bitcoin_client import BitcoinClient
 from coinpy_client.model.client_params import ClientParams
+from coinpy.node.network.bitcoin_port import BITCOIN_PORT
 
 def main(runmode):
     data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
     params = ClientParams(data_directory,
                           runmode=runmode,
-                          port=8333,
+                          port=BITCOIN_PORT[runmode]+10,
                           nonce=random.randint(0, 2**64),
                           sub_version_num="/coinpy:0.0.1/",
                           targetpeers=10)

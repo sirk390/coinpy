@@ -8,13 +8,9 @@ from coinpy.lib.database.bsddb_env import BSDDBEnv
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 from coinpy.lib.script.standard_script_tools import tx_pubkeyhash_get_address,\
     identify_script, tx_pubkey_get_pubkey
-from coinpy.tools.bitcoin.hash160 import hash160
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.lib.bitcoin.address import get_address_from_public_key
-from coinpy.model.address_version import ADDRESSVERSION
-from coinpy.tools.bitcoin.base58check import encode_base58check
+from coinpy.lib.bitcoin.address import BitcoinAddress
 from coinpy.tools.observer import Observable
-from coinpy.model.wallet.controlled_output import ControlledOutput
 from coinpy.model.protocol.structures.outpoint import Outpoint
 import time
 from coinpy.lib.database.wallet.crypter.passphrase import decrypt_masterkey,\
@@ -22,7 +18,6 @@ from coinpy.lib.database.wallet.crypter.passphrase import decrypt_masterkey,\
 from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
 from coinpy.lib.database.wallet.crypter.crypter import Crypter
 from coinpy.tools.bitcoin.sha256 import doublesha256
-from coinpy.tools.hex import hexstr
 from coinpy.model.wallet.wallet_poolkey import WalletPoolKey
 
 # Wrong passphrase, missing passphrase, or missing master_key
@@ -73,15 +68,21 @@ class Wallet(Observable):
         
     def load(self):
         for public_key, keypair in self.wallet_database.get_keys().iteritems():
-            self.addresses[hash160(public_key)] = (public_key, False)
+            self.addresses[BitcoinAddress.from_publickey(public_key, self.runmode)] = (public_key, False)
         for public_key, secret in self.wallet_database.get_crypted_keys().iteritems():
-            self.addresses[hash160(public_key)] = (public_key, True)
-     
+            self.addresses[BitcoinAddress.from_publickey(public_key, self.runmode)] = (public_key, True)
+
+    def begin_updates(self):
+        self.wallet_database.begin_updates()
+        
+    def commit_updates(self):
+        self.wallet_database.commit_updates()
+             
     def get_receive_key(self):
         return self.wallet_database.get_receive_key()
         
     def allocate_key(self, public_key, label=None, ischange=False):
-        address = get_address_from_public_key(self.runmode, public_key)
+        address = BitcoinAddress.from_publickey(public_key, self.runmode) 
         return self.wallet_database.allocate_key(public_key, address, label)
     
     def add_transaction(self, hashtx, wallet_tx):
@@ -97,25 +98,23 @@ class Wallet(Observable):
         self.wallet_database.del_transaction(hashtx)
 
     """
-        yields ( public_key, private_key, address, description ) entries.
+        yields ( public_key, is_crypted, address, description ) entries.
     """
     def iterkeys(self):
         names = self.wallet_database.get_names()
         for address, (public_key, is_crypted) in self.addresses.iteritems():
-            b58addr = encode_base58check(chr(ADDRESSVERSION[self.runmode]) + address)
             description = self.get_address_description(public_key)
-            yield (public_key, is_crypted, b58addr, description)
+            yield (public_key, is_crypted, address, description)
             
     def get_address_description(self, public_key):
-        address = hash160(public_key)
+        address = BitcoinAddress.from_publickey(public_key, self.runmode)
         description = ""
         if public_key in self.wallet_database.poolkeys_by_public_key:
             poolkey = self.wallet_database.poolkeys_by_public_key[public_key]
             description = "Pool (id:%d, time:%s)" % (poolkey.poolnum, time.strftime("%Y-%m-%d %H:%m:%S", time.gmtime(poolkey.time)))
         else:
-            b58addr = encode_base58check(chr(ADDRESSVERSION[self.runmode]) + address)
-            if b58addr in self.wallet_database.get_names():
-                description = "Receive (\"%s\")" % self.wallet_database.get_names()[b58addr].name
+            if address in self.wallet_database.get_names():
+                description = "Receive (\"%s\")" % self.wallet_database.get_names()[address].name
             else: 
                 description = "Change" 
         return description
@@ -156,13 +155,11 @@ class Wallet(Observable):
         for hash, wallet_tx in self.wallet_database.get_wallet_txs().iteritems():
             debit = self.get_debit_tx(wallet_tx)
             for txout in wallet_tx.merkle_tx.tx.out_list:
-                address = encode_base58check(chr(ADDRESSVERSION[self.runmode]) + self.extract_adress(txout))
-                if not address:
-                    address = "(unknown)"
+                address = self.extract_adress(txout, self.runmode)
                 name = ""
                 #print self.get_names()
                 #print encode_base58check(chr(ADDRESSVERSION[self.runmode]) + address)
-                if address in self.get_names():
+                if address and address in self.get_names():
                     name = self.get_names()[address].name
                 if debit > 0 and self.is_change(txout):
                     pass
@@ -187,19 +184,19 @@ class Wallet(Observable):
         return (address in self.addresses)
 
     
-    def extract_adress(self, txout):
+    def extract_adress(self, txout, runmode):
         script_type = identify_script(txout.script)
         # if unknown script type, return None
         if (script_type is None): 
             return None 
         if script_type == TX_PUBKEYHASH:
-            return tx_pubkeyhash_get_address(txout.script)
+            return BitcoinAddress(tx_pubkeyhash_get_address(txout.script), self.runmode)
         if script_type == TX_PUBKEY:
-            return hash160(tx_pubkey_get_pubkey(txout.script))
+            return BitcoinAddress.from_publickey(tx_pubkey_get_pubkey(txout.script), self.runmode)
         return None 
     
     def is_passphrase_required(self, txout):
-        address = self.extract_adress(txout)
+        address = self.extract_adress(txout, self.runmode)
         _, is_crypted = self.addresses[address]
         return is_crypted
     
@@ -213,7 +210,7 @@ class Wallet(Observable):
         Requires unlock() if this key in encrypted  """
 
     def get_txout_private_key_secret(self, txout):
-        address = self.extract_adress(txout)
+        address = self.extract_adress(txout, self.runmode)
         public_key, is_crypted = self.addresses[address]
         return self.get_private_key_secret(public_key)
     
@@ -239,7 +236,7 @@ class Wallet(Observable):
         
 
     def is_mine(self, txout):
-        address = self.extract_adress(txout)
+        address = self.extract_adress(txout, self.runmode)
         if not address: # if unknown script type, return False
             return False
         return self.have_key_for_addresss(address)
@@ -254,7 +251,7 @@ class Wallet(Observable):
         # Fix to be implemented in main client, see wallet.cpp:390
         # current bad assumption is that any payment to a TX_PUBKEYHASH that
         # is mine but isn't in the address book is change. 
-        address = self.extract_adress(txout)
+        address = self.extract_adress(txout, self.runmode)
         return self.is_mine(txout) and (address not in self.get_names())
   
     def get_master_keys(self):

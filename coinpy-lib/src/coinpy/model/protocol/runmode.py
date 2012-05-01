@@ -6,3 +6,5 @@ Created on 13 Jun 2011
 """
 
 TESTNET, MAIN = RUNMODES = range(2)
+
+RUNMODE_NAMES = {TESTNET : "Testnet", MAIN : "Main"}

@@ -8,7 +8,7 @@ Created on 21 Feb 2012
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.bitcoin.wallet.wallet import Wallet, KeyDecryptException
 import os
-from coinpy.lib.bitcoin.address import is_valid_bitcoin_address
+from coinpy.lib.bitcoin.address import BitcoinAddress
 from coinpy.tools.float import is_float
 from coinpy.model.constants.bitcoin import COIN
 from coinpy.tools.reactor.asynch import asynch_method
@@ -27,11 +27,12 @@ class AccountPresenter():
         
         #show account balance
         for public_key, is_crypted, address, description in  self.account.wallet.iterkeys():
-            self.wallet_view.add_key(public_key, public_key, "***", address, description)
+            self.wallet_view.add_key(public_key, public_key, "***", address.to_base58addr(), description)
         wallet_view.balance.set_balance(account.get_confirmed_balance(), account.get_unconfirmed_balance(), account.get_blockchain_height())
         #show transaction history
         for wallet_tx, hash, date, address, name, amount, confirmed in self.account.iter_transaction_history():
-            self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed)
+            address_str = address and address.to_base58addr() or "(unknown)"
+            self.wallet_view.add_transaction_history_item(hash, date, address_str, name, amount, confirmed)
         #listen to balance updates
         self.account.subscribe(self.account.EVT_BALANCE_CHANGED, self.on_balance_changed)
         self.account.subscribe(self.account.EVT_NEW_TRANSACTION_ITEM, self.on_new_transaction_item)
@@ -54,7 +55,7 @@ class AccountPresenter():
 
     def on_new_transaction_item(self, event):
         tx, hash, date, address, name, amount, confirmed = event.item
-        self.wallet_view.add_transaction_history_item(hash, date, address, name, amount, confirmed)
+        self.wallet_view.add_transaction_history_item(hash, date, address.to_base58addr(), name, amount, confirmed)
     
     def on_confirmed_transaction_item(self, event):
         txhash, = event.item
@@ -70,7 +71,7 @@ class AccountPresenter():
     
     def on_receive(self, event):
         receive_address = self.account.get_receive_address()
-        self.wallet_view.receive_view.set_receive_address(receive_address)
+        self.wallet_view.receive_view.set_receive_address(receive_address.to_base58addr())
         self.wallet_view.receive_view.open()
     
     def on_set_receive_label(self, event):
@@ -80,15 +81,15 @@ class AccountPresenter():
         
     @asynch_method  
     def on_select_send_value(self, event): 
-        address = self.wallet_view.send_view.address()
+        base58addrstr = self.wallet_view.send_view.address()
         amount_str = self.wallet_view.send_view.amount() 
-        if not is_valid_bitcoin_address(self.account.wallet.runmode, address):
-            self.messages_view.error("Incorrect bitcoin address: %s" % (address))
+        if not BitcoinAddress.is_valid(base58addrstr, self.account.wallet.runmode):
+            self.messages_view.error("Incorrect bitcoin address: %s" % (base58addrstr))
             return
         if not is_float(amount_str):
             self.messages_view.error("Incorrect amount: %s" % (amount_str))
             return
-        planned_tx = self.account.create_transaction(int(float(amount_str) * COIN), address, 0)
+        planned_tx = self.account.create_transaction(int(float(amount_str) * COIN), BitcoinAddress.from_base58addr(base58addrstr), 0)
         self.wallet_view.send_view.close()
         
         passphrases = []
@@ -103,7 +104,7 @@ class AccountPresenter():
             pass
         except Exception:
             traceback.print_exc()
-    
+            
 
     @asynch_method  
     def on_show_hide_private_keys(self, event):

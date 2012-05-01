@@ -4,7 +4,7 @@ Created on 13 Sep 2011
 
 @author: kris
 """
-from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX
+from coinpy.model.protocol.structures.invitem import INV_BLOCK, INV_TX, Invitem
 from coinpy.model.protocol.messages.types import MSG_INV, MSG_TX, MSG_BLOCK
 from coinpy.model.protocol.messages.getblocks import GetblocksMessage
 from coinpy.model.protocol.structures.uint256 import Uint256
@@ -17,6 +17,7 @@ from coinpy.tools.reactor.asynch import asynch_method
 from collections import deque
 from coinpy.node.node import Node
 from coinpy.node.logic.version_exchange import VersionExchangeService
+from coinpy.model.protocol.messages.inv import InvMessage
 
 class BlockchainDownloader():
     # TODO: protect againts hosts that don't respond to GETDATA(timeout => misbehaving)
@@ -143,7 +144,12 @@ class BlockchainDownloader():
             peer, hash, block = self.blocks_to_process.popleft()
             self.log.debug("processing block : %s" % (hash))
             try:
-                yield self.blockchain_with_pools.add_block(peer, hash, block)
+                added_block_handles = yield self.blockchain_with_pools.add_block(peer, hash, block)
+                # relay blocks to peers
+                for h in added_block_handles:
+                    for p in self.node.connection_manager.connected_peers:
+                        if h.get_height() > self.node.version_service.version_statuses[p].version_message.start_height - 2000:
+                            self.node.send_message(peer, InvMessage([Invitem(INV_BLOCK, h.hash)]))
             except Exception as e:
                 self.log.error(traceback.format_exc())
                 self.misbehaving(peer, str(e))

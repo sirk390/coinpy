@@ -11,6 +11,7 @@ from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
 from coinpy.tools.reactor.asynch import asynch_method
 from collections import deque
 from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.bitcoin.checks.tx_checks import TxVerifier
 
 class BlockchainWithPools(Observable):
     EVT_MISSING_BLOCK = Observable.createevent()
@@ -34,14 +35,27 @@ class BlockchainWithPools(Observable):
         self.log = log
         self.runmode = self.blockchain.database.runmode
         
+        self.txverifier = TxVerifier(self.runmode)
         self.blockverifier = BlockVerifier(self.runmode)
         
         self.add_blockchain_queue = deque()
         
     def verified_add_tx(self, tx):
-        self.fire(self.EVT_ADDED_TX, hash = hash_tx(tx))
+        txhash = hash_tx(tx)
+        if self.contains_transaction(txhash):
+            return
+        self.txverifier.basic_checks(tx)
+        if tx.iscoinbase():
+            raise Exception("Coinbase transactions aren't allowed in memory pool")
+        self.blockchain._connect_tx(tx, self.blockchain.get_height() + 1)
+        #todo: 1/check for conflicts / replace transactions
+        
+        # 2/check for non-standard pay-to-script-hash in inputs
+        # 3/check minimum fees
+        
         self.log.info("Adding tx %s" % str(tx))
-    
+        self.fire(self.EVT_ADDED_TX, hash=txhash)
+        
     def add_transaction(self, txhash, tx):
         self.fire(self.EVT_ADDED_TX, hash=txhash)
         self.transactionpool[txhash] = tx
@@ -60,24 +74,28 @@ class BlockchainWithPools(Observable):
             sender, missing_hash = self.orphanblocks.get_orphan_root(hash)
             self.fire(self.EVT_MISSING_BLOCK, peer=sender, missing_hash=missing_hash)
             self.fire(self.EVT_ADDED_ORPHAN_BLOCK, hash=hash)
+            yield []
             return
-        #Checks-2 (done after finding the parent block)
-        self.blockverifier.accept_block(hash, block, self.blockchain)
-        
         #TODO: Check timestamp
         #if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
         #return error("CheckBlock() : block timestamp too far in the future");     
-        yield self.blockchain.appendblock(hash, block)
-        
+        block_handle = yield self.add_to_blockchain(hash, block)
+        added_block_handles = [block_handle]
         #recursively process any orphan blocks that depended on this one
         descendent_blocks = self.orphanblocks.pop_descendant_blocks(hash)
         for sender, blkhash, block in descendent_blocks:
             self.fire(self.EVT_REMOVED_ORPHAN_TX, hash=blkhash)
         for sender, blkhash, block in descendent_blocks:
-            self.blockverifier.accept_block(blkhash, block, self.blockchain)
-            yield self.blockchain.appendblock(blkhash, block)
+            block_handle = yield self.add_to_blockchain(blkhash, block)
+            added_block_handles.append(block_handle)
+        yield added_block_handles
+
+    @asynch_method
+    def add_to_blockchain(self, blkhash, block):
+        #Checks-2 (done after finding the parent block)
+        self.blockverifier.accept_block(blkhash, block, self.blockchain)
+        yield self.blockchain.appendblock(blkhash, block)
             
-        
     def get_transaction(self, hash):
         if hash in self.transactionpool:
             return self.transactionpool[hash]
