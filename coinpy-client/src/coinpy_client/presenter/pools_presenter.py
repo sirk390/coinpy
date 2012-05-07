@@ -6,16 +6,16 @@ Created on 21 Feb 2012
 """
 
 class PoolsPresenter():
-    def __init__(self, blockchain_with_pools, pools_view): 
-        self.blockchain_with_pools = blockchain_with_pools
+    def __init__(self, node, pools_view): 
+        self.node = node
         self.pools_view = pools_view
         
-        self.blockchain_with_pools.subscribe(self.blockchain_with_pools.EVT_ADDED_ORPHAN_TX, self.on_add_orphan_tx)
-        self.blockchain_with_pools.subscribe(self.blockchain_with_pools.EVT_REMOVED_ORPHAN_TX, self.on_del_orphan_tx)
-        self.blockchain_with_pools.subscribe(self.blockchain_with_pools.EVT_ADDED_ORPHAN_BLOCK, self.on_add_orphan_block)
-        self.blockchain_with_pools.subscribe(self.blockchain_with_pools.EVT_REMOVED_ORPHAN_BLOCK, self.on_del_orphan_block)
-        self.blockchain_with_pools.subscribe(self.blockchain_with_pools.EVT_ADDED_TX, self.on_add_tx)
-        self.blockchain_with_pools.subscribe(self.blockchain_with_pools.EVT_REMOVED_TX, self.on_del_tx)
+        self.node.txdl.subscribe(self.node.txdl.EVT_ADDED_ORPHAN_TX, self.on_add_orphan_tx)
+        self.node.txdl.subscribe(self.node.txdl.EVT_REMOVED_ORPHAN_TX, self.on_del_orphan_tx)
+        self.node.blockdl.orphanblocks.subscribe(self.node.blockdl.orphanblocks.EVT_ADDED_ORPHAN_BLOCK, self.on_add_orphan_block)
+        self.node.blockdl.orphanblocks.subscribe(self.node.blockdl.orphanblocks.EVT_REMOVED_ORPHAN_BLOCK, self.on_del_orphan_block)
+        self.node.txpool.subscribe(self.node.txpool.EVT_ADDED_TX, self.on_add_tx)
+        self.node.txpool.subscribe(self.node.txpool.EVT_REMOVED_TX, self.on_del_tx)
 
     def on_add_orphan_tx(self, event):
         self.pools_view.add_orphan_tx(event.hash)

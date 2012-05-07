@@ -14,24 +14,24 @@ from coinpy_client.presenter.coinpy_presenter import CoinpyPresenter
 from coinpy_client.bitcoin_client import BitcoinClient
 from coinpy_client.model.client_params import ClientParams
 from coinpy.node.network.bitcoin_port import BITCOIN_PORT
+from coinpy.node.network.sockaddr import SockAddr
+from coinpy_client.config_params import get_config_params
 
-def main(runmode):
-    data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
-    params = ClientParams(data_directory,
-                          runmode=runmode,
-                          port=BITCOIN_PORT[runmode]+10,
-                          nonce=random.randint(0, 2**64),
-                          sub_version_num="/coinpy:0.0.1/",
-                          targetpeers=10)
+def coinpy_gui_client(client_params):
     view = CoinpyGUI()
-    client = BitcoinClient(view.get_logger(), params)
+    client = BitcoinClient(view.get_logger(), client_params)
     presenter = CoinpyPresenter(client, view)
     presenter.run()
 
-#testnet faucet: mhFwRrjRNt8hYeWtm9LwqCpCgXjF38RJqn
-
-# old peer : 88.114.198.141:18333
-
 if __name__ == '__main__':
-    main(runmode=TESTNET)
-    
+
+    #testnet faucet: mhFwRrjRNt8hYeWtm9LwqCpCgXjF38RJqn
+    # old peer : 88.114.198.141:18333
+    runmode=TESTNET
+    data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
+    params = ClientParams(runmode=runmode, 
+                          data_directory=data_directory,
+                          findpeers=False,
+                          seeds=[SockAddr("127.0.0.1", 7000)])
+    coinpy_gui_client(get_config_params(params))
+

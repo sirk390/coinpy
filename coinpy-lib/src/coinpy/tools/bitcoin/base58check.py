@@ -28,9 +28,22 @@ def decode_base58check(data, pad=None):
         raise Exception("base58check: checksum error %s != %s" % (hexstr(digest2[:4]), hexstr(check)))
     return (content)
 
-# Encode
-def encode_base58check(content):
+def encode_base58check(content, preserve_leading_zeros=True):
+    """ Encode a bytestring (bid endian) as base58 with checksum.
+     
+        preserve_leading_zeros: argument used for MAIN bitcoin addresses (e.g.ADDRESSVERSION == 0)
+        to preserve base256 leading zeros as base58 zeros ('1').
+        For example:
+            addrversion=00,hash160=00602005b16851c4f9d0e2c82fa161ac8190e04c will give the bitcoin address:
+            112z9tWej11X94khKKzofFgWbdhiXLeHPD
+    """
     digest1 = SHA256.new(content).digest()
     digest2 = SHA256.new(digest1).digest()
-    return (base58encode(base256decode(content + digest2[:4])))
+    data = content + digest2[:4]
+    leading_zeros = None
+    if preserve_leading_zeros:
+        leading_zeros = 0
+        while data[leading_zeros] == "\x00":
+            leading_zeros += 1
+    return (base58encode(base256decode(data), leading_zeros=leading_zeros))
 

@@ -16,10 +16,10 @@ from coinpy.node.logic.version_exchange import VersionExchangeService
 
 
 class BlockchainServer(Observable):
-    def __init__(self, node, blockchain_with_pools, log):
+    def __init__(self, node, blockchain, txpool, log):
         super(BlockchainServer, self).__init__()
-        self.blockchain_with_pools = blockchain_with_pools
-        self.blockchain = blockchain_with_pools.blockchain
+        self.blockchain = blockchain
+        self.txpool = txpool
         self.node = node
         self.log = log
         self.hash_continue = None
@@ -39,11 +39,11 @@ class BlockchainServer(Observable):
     def on_getdata(self, event):
         # todo: deserializing 500 block from disk is slow, gui freezes
         for inv in event.message.invitems:
-            if inv.type == INV_TX and self.blockchain_with_pools.contains_transaction(inv.hash):
-                tx = self.blockchain_with_pools.get_transaction(inv.hash)
+            if inv.type == INV_TX and self.txpool.contains_transaction(inv.hash):
+                tx = self.txpool.get_transaction(inv.hash)
                 self.node.send_message(event.handler, TxMessage(tx))
-            if inv.type == INV_BLOCK and self.blockchain_with_pools.contains_block(inv.hash):
-                block = self.blockchain_with_pools.get_block(inv.hash)
+            if inv.type == INV_BLOCK and self.blockchain.contains_block(inv.hash):
+                block = self.blockchain.get_block(inv.hash)
                 self.node.send_message(event.handler, BlockMessage(block))
                 if self.hash_continue and inv.hash == self.hash_continue:
                     hash_best = self.blockchain.database.get_mainchain()

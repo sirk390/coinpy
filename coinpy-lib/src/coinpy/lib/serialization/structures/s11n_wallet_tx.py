@@ -35,7 +35,6 @@ class WalletTxSerializer(Serializer):
                                          int(wallet_tx.spent)]))
 
     def serialize(self, wallet_tx):
-        print wallet_tx.map_value.items()
         return (self.WALLET_TX.serialize([wallet_tx.merkle_tx,
                                           wallet_tx.merkle_tx_prev,
                                           sorted(wallet_tx.map_value.items()),

@@ -6,17 +6,9 @@ Created on 4 Mar 2012
 """
 from coinpy.model.protocol.structures.tx import Tx
 from coinpy.model.protocol.structures.tx_out import TxOut
-from coinpy.lib.script.script_pubkeyhash import make_script_pubkeyhash,\
-    make_script_pubkeyhash_sig
+from coinpy.lib.script.script_pubkeyhash import make_script_pubkeyhash
 from coinpy.model.protocol.structures.tx_in import TxIn
-from coinpy.model.protocol.structures.outpoint import Outpoint
 from coinpy.model.scripts.script import Script
-from coinpy.model.scripts.instruction import Instruction
-from coinpy.model.scripts.opcodes import OP_PUSHDATA
-from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
-from coinpy.tools.bitcoin.sha256 import doublesha256
-from coinpy.tools.hex import hexstr
-from coinpy.tools.bitcoin.hash160 import hash160
 from coinpy.lib.bitcoin.transactions.sign_transaction import sign_transaction
 
 """

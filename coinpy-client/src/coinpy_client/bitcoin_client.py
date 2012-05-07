@@ -24,6 +24,7 @@ from coinpy.tools.bsddb.bsddb_file_id import bsddb_read_file_uid
 from coinpy.node.bitcoin_node import BitcoinNode
 from coinpy.tools.reactor.asyncore_plugin import AsyncorePlugin
 from coinpy.tools.reactor.reactor import reactor
+from coinpy.lib.bitcoin.pools.transactionpool import TransactionPool
 
 
 
@@ -44,7 +45,7 @@ class BitcoinClient():
         self.database.open_or_create(GENESIS[clientparams.runmode])
         self.blockchain = Blockchain(self.log, self.database)
         # Pools
-        self.blockchain_with_pools = BlockchainWithPools(self.blockchain, self.log)
+        self.txpool = TransactionPool()
         # Node
         nodeparams = NodeParams(runmode=clientparams.runmode,
                                 port=clientparams.port,
@@ -53,9 +54,10 @@ class BitcoinClient():
                                 nonce=clientparams.nonce,
                                 sub_version_num=clientparams.sub_version_num,
                                 targetpeers=clientparams.targetpeers)
-        self.node = BitcoinNode(self.blockchain_with_pools, nodeparams, self.log)
-        # TMP: Add seed
-        self.node.addr_pool.addpeer(SockAddr("127.0.0.1", BITCOIN_PORT[clientparams.runmode]))
+        self.node = BitcoinNode(self.blockchain, self.txpool, nodeparams, self.log, clientparams.get("findpeers", True))
+        # Add seeds
+        for sockaddr in clientparams.seeds:
+            self.node.addr_pool.addpeer(sockaddr)
         # Wallets
         self.account_set = AccountSet()
         
@@ -91,7 +93,6 @@ class BitcoinClient():
         uid = bsddb_read_file_uid(filename)
         if uid in dbenv.open_file_uids:
             raise Exception("Multiple wallets with the same uid unsupported in the same directory.")
-        dbenv.open_file_uids.add(uid)
         wallet_db = BSDDBWalletDatabase(dbenv, basename)
         wallet = Wallet(wallet_db, self.clientparams.runmode)
         wallet.open()
@@ -99,6 +100,8 @@ class BitcoinClient():
         TransactionPublisher(self.node, account)
         self.account_set.add_account(account)
         self.account_infos[account] = (dbenv, directory, basename)
+        #add uid last in case something went wrong before
+        dbenv.open_file_uids.add(uid)
         
     def close_wallet(self, account):
         dbenv, directory, basename = self.account_infos[account]

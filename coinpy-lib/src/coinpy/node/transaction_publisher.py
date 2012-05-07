@@ -22,8 +22,8 @@ class TransactionPublisher():
     def on_publish_transaction(self, event):
         if self.node.version_service.version_exchanged_nodes:
             random_peer = random.sample(self.node.version_service.version_exchanged_nodes, 1)[0]
-            if not self.node.blockchain_with_pools.contains_transaction(event.txhash):
-                self.node.blockchain_with_pools.add_transaction(event.txhash, event.tx)
+            if not self.node.txpool.contains_transaction(event.txhash):
+                self.node.txpool.add_tx(event.txhash, event.tx)
             self.node.send_message(random_peer, InvMessage([Invitem(INV_TX, event.txhash)]))
 
             

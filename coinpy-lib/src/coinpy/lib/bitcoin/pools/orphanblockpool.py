@@ -4,25 +4,38 @@ Created on 13 Dec 2011
 
 @author: kris
 """
+from coinpy.tools.observer import Observable
 
 """ OrphanBlockPool """
-class OrphanBlockPool():
+class OrphanBlockPool(Observable):
+    EVT_ADDED_ORPHAN_BLOCK = Observable.createevent()
+    EVT_REMOVED_ORPHAN_BLOCK = Observable.createevent()
+
     def __init__(self, log):
+        Observable.__init__(self)
         self.log = log
         self.blocks = {}
         self.blocks_by_prev = {} # { prevhash => [blkhash1, blkhash2, ...], ...}
         
     def __contains__(self, hash):  
         return hash in self.blocks
-
+    
+    def contains_block(self, blkhash):
+        return hash in self.blocks
+    
     def add_block(self, sender, hash, block):
         self.blocks[hash] = (sender, hash, block)
         if block.blockheader.hash_prev not in self.blocks_by_prev:
             self.blocks_by_prev[block.blockheader.hash_prev] = []
         self.blocks_by_prev[block.blockheader.hash_prev].append(hash)
-    
+        self.fire(self.EVT_ADDED_ORPHAN_BLOCK, hash=hash)
+        
     def get_block(self, blkhash):
         return self.blocks[blkhash]
+
+    def contains(self, blkhash):
+        return blkhash in self.blocks
+
 
     def get_orphan_root(self, blkhash):
         while blkhash in self.blocks:
@@ -41,6 +54,7 @@ class OrphanBlockPool():
                 del self.blocks_by_prev[blkhash]
         for sender, hash, block in result:
             del self.blocks[hash]
+            self.fire(self.EVT_REMOVED_ORPHAN_BLOCK, hash=hash)
         return result
 '''
 

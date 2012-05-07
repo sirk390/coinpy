@@ -76,6 +76,7 @@ class ConnectionManager(asyncore.dispatcher, Observable):
         remote_addr = SockAddr(remote_ip, remote_port)
         handler = self.connection_factory.create_connection(remote_addr, sock=sock)
         handler.subscribe(handler.EVT_DISCONNECT, self.on_peer_disconnected)
+        self.peers[remote_addr] = handler
         self.connected_peers.add(handler)
         self.log.info("Peer Accepted(%s) (peers:%d)" % ( remote_addr, len(self.connected_peers))) 
         self.fire(self.EVT_CONNECTED_PEER, handler=handler, outbound=False)

@@ -137,14 +137,14 @@ class Blockchain(Observable):
         yield block_handle
         
     @asynch_method      
-    def _connect_tx(self, tx, height):
+    def _connect_tx(self, tx, height, mark_spent=True):
         txhash = hash_tx(tx)
         for index in range(len(tx.in_list)):
-            yield self._connect_txin(tx, txhash, index, height)
+            yield self._connect_txin(tx, txhash, index, height, mark_spent)
         yield
 
     @asynch_method      
-    def _connect_txin(self, tx, txhash, index, height):
+    def _connect_txin(self, tx, txhash, index, height, mark_spent=True):
         txin = tx.in_list[index]
         #fetch inputs
         txprev_handle = self.database.get_transaction_handle(txin.previous_output.hash)
@@ -162,7 +162,8 @@ class Blockchain(Observable):
             spending_tx = txprev_handle.get_spending_transaction(txin.previous_output.index)
             raise Exception( "Output allready spent at height:%d, tx:%s. Output:%s:%d of block:%s allready spent in tx:%s of block:%s" %(height, str(txhash), str(txin.previous_output.hash), txin.previous_output.index, str(txprev_handle.get_block().hash), spending_tx.hash, str(spending_tx.get_block().hash)))
         #mark spent
-        txprev_handle.mark_spent(txin.previous_output.index, True, txhash)
+        if mark_spent:
+            txprev_handle.mark_spent(txin.previous_output.index, True, txhash)
         #self.log.info("txin %s:%d connected" % (str(txin.previous_output.hash), txin.previous_output.index))    
         yield None
         
