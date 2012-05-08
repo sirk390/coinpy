@@ -7,7 +7,6 @@ Created on 13 Feb 2012
 from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
 from coinpy.model.genesis import GENESIS
 from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
-from coinpy.lib.bitcoin.blockchain_with_pools import BlockchainWithPools
 from coinpy.node.network.bitcoin_port import BITCOIN_PORT
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.database.bsddb_env import BSDDBEnv
