@@ -41,7 +41,7 @@ class VersionExchangeService():
         status = self.version_statuses[event.handler]
         status.version_received = True
         status.version_message = event.message
-        self.log.info("received version (%s: %d)" % (str(event.handler), event.message.version))
+        self.log.debug("received version (%s: %d)" % (str(event.handler), event.message.version))
         if (not self.is_supported_version(event.message.version)):
             self.log.warning("version %d not supported" % (event.message.version))
             self.node.misbehaving(event.handler, "version %d not supported" % (event.message.version))
@@ -52,7 +52,7 @@ class VersionExchangeService():
         self.check_version_exchanged(event.handler)
         
     def __on_verack(self, event):
-        self.log.info("received verack (%s)" % (str(event.handler)))
+        self.log.debug("received verack (%s)" % (str(event.handler)))
         status = self.version_statuses[event.handler]
         #if (not status.sent_version or status.verack_received):
         #    event.source.handle_close()
@@ -90,13 +90,13 @@ class VersionExchangeService():
                      nonce=self.params.nonce, 
                      sub_version_num=self.params.sub_version_num,
                      start_height=self.get_blockchain_height())
-        self.log.info("Sending version(%s): %s" % (handler.sockaddr, version))
+        self.log.debug("Sending version(%s): %s" % (handler.sockaddr, version))
         self.version_statuses[handler].version_sent = True
         handler.send_message(version)
 
     def send_verack(self, handler):
         verack = VerackMessage()
-        self.log.info("Sending verack(%s): %s" % (handler.sockaddr, verack))
+        self.log.debug("Sending verack(%s): %s" % (handler.sockaddr, verack))
         self.version_statuses[handler].verack_sent = True
         handler.send_message(VerackMessage()) 
          
