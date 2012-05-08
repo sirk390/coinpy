@@ -50,7 +50,6 @@ class BlockchainDownloader():
 
     #1/keep up with peer heights in version exchanges    
     def on_version_exchange(self, event):
-        self.requested_blocks[event.handler] = set()
         peer_heigth = event.version_message.start_height
         my_height = self.blockchain.get_height()
         if (peer_heigth > my_height and self.firstrequest):
@@ -72,11 +71,13 @@ class BlockchainDownloader():
                     if (not self.blockchain.contains_block(item.hash) and 
                         not item.hash in self.requested_blocks):
                         items.append(item)
-        if items:
-            self.items_to_download.append([peer, items])
-            
-        if self.items_to_download:
-            self._download_items()
+        self.node.send_message(peer, GetdataMessage(items))
+        self.log.info("Downloading items: %d block from %s: (%s...)" % 
+                      (len([i for i in items if i.type == INV_BLOCK]), 
+                       str(peer),
+                       ",".join([str(i.hash) for i in items[:5]])))
+        for item in items:
+            self.requested_blocks[item.hash] = peer
         self.sending_getblocks = False
 
     def push_getblocks(self, peer, end_hash):
@@ -96,12 +97,11 @@ class BlockchainDownloader():
         peer, message = event.handler, event.message
         hash = hash_block(message.block)
         self.log.debug("on_block : %s" % (str(hash)))
-        if (hash not in self.requested_blocks[peer]):
-            #self.node.misbehaving(peer, "peer sending unrequest 'block' : %s" % hash)
+        if (hash not in self.requested_blocks):
             self.misbehaving(peer, "peer sending unrequest 'block' : %s" % hash)
             return
-        self.requested_blocks[peer].remove(hash)
-        if not self.requested_blocks[peer]:
+        del self.requested_blocks[hash]
+        if not self.requested_blocks:
             self.downloading = False
         self.blocks_to_process.append( (peer, hash, message.block))
         self.start_processing()
@@ -148,26 +148,13 @@ class BlockchainDownloader():
         self.blocks_to_process = deque(filter(lambda (p, hash, blk): p != peer, self.blocks_to_process))
         self.getblock_to_send = deque(filter(lambda (p, end_hash): p != peer, self.getblock_to_send))        
         self.items_to_download = deque(filter(lambda (p, items): p != peer, self.items_to_download))   
-        if peer in self.requested_blocks:
-            self.requested_blocks[peer].clear()
+        req_blocks = [blkhash for blkhash, peer in self.requested_blocks.iteritems()]
+        for blkhash in req_blocks:
+            del self.requested_blocks[blkhash]
         
     def on_peer_disconnected(self, event):
         self.cleanup_peer_tasks(event.handler)
-        
-    def _download_items(self):
-        self.downloading = True
-        #all blocks must be processed or INV continue might not find an orphan block
-        peer, items = self.items_to_download.pop()
-        self.log.info("Downloading items: %d block from %s: (%s...)" % 
-                      (len([i for i in items if i.type == INV_BLOCK]), 
-                       str(peer),
-                       ",".join([str(i.hash) for i in items[:5]])))
-            
-        self.node.send_message(peer, GetdataMessage(items))
-        for item in items:
-            if (item.type == INV_BLOCK):
-                self.requested_blocks[peer].add(item.hash)
-
+ 
     
     @asynch_method
     def accept_block(self, sender, hash, block):
