@@ -12,6 +12,7 @@ from coinpy.tools.reactor.asynch import asynch_method
 from coinpy_client.view.action_cancelled import ActionCancelledException
 from coinpy.tools.reactor.reactor import reactor
 
+#note: could use TextEntryDialog + wx.TE_PASSWORD
 class EnterPassphraseView(wx.Dialog):
     def __init__(self, parent, size=(250, 150)):
         wx.Dialog.__init__(self, parent, size=size, title="Enter Passphrase", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)

@@ -31,7 +31,7 @@ if __name__ == '__main__':
     data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
     params = ClientParams(runmode=runmode, 
                           data_directory=data_directory,
-                          findpeers=False,
+                          findpeers=True,
                           seeds=[SockAddr("127.0.0.1", 7000)])
     coinpy_gui_client(get_config_params(params))
 

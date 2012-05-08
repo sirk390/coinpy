@@ -68,7 +68,7 @@ class SendView(wx.Dialog, Observable):
 if __name__ == '__main__':
     from coinpy.tools.reactor.reactor import Reactor
     app = wx.App(False)
-    s = SendView(None, None)
+    s = SendView(None)
     def validate(event):
         print "validating..."
         s.close()

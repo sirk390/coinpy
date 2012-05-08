@@ -19,3 +19,9 @@ class MessageView():
         dlg = wx.MessageDialog(self.parent, message, title, wx.OK|wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
+
+if __name__ == '__main__':
+    app = wx.App(False)
+    messages = MessageView(None)
+    messages.info("hello", "title")
+    messages.error("error", "title")

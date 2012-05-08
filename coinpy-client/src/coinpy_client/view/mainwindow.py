@@ -194,7 +194,7 @@ class MainWindow(wx.Frame, Observable):
         
 if __name__ == '__main__':
     app = wx.App(False)
-    mainwindow = MainWindow(None, None, size=(1000,400))
+    mainwindow = MainWindow(None, size=(1000,400))
     mainwindow.Show()
     app.MainLoop()
        

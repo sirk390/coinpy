@@ -162,7 +162,7 @@ if __name__ == '__main__':
     
     app = wx.App(False)
     frame = wx.Frame(None)
-    wallet_panel = WalletPanel(None, frame)
+    wallet_panel = WalletPanel(frame)
     wallet_panel.add_key("1", "public_key1", "private_key2", "adress1", "decription")
     frame.Show()
     app.MainLoop()

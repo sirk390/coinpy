@@ -71,7 +71,7 @@ class ReceiveView(wx.Dialog, Observable):
 if __name__ == '__main__':
     from coinpy.tools.reactor.reactor import Reactor
     app = wx.App(False)
-    r = ReceiveView(None, None)
+    r = ReceiveView(None)
     r.set_receive_address("mhFwRrjRNt8hYeWtm9LwqCpCgXjF38RJqn")
     r.open()
     app.MainLoop()
