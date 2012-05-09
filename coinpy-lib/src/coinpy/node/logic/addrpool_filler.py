@@ -19,13 +19,12 @@ AddrPoolFiller fills 'addr_pool' until it contains 'min_addrpool_size' addresses
         bootstrapping if no peers are connected
 """
 class AddrPoolFiller():
-    def __init__(self, bootstrapper, addr_pool, min_addrpool_size=10):
+    def __init__(self, node, bootstrapper, addr_pool, min_addrpool_size=10):
         self.bootstrapper = bootstrapper
         self.addr_pool = addr_pool
         self.min_addrpool_size = min_addrpool_size
         self.bootstrapper.subscribe(self.bootstrapper.EVT_FOUND_PEER, self.on_bootstrapped_peer)
     
-    def install(self, node):
         self.node = node
         self.node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_ADDR), self.on_addr)
         self.node.subscribe(VersionExchangeService.EVT_VERSION_EXCHANGED, self.on_version_exchanged)

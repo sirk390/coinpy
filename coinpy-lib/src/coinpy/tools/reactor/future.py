@@ -21,7 +21,9 @@ class Future(object):
         self.error = exc
         if self.callback:
             reactor.call(self.callback, *self.callback_args, error=self.error, result=self.result)
-        
+        else:
+            print self.error
+            
     def set_result(self, result):
         self.completed = True
         self.success = True

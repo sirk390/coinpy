@@ -21,21 +21,12 @@ Handles the following tasks:
 class BasicNode(Node):
     def __init__(self, get_blockchain_height, params, log, findpeers=True):
         super(BasicNode, self).__init__(params, log)
-        self.addr_pool = AddrPool()
         
-        self.add_service(PeerReconnector(self.addr_pool, min_connections=params.targetpeers))
-        self.version_service = VersionExchangeService(get_blockchain_height, params, log)
-        self.add_service(self.version_service)
-        if findpeers:
-            self.bootstrapper = Bootstrapper(params.runmode, self.log)
-            self.add_service(AddrPoolFiller(self.bootstrapper, self.addr_pool))
+        self.version_service = VersionExchangeService(self, get_blockchain_height, params, log)
         
     def emit_message(self, eventtype, **args): 
         self.fire(eventtype, **args)
-        
-    def add_service(self, service): 
-        service.install(self)
-            
+                    
     def misbehaving(self, handler, reason):
         self.log.warning("peer misbehaving: %s" % reason)
         self.addr_pool.misbehaving(handler.sockaddr, reason)

@@ -7,12 +7,11 @@ Created on 26 Feb 2012
 import time
 
 class PeerReconnector():
-    def __init__(self, addrpool, min_connections=4):
+    def __init__(self, node, addrpool, min_connections=4):
         self.addrpool = addrpool
         self.min_connections = min_connections
         self.connecting_peers = set()
         
-    def install(self, node):
         self.node = node
         self.node.subscribe(self.node.EVT_CONNECTED, self.on_peer_connected)
         self.node.subscribe(self.node.EVT_DISCONNECTED, self.on_peer_disconnected)

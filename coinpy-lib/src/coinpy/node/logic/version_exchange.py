@@ -18,7 +18,8 @@ class VersionExchangeService():
     EVT_VERSION_EXCHANGED = Observable.createevent()
     EVT_MESSAGE = Observable.createevent()
             
-    def __init__(self, get_blockchain_height, params, log):
+    def __init__(self, node, get_blockchain_height, params, log):
+        self.node = node
         self.params = params
         self.log = log
         self.get_blockchain_height = get_blockchain_height
@@ -26,9 +27,6 @@ class VersionExchangeService():
         self.version_exchanged_nodes = set()
         #todo: remove usage of node.params and node.addr_me
         self.addr_me = Netaddr(self.params.enabledservices, "192.168.1.1", 78)
-
-    def install(self, node):
-        self.node = node
         self.node.subscribe(node.EVT_BASIC_MESSAGE, self.on_message)
         self.node.subscribe(node.EVT_CONNECTED, self.__on_connected)
            

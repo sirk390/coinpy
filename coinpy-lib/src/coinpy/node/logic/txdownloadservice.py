@@ -30,7 +30,6 @@ class TxDownloadService(Observable):
         self.requested_tx = {}
         self.txverifier = TxVerifier(self.blockchain.database.runmode)
         
-    def install(self, node):
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_INV), self.on_inv)
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_TX), self.on_tx)
         
@@ -58,12 +57,22 @@ class TxDownloadService(Observable):
         try:
             yield self.verified_add_tx(message.tx)
         except Exception as e:
-            self.log.error("peer sending errorneous 'tx':" + str(e))
+            self.log.error("peer %s sending errorneous 'tx': %s" %(str(peer), str(e)))
             self.misbehaving(peer, "peer sending errorneous 'tx': ")
+        #relay transaction
+        
+    def misbehaving(self, peer, reason):
+        self.cleanup_peer_tasks()
+        self.node.misbehaving(peer, reason)
+
+    def cleanup_peer_tasks(self, peer):
+        toremove = [txhash for txhash, p in self.requested_tx.iteritems() if p==peer]
+        for h in toremove:
+            del self.requested_tx[txhash]
             
     def on_peer_disconnected(self, event):
-        pass
-    
+        self.cleanup_peer_tasks(event.handler)
+
     @asynch_method
     def verified_add_tx(self, tx):
         txhash = hash_tx(tx)
@@ -74,10 +83,7 @@ class TxDownloadService(Observable):
             raise Exception("Coinbase transactions aren't allowed in memory pool")
         self.log.info("Connecting tx %s" % str(txhash))
         yield self.blockchain._connect_tx(tx, self.blockchain.get_height() + 1, False)
-        #todo: 1/check for conflicts / replace transactions
         
-        # 2/check for non-standard pay-to-script-hash in inputs
-        # 3/check minimum fees
         self.log.info("Adding tx %s" % str(tx))
         self.txpool.add_tx(txhash, tx)
         

@@ -22,7 +22,7 @@ from coinpy.lib.bitcoin.pools.orphanblockpool import OrphanBlockPool
 class BlockchainDownloader():
     # TODO: protect againts hosts that don't respond to GETDATA(timeout => misbehaving)
     # or don't respond to GETBLOCKS(much harder)
-    def __init__(self, blockchain,  node, log):
+    def __init__(self, node, blockchain, log):
         self.blockchain = blockchain
         self.node = node
         self.log = log
@@ -39,8 +39,7 @@ class BlockchainDownloader():
         self.blockverifier = BlockVerifier(self.blockchain.database.runmode)
         self.orphanblocks =  OrphanBlockPool(log)
         
-    def install(self, node):
-        #assert VersionExchangeService is installed?
+        #assert VersionExchangeService is used?
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_INV), self.on_inv)
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_BLOCK), self.on_block)
         
@@ -69,15 +68,17 @@ class BlockchainDownloader():
                     #push_getblocks(peer, item.hash)
                 else:
                     if (not self.blockchain.contains_block(item.hash) and 
-                        not item.hash in self.requested_blocks):
+                        not item.hash in self.requested_blocks and 
+                        not self.is_queued_for_processing(item.hash)):
                         items.append(item)
-        self.node.send_message(peer, GetdataMessage(items))
-        self.log.info("Downloading items: %d block from %s: (%s...)" % 
+        if items:
+            self.node.send_message(peer, GetdataMessage(items))
+            self.log.info("Downloading items: %d block from %s: (%s...)" % 
                       (len([i for i in items if i.type == INV_BLOCK]), 
                        str(peer),
                        ",".join([str(i.hash) for i in items[:5]])))
-        for item in items:
-            self.requested_blocks[item.hash] = peer
+            for item in items:
+                self.requested_blocks[item.hash] = peer
         self.sending_getblocks = False
 
     def push_getblocks(self, peer, end_hash):
@@ -92,6 +93,12 @@ class BlockchainDownloader():
         self.log.info("requesting blocks from %s, block locator: %s" % (str(peer), str(locator)))
         request = GetblocksMessage(locator, end_hash)
         self.node.send_message(peer, request)
+    
+    def is_queued_for_processing(self, blkhash):
+        for peer, h, blk in self.blocks_to_process:
+            if h == blkhash:
+                return True
+        return False
         
     def on_block(self, event):
         peer, message = event.handler, event.message

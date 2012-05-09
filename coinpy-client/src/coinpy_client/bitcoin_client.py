@@ -24,6 +24,10 @@ from coinpy.node.bitcoin_node import BitcoinNode
 from coinpy.tools.reactor.asyncore_plugin import AsyncorePlugin
 from coinpy.tools.reactor.reactor import reactor
 from coinpy.lib.bitcoin.pools.transactionpool import TransactionPool
+from coinpy.node.addrpool import AddrPool
+from coinpy.node.logic.peer_reconnector import PeerReconnector
+from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
+from coinpy.node.logic.addrpool_filler import AddrPoolFiller
 
 
 
@@ -43,7 +47,7 @@ class BitcoinClient():
         self.database = BSDDbBlockChainDatabase(self.log, self.dbenv, clientparams.runmode)
         self.database.open_or_create(GENESIS[clientparams.runmode])
         self.blockchain = Blockchain(self.log, self.database)
-        # Pools
+        # Transaction Pool
         self.txpool = TransactionPool()
         # Node
         nodeparams = NodeParams(runmode=clientparams.runmode,
@@ -53,10 +57,17 @@ class BitcoinClient():
                                 nonce=clientparams.nonce,
                                 sub_version_num=clientparams.sub_version_num,
                                 targetpeers=clientparams.targetpeers)
-        self.node = BitcoinNode(self.blockchain, self.txpool, nodeparams, self.log, clientparams.get("findpeers", True))
-        # Add seeds
+        self.node = BitcoinNode(self.blockchain, self.txpool, nodeparams, self.log)
+        # Address Pool
+        self.addr_pool = AddrPool()
+        if clientparams.get("findpeers", True):
+            self.bootstrapper = Bootstrapper(clientparams.runmode, self.log)
+            self.addrpool_filler = AddrPoolFiller(self.node, self.bootstrapper, self.addr_pool)
         for sockaddr in clientparams.seeds:
-            self.node.addr_pool.addpeer(sockaddr)
+            self.addr_pool.addpeer(sockaddr)
+        # Reconnector
+        self.peer_reconnector = PeerReconnector(self.node, self.addr_pool, min_connections=clientparams.targetpeers)
+        
         # Wallets
         self.account_set = AccountSet()
         

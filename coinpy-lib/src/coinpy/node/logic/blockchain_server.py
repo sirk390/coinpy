@@ -24,7 +24,6 @@ class BlockchainServer(Observable):
         self.log = log
         self.hash_continue = None
 
-    def install(self, node):
         node.subscribe(VersionExchangeService.EVT_VERSION_EXCHANGED, self.on_version_exchanged)      
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_GETDATA), self.on_getdata)
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_GETBLOCKS), self.on_getblocks)
