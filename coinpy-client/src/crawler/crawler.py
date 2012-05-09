@@ -72,7 +72,10 @@ class BitcoinCrawler():
         self._connect_new_peers()
         
     def on_found_peer(self, event):
-        self.new_addrs.add(event.peeraddress)
+        addr = event.peeraddress
+        if ((addr not in self.new_addrs) and (addr not in self.processing_addrs) and 
+            (addr not in self.success_addrs) and (addr not in self.failed_addrs)):
+            self.new_addrs.add(addr)
         self._connect_new_peers()
         
     def on_version_exchanged(self, event):
