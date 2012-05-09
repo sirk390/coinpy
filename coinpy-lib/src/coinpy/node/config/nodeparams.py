@@ -18,7 +18,6 @@ class NodeParams(object):
                  enabledservices=SERVICES_NODE_NETWORK,
                  nonce=0,
                  sub_version_num="mybitcoin",
-                 targetpeers=5,
 #    The below parameters limit the number of allowed sig_op per transaction script.
 #    
 #    Verifying ECDSA signatures is very CPU intensive so setting this parameter 
@@ -42,7 +41,6 @@ class NodeParams(object):
         self.enabledservices = enabledservices
         self.nonce = nonce
         self.sub_version_num = sub_version_num
-        self.targetpeers = targetpeers
         
         self.max_script_sig_op_count = max_script_sig_op_count
         self.max_script_multisig_op_count = max_script_multisig_op_count

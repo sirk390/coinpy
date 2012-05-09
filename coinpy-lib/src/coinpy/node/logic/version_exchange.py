@@ -40,10 +40,6 @@ class VersionExchangeService():
         status.version_received = True
         status.version_message = event.message
         self.log.debug("received version (%s: %d)" % (str(event.handler), event.message.version))
-        if (not self.is_supported_version(event.message.version)):
-            self.log.warning("version %d not supported" % (event.message.version))
-            self.node.misbehaving(event.handler, "version %d not supported" % (event.message.version))
-            return
         self.send_verack(event.handler)
         if (not event.handler.isoutbound):
             self.send_version(event.handler)
@@ -98,7 +94,3 @@ class VersionExchangeService():
         self.version_statuses[handler].verack_sent = True
         handler.send_message(VerackMessage()) 
          
-    def is_supported_version(self, version):
-        return (version >= 32000) #or 32200?
-
-

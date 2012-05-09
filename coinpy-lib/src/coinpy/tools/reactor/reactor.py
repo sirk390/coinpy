@@ -82,7 +82,7 @@ class Reactor():
                 fn, args = item
                 fn(*args)
                 if repeat:
-                    heapq.heappush(self.scheduled_workqueue, (t + self.scheduled_tasks[item], item)) 
+                    heapq.heappush(self.scheduled_workqueue, (t + self.scheduled_tasks[item], item, repeat)) 
             if not haswork:
                 time.sleep(0.05)
                 

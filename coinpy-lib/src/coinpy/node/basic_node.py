@@ -19,7 +19,7 @@ Handles the following tasks:
     - keep a list of banned peers.
 """
 class BasicNode(Node):
-    def __init__(self, get_blockchain_height, params, log, findpeers=True):
+    def __init__(self, get_blockchain_height, params, log):
         super(BasicNode, self).__init__(params, log)
         
         self.version_service = VersionExchangeService(self, get_blockchain_height, params, log)

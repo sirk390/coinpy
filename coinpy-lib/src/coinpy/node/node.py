@@ -55,6 +55,9 @@ class Node(Observable):
     def connect_peer(self, addr):
         self.connection_manager.connect_peer(addr)
           
+    def disconnect_peer(self, addr):
+        self.connection_manager.disconnect_peer(addr)
+          
     def send_message(self, peer, message):
         peer.send_message(message)
 
