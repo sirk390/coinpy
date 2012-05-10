@@ -28,6 +28,7 @@ class TxDownloadService(Observable):
         self.log = log
         self.items_to_download = deque()
         self.requested_tx = {}
+        self.orphan_tx = {}
         self.txverifier = TxVerifier(self.blockchain.database.runmode)
         
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_INV), self.on_inv)
@@ -39,8 +40,9 @@ class TxDownloadService(Observable):
         peer, message = event.handler, event.message
         for item in message.items:
             if item.type == INV_TX:
-                if (not self.txpool.contains_transaction(item.hash) and not
-                    item.hash in self.requested_tx):
+                if (not self.txpool.contains_transaction(item.hash) and 
+                    not item.hash in self.requested_tx and 
+                    not item.hash in self.orphan_tx):
                     self.requested_tx[item.hash] = peer
                     self.log.info("Downloading transactions from %s: %s" % (str(peer), str(item)))
                     self.node.send_message(peer, GetdataMessage([item]))
@@ -54,6 +56,7 @@ class TxDownloadService(Observable):
             self.misbehaving(peer, "peer sending unrequest 'tx'")
             return
         del self.requested_tx[hash]
+        #check for orphan transactions
         try:
             yield self.verified_add_tx(message.tx)
         except Exception as e:
@@ -62,7 +65,7 @@ class TxDownloadService(Observable):
         #relay transaction
         
     def misbehaving(self, peer, reason):
-        self.cleanup_peer_tasks()
+        self.cleanup_peer_tasks(peer)
         self.node.misbehaving(peer, reason)
 
     def cleanup_peer_tasks(self, peer):
@@ -81,6 +84,14 @@ class TxDownloadService(Observable):
         self.txverifier.basic_checks(tx)
         if tx.iscoinbase():
             raise Exception("Coinbase transactions aren't allowed in memory pool")
+        #check for orphan transactions.
+        contains_txins = [self.blockchain.contains_transaction(txin.previous_output.hash) for txin in tx.in_list]
+        if not all(contains_txins):
+            self.log.info("Adding orphan tx %s" % str(txhash))
+            self.orphan_tx[txhash] = tx
+            self.fire(self.EVT_ADDED_ORPHAN_TX, hash=txhash)
+            return
+        
         self.log.info("Connecting tx %s" % str(txhash))
         yield self.blockchain._connect_tx(tx, self.blockchain.get_height() + 1, False)
         

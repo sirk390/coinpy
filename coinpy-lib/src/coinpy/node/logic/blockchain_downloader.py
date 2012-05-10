@@ -148,14 +148,14 @@ class BlockchainDownloader():
             self._process_getblocks()
     
     def misbehaving(self, peer, reason):
-        self.cleanup_peer_tasks()
+        self.cleanup_peer_tasks(peer)
         self.node.misbehaving(peer, reason)
 
     def cleanup_peer_tasks(self, peer):
         self.blocks_to_process = deque(filter(lambda (p, hash, blk): p != peer, self.blocks_to_process))
         self.getblock_to_send = deque(filter(lambda (p, end_hash): p != peer, self.getblock_to_send))        
         self.items_to_download = deque(filter(lambda (p, items): p != peer, self.items_to_download))   
-        req_blocks = [blkhash for blkhash, peer in self.requested_blocks.iteritems()]
+        req_blocks = [blkhash for blkhash, p in self.requested_blocks.iteritems() if p == peer]
         for blkhash in req_blocks:
             del self.requested_blocks[blkhash]
         
