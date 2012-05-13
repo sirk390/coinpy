@@ -9,7 +9,7 @@ from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 from coinpy.lib.script.standard_script_tools import tx_pubkeyhash_get_address,\
     identify_script, tx_pubkey_get_pubkey
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.lib.bitcoin.address import BitcoinAddress
+from coinpy.lib.bitcoin.address import BitcoinAddress, extract_txout_address
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.outpoint import Outpoint
 import time
@@ -155,7 +155,7 @@ class Wallet(Observable):
         for hash, wallet_tx in self.wallet_database.get_wallet_txs().iteritems():
             debit = self.get_debit_tx(wallet_tx)
             for txout in wallet_tx.merkle_tx.tx.out_list:
-                address = self.extract_adress(txout, self.runmode)
+                address = extract_txout_address(txout, self.runmode)
                 name = ""
                 #print self.get_names()
                 #print encode_base58check(chr(ADDRESSVERSION[self.runmode]) + address)
@@ -183,20 +183,10 @@ class Wallet(Observable):
     def have_key_for_addresss(self, address):
         return (address in self.addresses)
 
-    
-    def extract_adress(self, txout, runmode):
-        script_type = identify_script(txout.script)
-        # if unknown script type, return None
-        if (script_type is None): 
-            return None 
-        if script_type == TX_PUBKEYHASH:
-            return BitcoinAddress(tx_pubkeyhash_get_address(txout.script), self.runmode)
-        if script_type == TX_PUBKEY:
-            return BitcoinAddress.from_publickey(tx_pubkey_get_pubkey(txout.script), self.runmode)
-        return None 
+
     
     def is_passphrase_required(self, txout):
-        address = self.extract_adress(txout, self.runmode)
+        address = extract_txout_address(txout, self.runmode)
         _, is_crypted = self.addresses[address]
         return is_crypted
     
@@ -210,7 +200,7 @@ class Wallet(Observable):
         Requires unlock() if this key in encrypted  """
 
     def get_txout_private_key_secret(self, txout):
-        address = self.extract_adress(txout, self.runmode)
+        address = extract_txout_address(txout, self.runmode)
         public_key, is_crypted = self.addresses[address]
         return self.get_private_key_secret(public_key)
     
@@ -236,7 +226,7 @@ class Wallet(Observable):
         
 
     def is_mine(self, txout):
-        address = self.extract_adress(txout, self.runmode)
+        address = extract_txout_address(txout, self.runmode)
         if not address: # if unknown script type, return False
             return False
         return self.have_key_for_addresss(address)
@@ -251,7 +241,7 @@ class Wallet(Observable):
         # Fix to be implemented in main client, see wallet.cpp:390
         # current bad assumption is that any payment to a TX_PUBKEYHASH that
         # is mine but isn't in the address book is change. 
-        address = self.extract_adress(txout, self.runmode)
+        address = extract_txout_address(txout, self.runmode)
         return self.is_mine(txout) and (address not in self.get_names())
   
     def get_master_keys(self):

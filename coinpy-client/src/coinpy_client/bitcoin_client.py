@@ -55,8 +55,7 @@ class BitcoinClient():
                                 version=60000,
                                 enabledservices=SERVICES_NODE_NETWORK,
                                 nonce=clientparams.nonce,
-                                sub_version_num=clientparams.sub_version_num,
-                                targetpeers=clientparams.targetpeers)
+                                sub_version_num=clientparams.sub_version_num)
         self.node = BitcoinNode(self.blockchain, self.txpool, nodeparams, self.log)
         # Address Pool
         self.addr_pool = AddrPool()

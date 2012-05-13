@@ -15,12 +15,11 @@ class NodePresenter():
         node.subscribe(node.EVT_CONNECTING, self.on_connecting_peer)
         node.subscribe(node.EVT_DISCONNECTED, self.on_disconnected_peer)
         node.subscribe(VersionExchangeService.EVT_VERSION_EXCHANGED, self.on_version_exchange)
-        #
-        for peer in self.node.connection_manager.connecting_peers:
-            self.view.add_peer(peer.sockaddr)
-        for peer in self.node.connection_manager.connected_peers:
-            self.view.add_peer(peer.sockaddr)
-            self.view.set_peer_status(peer.sockaddr, "Connected", (230, 255, 230))
+        #for peer in self.node.connection_manager.connecting_peers:
+        #    self.view.add_peer(peer.sockaddr)
+        #for peer in self.node.connection_manager.connected_peers:
+        #    self.view.add_peer(peer.sockaddr)
+        #    self.view.set_peer_status(peer.sockaddr, "Connected", (230, 255, 230))
         
     def on_connecting_peer(self, event):    
         self.view.add_peer(event.handler.sockaddr)

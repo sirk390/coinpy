@@ -5,11 +5,7 @@ Created on 17 Sep 2011
 @author: kris
 """
 from coinpy.node.node import Node
-from coinpy.node.addrpool import AddrPool
-from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
-from coinpy.node.logic.peer_reconnector import PeerReconnector
 from coinpy.node.logic.version_exchange import VersionExchangeService
-from coinpy.node.logic.addrpool_filler import AddrPoolFiller
 
 """BasicNode: bootstrap, maintain basic peer network connections. 
 
@@ -29,6 +25,6 @@ class BasicNode(Node):
                     
     def misbehaving(self, handler, reason):
         self.log.warning("peer misbehaving: %s" % reason)
-        self.addr_pool.misbehaving(handler.sockaddr, reason)
-        self.connection_manager.disconnect_peer(handler.sockaddr)
+        #self.addr_pool.misbehaving(handler.sockaddr, reason)
+        #self.connection_manager.disconnect_peer(handler.sockaddr)
 

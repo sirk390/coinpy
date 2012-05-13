@@ -37,7 +37,6 @@ class BitcoinCrawler():
         self.node.subscribe(VersionExchangeService.EVT_VERSION_EXCHANGED, self.on_version_exchanged)
         self.node.subscribe(Node.EVT_DISCONNECTED, self.on_disconnected)
         self.node.subscribe((VersionExchangeService.EVT_MESSAGE,MSG_ADDR), self.on_addr)
-        self.node.subscribe((VersionExchangeService.EVT_MESSAGE,MSG_ADDR), self.on_addr)
         self.bootstrapper.subscribe(Bootstrapper.EVT_FOUND_PEER, self.on_found_peer)
 
         for sockaddr in seeds:

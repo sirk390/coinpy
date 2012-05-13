@@ -10,6 +10,9 @@ from coinpy.tools.bitcoin.base58check import encode_base58check,\
     decode_base58check
 from coinpy.model.protocol.runmode import RUNMODE_NAMES
 from coinpy.tools.hex import hexstr
+from coinpy.lib.script.standard_script_tools import identify_script,\
+    tx_pubkeyhash_get_address, tx_pubkey_get_pubkey
+from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 
 class InvalidBitcoinAddress(Exception):
     pass
@@ -67,6 +70,20 @@ class BitcoinAddress():
             return False
         return (addr.runmode == runmode)
 
+
+
+def extract_txout_address(txout, runmode):
+    script_type = identify_script(txout.script)
+    # if unknown script type, return None
+    if (script_type is None): 
+        return None 
+    if script_type == TX_PUBKEYHASH:
+        return BitcoinAddress(tx_pubkeyhash_get_address(txout.script), runmode)
+    if script_type == TX_PUBKEY:
+        return BitcoinAddress.from_publickey(tx_pubkey_get_pubkey(txout.script), runmode)
+    return None 
+
+    
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import TESTNET, MAIN
     from coinpy.tools.hex import decodehexstr
