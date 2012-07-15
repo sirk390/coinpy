@@ -119,27 +119,42 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
             blockindex = self.indexdb.get_blockindex(hash)
             yield (hash, blockindex)
             hash = blockindex.blockheader.hash_prev
-        
-    def set_mainchain(self, new_mainchain_hash):
-        hashfork = self._find_fork(new_mainchain_hash)
-        #set hash_next to 0 in previous mainchain and unindex transactions
-        for hash, blkindex in self._iterate_branch(hashfork, self.indexdb.get_hashbestchain()):
+
+    def reorganize(self, reorganize_update):
+        old_afterfork_hash, old_afterfork_block = reorganize_update.old_mainchain[0]
+        new_mainchain_besthash, new_mainchain_bestblock = reorganize_update.new_mainchain[-1]
+        hashfork = old_afterfork_block.blockheader.hash_prev
+        #Unindex transactions in old mainchain
+        for hash, blk in reorganize_update.old_mainchain:
+            blkindex = self.indexdb.get_blockindex(hash)
+            self._unindex_transactions(hash)
+        #Set hash_next to 0 in old mainchain
+        for hash, blk in reorganize_update.old_mainchain:
+            blkindex = self.indexdb.get_blockindex(hash)
             blkindex.hash_next = Uint256.zero()
             self.indexdb.set_blockindex(hash, blkindex)
-            self._unindex_transactions(hash)
-        #set hash_next to next in new mainchain and index transactions
+        #Remove the blocks of the old mainchain    
+        for hash, blk in reorganize_update.old_mainchain:
+            pass #self.append_block(hash, blk)
+        #Add the blocks of the new mainchain    
+        for hash, blk in reorganize_update.new_mainchain:
+            self.append_block(hash, blk)
+        #Index transactions in new mainchain    
+        for hash, blk in reorganize_update.new_mainchain:
+            self._index_transactions(hash)
+        #Set hash_next to 'next' in new mainchain
         next = Uint256.zero()
-        for hash, blkindex in self._iterate_branch(hashfork, new_mainchain_hash):
+        for hash, blkindex in reversed(reorganize_update.new_mainchain):
+            blkindex = self.indexdb.get_blockindex(hash)
             blkindex.hash_next = next
             self.indexdb.set_blockindex(hash, blkindex)
             next = hash
-            self._index_transactions(hash)
         #set next of fork
         blkindex = self.indexdb.get_blockindex(hashfork)
         blkindex.hash_next = next
         self.indexdb.set_blockindex(hashfork, blkindex)
         #set hashbestchain
-        self.indexdb.set_hashbestchain(new_mainchain_hash)
+        self.indexdb.set_hashbestchain(new_mainchain_besthash)
 
     def is_mainchain(self, hash):
         pass

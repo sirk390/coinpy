@@ -5,7 +5,8 @@ Created on 18 Jun 2011
 @author: kris
 """
 from coinpy.model.protocol.services import SERVICES_NONE
-from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_VERACK
+from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_VERACK,\
+    MESSAGE_NAMES
 from coinpy.model.protocol.messages.verack import VerackMessage
 from coinpy.model.protocol.messages.version import VersionMessage
 import time
@@ -62,7 +63,7 @@ class VersionExchangeService():
             self.__on_verack(event)
             return
         if (event.handler not in self.version_exchanged_nodes):
-            self.log.warning("peer %s sent message before message exchanging version" % (str(event.handler)))
+            self.log.warning("peer %s sent message of type %s before message exchanging version" % (str(event.handler), MESSAGE_NAMES[event.message.type]))
             return
         handler, message = event.handler, event.message
         self.node.emit_message(self.EVT_MESSAGE, message=message, handler=handler)

@@ -6,6 +6,14 @@ Created on 26 Feb 2012
 """
 import time
 
+"""
+check supported version?
+        if (not self.is_supported_version(event.message.version)):
+            self.log.warning("version %d not supported" % (event.message.version))
+            self.node.misbehaving(event.handler, "version %d not supported" % (event.message.version))
+            return
+
+"""
 class PeerReconnector():
     def __init__(self, node, addrpool, min_connections=4):
         self.addrpool = addrpool
@@ -17,6 +25,8 @@ class PeerReconnector():
         self.node.subscribe(self.node.EVT_DISCONNECTED, self.on_peer_disconnected)
         self.addrpool.subscribe(self.addrpool.EVT_ADDED_ADDR, self.on_added_addr)
         self.check_connection_count()
+
+
            
     def on_peer_connected(self, event):
         self.addrpool.log_success(time.time(), event.handler.sockaddr)

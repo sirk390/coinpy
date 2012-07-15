@@ -22,7 +22,7 @@ def process_coroutines(gen, future, result=None, error=None):
         future.set_result(result)
         return
     except Exception as e:
-        #print traceback.format_exc()
+        print traceback.format_exc()
         future.set_error( (e, traceback.format_exc()) )
         return
     if type(result) is Future:

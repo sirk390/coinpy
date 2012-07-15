@@ -18,6 +18,7 @@ from coinpy.model.protocol.structures.blocklocator import BlockLocator
 from coinpy.tools.reactor.asynch import asynch_method
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.runmode import TESTNET
+from coinpy.lib.bitcoin.blockchain.blockchain_update import Reorganize, Append
 
 class Blockchain(Observable):
     EVT_APPENDED_BLOCK = Observable.createevent()
@@ -32,10 +33,8 @@ class Blockchain(Observable):
         super(Blockchain, self).__init__()
         self.log = log
         self.database = database
-        self.vm = TxValidationVM()
         
         #set of unit256(): Not currency persisted as not supported by blkindex.dat
-        self.alternate_branches = set()
         
     def contains_transaction(self, transaction_hash):
         return self.database.contains_transaction(transaction_hash)
@@ -43,56 +42,62 @@ class Blockchain(Observable):
     def get_transaction_handle(self, transaction_hash):
         return self.database.get_transaction_handle(transaction_hash)
     
-    def get_branch(self, lasthash, firsthash=None):
-        return Branch(self.log, self.database, lasthash, firsthash)
-     
-    @asynch_method      
-    def appendblock(self, blockhash, block):
+    """ return a list of (hash, block) from firsthash(not included) to lasthash """ 
+    def get_branch_blocks(self, lasthash, firsthash=None):
+        blocks = []
+        pos = self.get_block_handle(lasthash)
+        while pos.hasprev() and pos.hash != firsthash:
+            blocks.append((pos.hash, pos.get_block()))
+            pos = self.database.get_block_handle(pos.blockindex.blockheader.hash_prev)
+        blocks.reverse()
+        return blocks
+
+    """ Return (txout, height, iscoinbase) corresponding to an outpoint """
+    def get_outpoint(self, outpoint):
+        tx_handle = self.database.get_transaction_handle(outpoint.hash)
+        tx = tx_handle.get_transaction()
+        if not (0 <= outpoint.index < len(tx.out_list)):
+            return  Exception("Outpoint not found")
+        return (tx.out_list[outpoint.index], tx_handle.get_block().get_height(), tx.iscoinbase())
+
+
+    def get_work_after_block(self, blckhash):
+        pos = self.database.get_block_handle(self.get_bestblock())
+        work = 0
+        while pos.hasprev() and pos.hash != blckhash:
+            blockheader = pos.get_blockheader()
+            work += blockheader.work()
+            pos = self.database.get_block_handle(blockheader.hash_prev)
+        return work
+    
+    def apply_modifications(self, updates):
         self.database.begin_updates()
-        try:
-            prev = self.database.get_block_handle(block.blockheader.hash_prev)
-            self.log.debug("current height: %s, mainchain: %s" % (str(self.get_height()), str(self.database.get_mainchain())))
-            self.log.debug("prev height: %s" % str(prev.get_height()))
-            append_altbranch = (prev.hash != self.database.get_mainchain())
-            reorganize = False
-            if append_altbranch:
-                self.log.debug("Appending to altbranch")
-                if prev.hash in self.alternate_branches:
-                    self.alternate_branches.remove(prev.hash)
-                mainchain_parent = self.get_mainchain_parent(prev.hash)
-                altchain = self.get_branch(prev.hash, mainchain_parent.hash)
-                mainchain = self.get_branch(self.database.get_mainchain(), mainchain_parent.hash)
-                if (altchain.work() + block.blockheader.work() > mainchain.work()):
-                    self.log.info("Reorganize")
-                    
-                    reorganize = True
-                    for blk in mainchain:
-                        yield self._disconnect_block(blk)
-                    #set_mainchain is required after disconnecting (as disconnect still requires transaction from old mainchain) 
-                    #and before connecting (as _connect_block requires transactions from new alternate chain)
-                    self.database.set_mainchain(prev.hash) 
-                    for blk in altchain.foreward_iterblocks():
-                        yield self._connect_block(blk)
-            block_handle = self.database.append_block(blockhash, block)
-            if not append_altbranch or reorganize:
-                yield self._connect_block(block_handle)
-            else:
-                self.alternate_branches.add(blockhash)
-        except Exception as err:
-            self.log.error(traceback.format_exc())
-            self.database.cancel_updates()
-            raise
+        for upd in updates:
+            if type(upd) is Reorganize:
+                for blkhash, blk in reversed(upd.old_mainchain):
+                    self._mark_blockinputs_spent(blk, False)
+                self.database.reorganize(upd) 
+                for blkhash, blk in upd.new_mainchain:
+                    self._mark_blockinputs_spent(blk, True)
+            if type(upd) is Append:
+                self.database.append_block(upd.blockhash, upd.block)
         self.database.commit_updates()
-        # fire events after commit
-        if (reorganize):
-            self.fire(self.EVT_REORGANIZE)
-        if not append_altbranch:
-            self.fire(self.EVT_APPENDED_BLOCK, block=block, blockhash=blockhash)
-            self._fire_connect_block_events(block, blockhash)
-        if not append_altbranch or reorganize:
-            self.fire(self.EVT_NEW_HIGHEST_BLOCK, block=block, blockhash=blockhash, height=block_handle.get_height())
-        yield block_handle
-        
+    
+        for upd in updates:
+            if type(upd) is Append:
+                self.fire(self.EVT_NEW_HIGHEST_BLOCK,  blkhash=upd.blockhash, height=self.get_height())
+            if type(upd) is Reorganize:
+                for blkhash, blk in upd.new_mainchain:
+                    self.fire(self.EVT_NEW_HIGHEST_BLOCK, blkhash=blkhash, height=self.get_height())
+                
+    def _mark_blockinputs_spent(self, block, spent=True):
+        for tx in block.transactions:
+            txhash = hash_tx(tx)
+            if not tx.iscoinbase():        
+                for txin in tx.in_list:
+                    txprev_handle = self.database.get_transaction_handle(txin.previous_output.hash)
+                    txprev_handle.mark_spent(txin.previous_output.index, spent, txhash)
+
     def _fire_connect_block_events(self, block, blockhash):
         self.fire(self.EVT_CONNECTED_BLOCK, block=block, blockhash=blockhash)
         for tx in block.transactions:
@@ -121,60 +126,8 @@ class Blockchain(Observable):
         handlebest = self.database.get_block_handle(self.database.get_mainchain())
         return handlebest.get_height()
      
-    def _disconnect_block(self, block_handle):
-        for tx in block_handle.get_block().transactions:
-            if not tx.iscoinbase():
-                for txin in tx.in_list:
-                    tx = self.database.get_transaction_handle(txin.previous_output.hash)
-                    tx.mark_spent(txin.previous_output.index, False)
-
-    @asynch_method      
-    def _connect_block(self, block_handle):
-        #self.log.info("Connecting block : %d (%d transactions)" % (block_handle.get_height(), len(block_handle.get_block().transactions)))    
-        for tx in block_handle.get_block().transactions:
-            if not tx.iscoinbase():
-                self._connect_tx(tx, block_handle.get_height())
-        yield block_handle
-        
-    @asynch_method      
-    def _connect_tx(self, tx, height, mark_spent=True):
-        txhash = hash_tx(tx)
-        for index in range(len(tx.in_list)):
-            yield self._connect_txin(tx, txhash, index, height, mark_spent)
-        yield
-
-    @asynch_method      
-    def _connect_txin(self, tx, txhash, index, height, mark_spent=True):
-        txin = tx.in_list[index]
-        #fetch inputs
-        txprev_handle = self.database.get_transaction_handle(txin.previous_output.hash)
-        txprev = txprev_handle.get_transaction()
-        #check matured coinbase.
-        if (txprev.iscoinbase()):
-            blockprev = txprev_handle.get_block()
-            if (height - blockprev.get_height() < COINBASE_MATURITY):
-                raise Exception("#trying to spend unmatured coins.")
-        #verify scripts
-        if not self.vm.validate(tx, index, txprev.out_list[txin.previous_output.index].script, tx.in_list[index].script):
-            raise Exception("input scritp/signature validation failed")
-        #check double-spend
-        if (txprev_handle.is_output_spent(txin.previous_output.index)):
-            spending_tx = txprev_handle.get_spending_transaction(txin.previous_output.index)
-            raise Exception( "Output allready spent at height:%d, tx:%s. Output:%s:%d of block:%s allready spent in tx:%s of block:%s" %(height, str(txhash), str(txin.previous_output.hash), txin.previous_output.index, str(txprev_handle.get_block().hash), spending_tx.hash, str(spending_tx.get_block().hash)))
-        #mark spent
-        if mark_spent:
-            txprev_handle.mark_spent(txin.previous_output.index, True, txhash)
-        #self.log.info("txin %s:%d connected" % (str(txin.previous_output.hash), txin.previous_output.index))    
-        yield None
-        
-    def get_mainchain_parent(self, blockhash):
-        handle = self.database.get_block_handle(blockhash)
-        while not handle.is_mainchain() and handle.hasprev():
-            handle = self.database.get_block_handle(handle.get_blockheader().hash_prev)
-        return handle
-    
     def get_block_locator(self):
-        block_locator = list(self.alternate_branches) # TODO: reset alternate_branches during rebranches?
+        block_locator = []
         it = BlockIterator(self.database, self.database.get_mainchain())
         stepsize = 1
         while (it.hash != self.database.genesishash):
@@ -185,11 +138,11 @@ class Blockchain(Observable):
                 i += 1
             stepsize*= 2
             #tmp speedup hack
-            #if stepsize >= 256:
+            #if stepsize >= 128:
             #    break           
         block_locator.append(self.database.genesishash)
         return BlockLocator(1, block_locator)
-    
+
     # Get testnet work required after 15 Feb 2012
     def get_testnet_work_required_15feb1012(self, blkprev, block):
         #If there is not block during 2*TARGET_SPACING, reset difficulty to min-difficilty

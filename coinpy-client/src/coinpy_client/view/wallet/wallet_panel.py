@@ -146,7 +146,7 @@ class WalletPanel(wx.Panel, Observable):
     def set_confirmed(self, id, confirmed):
         itemdata = self.tx_history_items[id]
         index = self.txhistory_list.FindItemData(-1, itemdata)
-        self.txhistory_list.SetStringItem(index, 4, confirmed)
+        self.txhistory_list.SetStringItem(index, 4, confirmed and "Yes" or "No")
         if confirmed:
             self.txhistory_list.SetItemBackgroundColour(index, (255, 255, 255))
         else:

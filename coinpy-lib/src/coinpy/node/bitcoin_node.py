@@ -18,11 +18,11 @@ Support of:
 The class depends on the blockchain, but not on the wallet. 
 """
 class BitcoinNode(BasicNode):
-    def __init__(self, blockchain, txpool, params, log):
-        super(BitcoinNode, self).__init__(lambda : 0, params, log)
+    def __init__(self, blockchain, txpool, process_pool, params, log):
+        super(BitcoinNode, self).__init__(blockchain.get_height, params, log)
         self.blockchain = blockchain
         self.txpool = txpool
         self.blockserver = BlockchainServer(self, blockchain, self.txpool, log)
-        self.blockdl = BlockchainDownloader(self, blockchain, self.log)
-        self.txdl = TxDownloadService(self, blockchain, self.txpool, log)
+        self.blockdl = BlockchainDownloader(self, blockchain, process_pool, self.log)
+        self.txdl = TxDownloadService(self, blockchain, self.txpool, process_pool, log)
 

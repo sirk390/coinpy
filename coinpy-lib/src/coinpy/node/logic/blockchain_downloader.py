@@ -18,14 +18,16 @@ from coinpy.node.logic.version_exchange import VersionExchangeService
 from coinpy.model.protocol.messages.inv import InvMessage
 from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
 from coinpy.lib.bitcoin.pools.orphanblockpool import OrphanBlockPool
+from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 
 class BlockchainDownloader():
     # TODO: protect againts hosts that don't respond to GETDATA(timeout => misbehaving)
     # or don't respond to GETBLOCKS(much harder)
-    def __init__(self, node, blockchain, log):
+    def __init__(self, node, blockchain, process_pool, log):
         self.blockchain = blockchain
         self.node = node
         self.log = log
+        self.process_pool = process_pool
         
         self.requested_blocks = {}
         
@@ -42,6 +44,8 @@ class BlockchainDownloader():
         #assert VersionExchangeService is used?
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_INV), self.on_inv)
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_BLOCK), self.on_block)
+
+        self.blockchain.subscribe (Blockchain.EVT_NEW_HIGHEST_BLOCK, self.on_new_heighest_block)
         
         self.node.subscribe (VersionExchangeService.EVT_VERSION_EXCHANGED, self.on_version_exchange)
         self.node.subscribe (Node.EVT_DISCONNECTED, self.on_peer_disconnected)
@@ -122,6 +126,12 @@ class BlockchainDownloader():
             self.log.debug("start_processing")
             self.processing_block = True
             self._process_blocks()
+    
+    def on_new_heighest_block(self, event):
+        # relay blocks to peers
+        for p in self.node.version_service.version_exchanged_nodes:
+            if event.height > self.node.version_service.version_statuses[p].version_message.start_height - 2000:
+                self.node.send_message(p, InvMessage([Invitem(INV_BLOCK, event.blkhash)]))
 
     @asynch_method
     def _process_blocks(self):
@@ -129,13 +139,10 @@ class BlockchainDownloader():
             peer, hash, block = self.blocks_to_process.popleft()
             self.log.debug("processing block : %s" % (hash))
             try:
-                added_block_handles = yield self.accept_block(peer, hash, block)
-                # relay blocks to peers
-                for h in added_block_handles:
-                    for p in self.node.version_service.version_exchanged_nodes:
-                        if h.get_height() > self.node.version_service.version_statuses[p].version_message.start_height - 2000:
-                            self.node.send_message(peer, InvMessage([Invitem(INV_BLOCK, h.hash)]))
+                yield self.accept_block(peer, hash, block)
             except Exception as e:
+                traceback.print_exc()
+                print e
                 self.log.error(traceback.format_exc())
                 self.misbehaving(peer, str(e))
                 return
@@ -162,7 +169,6 @@ class BlockchainDownloader():
     def on_peer_disconnected(self, event):
         self.cleanup_peer_tasks(event.handler)
  
-    
     @asynch_method
     def accept_block(self, sender, hash, block):
         if hash in self.orphanblocks or self.blockchain.contains_block(hash):
@@ -178,7 +184,6 @@ class BlockchainDownloader():
             #request missing blocks from this peer
             if not self.getblock_to_send and not self.sending_getblocks:
                 self.push_getblocks(sender, missing_hash)
-            yield []
             return
         #TODO: Check timestamp
         #if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
@@ -195,5 +200,6 @@ class BlockchainDownloader():
     @asynch_method
     def add_to_blockchain(self, blkhash, block):
         #Checks-2 (done after finding the parent block)
-        self.blockverifier.accept_block(blkhash, block, self.blockchain)
-        yield self.blockchain.appendblock(blkhash, block)
+        #self.blockverifier.accept_block(blkhash, block, self.blockchain)
+        yield self.blockchain.append_block(blkhash, block, self.process_pool)
+        

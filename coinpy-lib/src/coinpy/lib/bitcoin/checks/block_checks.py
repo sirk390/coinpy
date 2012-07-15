@@ -90,8 +90,6 @@ class BlockVerifier():
         if (blockchain.get_next_work_required(prevblockhandle.hash, block) != block.blockheader.bits):
             raise Exception("Incorrect difficulty target, found:%08x != required:%08x in block %s" % (block.blockheader.bits, blockchain.get_next_work_required(prevblockhandle.hash, block), hash) )
 
-            #self.log.info("Incorrect difficulty target: %08x != %08x" % (block.blockheader.bits, prevblockiter.get_next_work_required()))
-            #incorrect_blocks.append((sender, block, "Incorrect difficulty target: %08x != %08x" % (block.blockheader.bits, prevblockiter.get_next_work_required())))
         
     def check_timestamp(self, blockchain, prevblockhandle, hash, block):
         if (block.blockheader.time <= blockchain.get_median_time_past(prevblockhandle.hash)):

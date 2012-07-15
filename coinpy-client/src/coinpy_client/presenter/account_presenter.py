@@ -102,8 +102,10 @@ class AccountPresenter():
             self.messages_view.error("Unable to decrypt the private keys: please verify the passphrase and try again.")
         except ActionCancelledException:
             pass
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
+            self.messages_view.error("Error while sending transaction: %s" % (str(e)))
+            
             
 
     @asynch_method  

@@ -13,6 +13,7 @@ from coinpy.tools.functools import first
 from coinpy.model.protocol.messages.block import BlockMessage
 from coinpy.model.protocol.messages.inv import InvMessage
 from coinpy.node.logic.version_exchange import VersionExchangeService
+from coinpy.lib.bitcoin.hash_block import hash_block
 
 
 class BlockchainServer(Observable):
@@ -44,6 +45,8 @@ class BlockchainServer(Observable):
             if inv.type == INV_BLOCK and self.blockchain.contains_block(inv.hash):
                 block = self.blockchain.get_block(inv.hash)
                 self.node.send_message(event.handler, BlockMessage(block))
+                self.log.debug("sending block: %s" % (str(hash_block(block))))
+                    
                 if self.hash_continue and inv.hash == self.hash_continue:
                     hash_best = self.blockchain.database.get_mainchain()
                     self.log.info("sending hashContinue: %s" % (str(hash_best)))

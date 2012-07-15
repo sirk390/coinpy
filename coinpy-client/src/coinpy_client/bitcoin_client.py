@@ -6,9 +6,6 @@ Created on 13 Feb 2012
 """
 from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
 from coinpy.model.genesis import GENESIS
-from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
-from coinpy.node.network.bitcoin_port import BITCOIN_PORT
-from coinpy.node.network.sockaddr import SockAddr
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 import os
 from coinpy.node.transaction_publisher import TransactionPublisher
@@ -21,13 +18,13 @@ from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 import logging.handlers
 from coinpy.tools.bsddb.bsddb_file_id import bsddb_read_file_uid
 from coinpy.node.bitcoin_node import BitcoinNode
-from coinpy.tools.reactor.asyncore_plugin import AsyncorePlugin
-from coinpy.tools.reactor.reactor import reactor
 from coinpy.lib.bitcoin.pools.transactionpool import TransactionPool
 from coinpy.node.addrpool import AddrPool
 from coinpy.node.logic.peer_reconnector import PeerReconnector
 from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
 from coinpy.node.logic.addrpool_filler import AddrPoolFiller
+from coinpy.lib.bitcoin.blockchain.blockchain_with_altbranches import BlockchainWithAltbranches
+import multiprocessing
 
 
 
@@ -46,9 +43,11 @@ class BitcoinClient():
         # Blockchain
         self.database = BSDDbBlockChainDatabase(self.log, self.dbenv, clientparams.runmode)
         self.database.open_or_create(GENESIS[clientparams.runmode])
-        self.blockchain = Blockchain(self.log, self.database)
+        self.blockchain = BlockchainWithAltbranches(self.log, self.database)
         # Transaction Pool
         self.txpool = TransactionPool()
+        # Processpool
+        self.process_pool = multiprocessing.Pool(multiprocessing.cpu_count())
         # Node
         nodeparams = NodeParams(runmode=clientparams.runmode,
                                 port=clientparams.port,
@@ -56,9 +55,10 @@ class BitcoinClient():
                                 enabledservices=SERVICES_NODE_NETWORK,
                                 nonce=clientparams.nonce,
                                 sub_version_num=clientparams.sub_version_num)
-        self.node = BitcoinNode(self.blockchain, self.txpool, nodeparams, self.log)
+        self.node = BitcoinNode(self.blockchain, self.txpool, self.process_pool, nodeparams, self.log)
         # Address Pool
         self.addr_pool = AddrPool()
+        # Bootstrapper, AddrPoolFiller
         if clientparams.get("findpeers", True):
             self.bootstrapper = Bootstrapper(clientparams.runmode, self.log)
             self.addrpool_filler = AddrPoolFiller(self.node, self.bootstrapper, self.addr_pool)
@@ -66,7 +66,6 @@ class BitcoinClient():
             self.addr_pool.addpeer(sockaddr)
         # Reconnector
         self.peer_reconnector = PeerReconnector(self.node, self.addr_pool, min_connections=clientparams.targetpeers)
-        
         # Wallets
         self.account_set = AccountSet()
         

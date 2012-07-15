@@ -20,7 +20,7 @@ class TxDownloadService(Observable):
     EVT_ADDED_ORPHAN_TX = Observable.createevent()
     EVT_REMOVED_ORPHAN_TX = Observable.createevent()
     
-    def __init__(self, node, blockchain, txpool, log):
+    def __init__(self, node, blockchain, txpool, process_pool, log):
         Observable.__init__(self)
         self.node = node
         self.blockchain = blockchain
@@ -29,6 +29,7 @@ class TxDownloadService(Observable):
         self.items_to_download = deque()
         self.requested_tx = {}
         self.orphan_tx = {}
+        self.process_pool = process_pool
         self.txverifier = TxVerifier(self.blockchain.database.runmode)
         
         node.subscribe((VersionExchangeService.EVT_MESSAGE, MSG_INV), self.on_inv)
@@ -93,8 +94,7 @@ class TxDownloadService(Observable):
             return
         
         self.log.info("Connecting tx %s" % str(txhash))
-        yield self.blockchain._connect_tx(tx, self.blockchain.get_height() + 1, False)
-        
+        self.blockchain.connect_pool_tx(tx, self.blockchain.get_height() + 1, self.process_pool)
         self.log.info("Adding tx %s" % str(tx))
         self.txpool.add_tx(txhash, tx)
-        
+        yield

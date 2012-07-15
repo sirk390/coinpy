@@ -18,6 +18,9 @@ class TransactionPool(Observable):
         
     def add_tx(self, txhash, tx):
         self.txs[txhash] = tx
+        # todo: 1/ check for conflicts / replace transactions
+        # 2/ check for non-standard pay-to-script-hash in inputs
+        # 3/ check minimum fees
         self.fire(self.EVT_ADDED_TX, hash=txhash)
     
     def remove_tx(self, txhash):

@@ -13,7 +13,7 @@ from coinpy.lib.serialization.structures.s11n_block import BlockSerializer
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 
 BLOCKHEADER_READSIZE=1024
-BLOCK_READSIZE=8*1024
+BLOCK_READSIZE=1024*1024
 TX_READSIZE=8*1024
 
 class BlockStorage:
@@ -71,7 +71,6 @@ class BlockStorage:
             try:
                 block, _ = self.blockheaderserialize.deserialize(data, 0)
             except MissingDataException:
-                #FIXME: infinite loop when end of file
                 data += self._read_data(handle, BLOCKHEADER_READSIZE)
         return (block)
     
