@@ -19,6 +19,7 @@ from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
 from coinpy.lib.database.wallet.crypter.crypter import Crypter
 from coinpy.tools.bitcoin.sha256 import doublesha256
 from coinpy.model.wallet.wallet_poolkey import WalletPoolKey
+from coinpy.model.constants.bitcoin import COIN
 
 # Wrong passphrase, missing passphrase, or missing master_key
 class KeyDecryptException(Exception):
@@ -249,13 +250,13 @@ class Wallet(Observable):
     
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import MAIN, TESTNET
-    from coinpy.tools.reactor.reactor import Reactor
-    dbenv = BSDDBEnv("D:\\repositories\\coinpy\\coinpy-client\\src\\coinpy_client\\data_testnet\\")
-    reactor = Reactor()
-    wallet_db = BSDDBWalletDatabase(dbenv, "wallet_testnet.dat")
-    wallet = Wallet(reactor, wallet_db, TESTNET)
+    dbenv = BSDDBEnv(r"D:\bitcoin\data\testnet\testnet")
+    wallet_db = BSDDBWalletDatabase(dbenv, "wallet.dat")
+    wallet = Wallet(wallet_db, TESTNET)
+    wallet.open()
     
-    print "\n".join([str(s) for s in wallet.iter_my_outputs()])
+    for tx, outpoint, txout in wallet.iter_my_outputs():
+        print extract_txout_address(txout, TESTNET), (txout.value / COIN)
     #for date, address, name, amount in wallet.iter_transaction_history():
     #    print date, address, name, amount
     #print wallet.get_balance() * 1.0 / COIN 
