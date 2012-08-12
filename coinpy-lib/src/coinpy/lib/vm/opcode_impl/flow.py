@@ -46,6 +46,9 @@ def op_noif(vm, instr):
     else:
         vm.cond_stack.append(False)
 
+def op_return(vm, instr):
+    raise Exception("OP_RETURN: transaction invalid")
+
 '''
 OP_RETURN = 106
 '''

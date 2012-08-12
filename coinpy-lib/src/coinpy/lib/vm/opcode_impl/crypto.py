@@ -137,6 +137,21 @@ def op_checkmultisig(vm, instr):
     del vm.stack[-sig_count:]
     vm.stack.append (valtype_from_boolean(check_multisig(vm, sigs, pubkeys)))
 
+
+def op_checkmultisigverify(vm, instr):
+    op_checkmultisig(vm, instr)
+    op_verify(vm, instr)
+
+
+"""
+OP_SHA1
+"""
+def op_sha1(vm, instr):
+    if (len(vm.stack) < 1):
+        raise Exception("OP_SHA1: Missing argument")
+    x = vm.stack.pop()
+    vm.stack.append(hashlib.sha1(x).digest())
+    
 """
 OP_SHA256
 """

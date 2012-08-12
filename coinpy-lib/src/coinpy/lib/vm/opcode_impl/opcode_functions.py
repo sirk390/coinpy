@@ -5,7 +5,7 @@ Created on 27 Jul 2011
 @author: kris
 """
 from coinpy.model.scripts.opcodes import *
-from coinpy.lib.vm.opcode_impl.reserved import op_not_implemented
+from coinpy.lib.vm.opcode_impl.reserved import op_not_implemented, op_invalid
 from coinpy.lib.vm.opcode_impl.pushdata import * 
 from coinpy.lib.vm.opcode_impl.stack import *
 from coinpy.lib.vm.opcode_impl.bitwise import*
@@ -41,7 +41,7 @@ OPCODE_FUNCTIONS = {
     OP_ELSE : op_else,
     OP_ENDIF : op_endif,
     OP_VERIFY : op_verify,
-    OP_RETURN : op_not_implemented,
+    OP_RETURN : op_return,
 # Stack 
     OP_TOALTSTACK : op_toaltstack,
     OP_FROMALTSTACK : op_fromaltstack,
@@ -63,10 +63,10 @@ OPCODE_FUNCTIONS = {
     OP_2ROT : op_2rot,
     OP_2SWAP : op_2swap,
 # Splice 
-    OP_CAT : op_not_implemented,
-    OP_SUBSTR : op_not_implemented,
-    OP_LEFT : op_not_implemented,
-    OP_RIGHT : op_not_implemented,
+    OP_CAT : op_cat,
+    OP_SUBSTR : op_substr,
+    OP_LEFT : op_left,
+    OP_RIGHT : op_right,
     OP_SIZE : op_size,
 # Bitwise logic 
     OP_INVERT : op_not_implemented,
@@ -105,7 +105,7 @@ OPCODE_FUNCTIONS = {
     OP_WITHIN : op_within,
 # Crypto 
     OP_RIPEMD160 : op_ripemd160,
-    OP_SHA1 : op_not_implemented,
+    OP_SHA1 : op_sha1,
     OP_SHA256 : op_sha256,
     OP_HASH160 : op_hash160,
     OP_HASH256 : op_hash256,
@@ -113,18 +113,18 @@ OPCODE_FUNCTIONS = {
     OP_CHECKSIG : op_checksig,
     OP_CHECKSIGVERIFY : op_checksigverify,
     OP_CHECKMULTISIG : op_checkmultisig,
-    OP_CHECKMULTISIGVERIFY : op_not_implemented,
+    OP_CHECKMULTISIGVERIFY : op_checkmultisigverify,
 # Pseudo-words 
-    OP_PUBKEYHASH : op_not_implemented,
-    OP_PUBKEY : op_not_implemented,
-    OP_INVALIDOPCODE : op_not_implemented,
+    OP_PUBKEYHASH : op_invalid,
+    OP_PUBKEY : op_invalid,
+    OP_INVALIDOPCODE : op_invalid,
 # Reserved words
-    OP_RESERVED : op_not_implemented,
-    OP_VER : op_not_implemented,
-    OP_VERIF : op_not_implemented,
-    OP_VERNOTIF : op_not_implemented,
-    OP_RESERVED1 : op_not_implemented,
-    OP_RESERVED2 : op_not_implemented,
+    OP_RESERVED : op_invalid,
+    OP_VER : op_invalid,
+    OP_VERIF : op_invalid,
+    OP_VERNOTIF : op_invalid,
+    OP_RESERVED1 : op_invalid,
+    OP_RESERVED2 : op_invalid,
     OP_NOP1 : op_nop,
     OP_NOP2 : op_nop,
     OP_NOP3 : op_nop,
