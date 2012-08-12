@@ -4,7 +4,8 @@ Created on 27 Jul 2011
 
 @author: kris
 """
-from coinpy.lib.vm.stack_valtype import cast_to_number
+from coinpy.lib.vm.stack_valtype import cast_to_number, valtype_from_number,\
+    cast_to_bool
 
 """
 OP_DUP:                x -> x x
@@ -96,23 +97,126 @@ def op_over(vm, instr):
         raise Exception("OP_OVER: Not enought arguments")
     vm.stack.append(vm.stack[-2])
 
-'''
-OP_TOALTSTACK = 107
-OP_FROMALTSTACK = 108
-OP_IFDUP = 115
-OP_DEPTH = 116
-OP_DROP = 117
-OP_DUP = 118
-OP_NIP = 119
-OP_OVER = 120
-OP_PICK = 121
-OP_ROLL = 122
-OP_ROT = 123
-OP_SWAP = 124
-OP_TUCK = 125
-OP_2DROP = 109
-OP_2DUP = 110
-OP_3DUP = 111
-OP_2OVER = 112
-OP_2ROT = 113
-OP_2SWAP = 114'''
+
+"""
+OP_IFDUP:                   x   ->   x (x)?
+    If the top stack value is not 0, duplicate it.
+"""
+def op_ifdup(vm, instr):
+    if len(vm.stack) < 1:
+        raise Exception("OP_IFDUP: Not enought arguments")
+    if cast_to_bool(vm.stack[-1]):
+        vm.stack.append(vm.stack[-1])
+
+"""
+OP_DEPTH:                    -> d )
+    Pushes the size of the stqck on the top of the stack.
+"""
+def op_depth(vm, instr):
+    vm.stack.append(valtype_from_number(len(vm.stack)))
+                   
+"""
+OP_NIP:                   x1 x2 -> x2 
+"""
+def op_nip(vm, instr):
+    if len(vm.stack) < 2:
+        raise Exception("OP_NIP: Not enought arguments")
+    x2 = vm.stack.pop()
+    x1 = vm.stack.pop()
+    vm.stack += [x2]
+
+                  
+"""
+OP_PICK:                  (xn ... x2 x1 x0 n - xn ... x2 x1 x0 xn)
+        Pick the element at depths 'n' in the stack and push it on the top
+"""
+def op_pick(vm, instr):
+    if len(vm.stack) < 2:
+        raise Exception("OP_PICK: Not enought arguments")
+    n = cast_to_number(vm.stack.pop())
+    if (n < 0) or (n >= len(vm.stack) ):
+        raise Exception("OP_PICK: N is out of range")
+    elm = vm.stack[-n-1]
+    vm.stack.append(elm)    
+                   
+"""
+OP_ROT:                   x1 x2 x3 -> x2 x3 x1
+    Pushes the size of the stqck on the top of the stack.
+"""
+def op_rot(vm, instr):
+    if len(vm.stack) < 3:
+        raise Exception("OP_ROT: Not enought arguments")
+    x3 = vm.stack.pop()
+    x2 = vm.stack.pop()
+    x1 = vm.stack.pop()
+    vm.stack += [x2, x3, x1]
+
+"""
+OP_2DUP:                   x1 x2 -> x1 x2 x1 x2
+"""
+def op_2dup(vm, instr):
+    if len(vm.stack) < 2:
+        raise Exception("OP_NIP: Not enought arguments")
+    x2 = vm.stack.pop()
+    x1 = vm.stack.pop()
+    vm.stack += [x1, x2, x1, x2]
+
+"""
+OP_2DROP:                  x1 x2 ->
+"""
+def op_2drop(vm, instr):
+    if len(vm.stack) < 2:
+        raise Exception("OP_2DROP: Not enought arguments")
+    vm.stack.pop()
+    vm.stack.pop()
+    
+"""
+OP_3DUP:                  x1 x2 x3 -> x1 x2 x3 x1 x2 x3
+"""
+def op_3dup(vm, instr):
+    if len(vm.stack) < 3:
+        raise Exception("OP_3DUP: Not enought arguments")
+    x3 = vm.stack.pop()
+    x2 = vm.stack.pop()
+    x1 = vm.stack.pop()
+    vm.stack += [x1, x2, x3, x1, x2, x3]
+    
+"""
+OP_2OVER:                  x1 x2 x3 x4 -> x1 x2 x3 x4 x1 x2       
+"""
+def op_2over(vm, instr):
+    if len(vm.stack) < 4:
+        raise Exception("OP_2OVER: Not enought arguments")
+    x4 = vm.stack.pop()
+    x3 = vm.stack.pop()
+    x2 = vm.stack.pop()
+    x1 = vm.stack.pop()
+    vm.stack += [x1, x2, x3, x4, x1, x2]
+
+"""
+OP_2ROT:                  x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2      
+"""
+def op_2rot(vm, instr):
+    if len(vm.stack) < 6:
+        raise Exception("OP_2ROT: Not enought arguments")
+    x6 = vm.stack.pop()
+    x5 = vm.stack.pop()
+    x4 = vm.stack.pop()
+    x3 = vm.stack.pop()
+    x2 = vm.stack.pop()
+    x1 = vm.stack.pop()
+    vm.stack += [x3, x4, x5, x6, x1, x2]
+
+
+"""
+OP_2SWAP:                 x1 x2 x3 x4 -> x3 x4 x1 x2 
+"""
+def op_2swap(vm, instr):
+    if len(vm.stack) < 4:
+        raise Exception("OP_2SWAP: Not enought arguments")
+    x4 = vm.stack.pop()
+    x3 = vm.stack.pop()
+    x2 = vm.stack.pop()
+    x1 = vm.stack.pop()
+    vm.stack += [x3, x4, x1, x2]
+                 

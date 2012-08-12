@@ -28,9 +28,9 @@ class IntructionSerializer(Serializer):
         if instr.opcode == OP_PUSHDATA1: 
             return (chr(instr.opcode) + base256encode(len(instr.data), pad=1) + instr.data)
         if instr.opcode == OP_PUSHDATA2:
-            return (chr(instr.opcode) + base256encode(len(instr.data), pad=2) + instr.data)
+            return (chr(instr.opcode) + base256encode(len(instr.data), pad=2)[::-1] + instr.data)
         if instr.opcode == OP_PUSHDATA4:
-            return (chr(instr.opcode) + base256encode(len(instr.data), pad=4) + instr.data)
+            return (chr(instr.opcode) + base256encode(len(instr.data), pad=4)[::-1] + instr.data)
         raise Exception("Unknown PUSHDATA opcode")
     
     def _get_size_pushdata(self, instr):
@@ -46,14 +46,14 @@ class IntructionSerializer(Serializer):
         
     def _deserialize_pushdata_data(self, op, datalength, data, pos):
         if (len(data) < pos + datalength):
-            raise MissingDataException("pushdata data")
+            raise MissingDataException("pushdata data required %d bytes remaining %d ", datalength, len(data)-pos)
         return (Instruction(op, data[pos:pos+datalength]), pos+datalength)
     
     def _deserialize_pushdata_length_and_data(self, op, data, pos):
         lenlen = {OP_PUSHDATA1:1, OP_PUSHDATA2:2, OP_PUSHDATA4:4}[op]
         if (len(data) < pos + lenlen):
             raise MissingDataException("pushdata length size")
-        length = base256decode(data[pos:pos+lenlen])
+        length = base256decode(data[pos:pos+lenlen][::-1])
         return (self._deserialize_pushdata_data(op, length, data, pos + lenlen))
         
     def _deserialize_pushdata(self, data, pos):

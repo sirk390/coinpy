@@ -21,6 +21,7 @@ from coinpy.model.scripts.opcodes import OP_PUSHDATA
 from coinpy.lib.script.push_data import auto_push_data_instruction
 from coinpy.model.protocol.structures.tx import Tx
 from coinpy.model.protocol.structures.tx_in import TxIn
+import hashlib
 
 def op_hash160(vm, instr):
     if not vm.stack:
@@ -77,6 +78,7 @@ def checksig(vm, sig_param, pubkey_param):
     tx_tmp.in_list[inputindex].script = current_script
     #serialize and append hash type
     enctx = TxSerializer().serialize(tx_tmp) + chr(hash_type) + b"\x00\x00\x00"
+    
     #print "enctx:", hexstr(enctx)
     #print "sig:", hexstr(sig)
     #print "pubkey:", hexstr(pubkey_param)
@@ -134,14 +136,42 @@ def op_checkmultisig(vm, instr):
     sigs = vm.stack[-sig_count:]
     del vm.stack[-sig_count:]
     vm.stack.append (valtype_from_boolean(check_multisig(vm, sigs, pubkeys)))
+
+"""
+OP_SHA256
+"""
+def op_sha256(vm, instr):
+    if (len(vm.stack) < 1):
+        raise Exception("OP_SHA256: Missing argument")
+    x = vm.stack.pop()
+    vm.stack.append(hashlib.sha256(x).digest())
     
+"""
+OP_RIPEMD160
+"""
+def op_ripemd160(vm, instr):
+    if (len(vm.stack) < 1):
+        raise Exception("OP_RIPEMD160: Missing argument")
+    x = vm.stack.pop()
+    ripemd160 = hashlib.new('ripemd160')
+    ripemd160.update(x)
+    vm.stack.append(ripemd160.digest())
+    
+"""
+OP_HASH256
+"""
+def op_hash256(vm, instr):
+    if (len(vm.stack) < 1):
+        raise Exception("OP_HASH256: Missing argument")
+    x = vm.stack.pop()
+    vm.stack.append(doublesha256(x))
+
 '''
 
 OP_RIPEMD160 = 166
 OP_SHA1 = 167
 OP_SHA256 = 168
 OP_HASH160 = 169
-OP_HASH256 = 170
 OP_CODESEPARATOR = 171
 OP_CHECKSIG = 172
 OP_CHECKSIGVERIFY = 173

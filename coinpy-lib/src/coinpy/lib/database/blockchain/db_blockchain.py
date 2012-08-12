@@ -162,6 +162,9 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
     def get_mainchain(self):
         return self.indexdb.get_hashbestchain()
     
+    def get_genesis(self):
+        return self.genesishash
+    
     def _index_transactions(self, blockhash, block=None):
         block_handle = self.get_block_handle(blockhash)
         #Add all transactions to the indexdb

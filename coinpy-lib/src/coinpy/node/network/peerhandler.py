@@ -27,7 +27,8 @@ class PeerHandler(asyncore.dispatcher, Observable):
  
     def handle_error(self):
         traceback.print_exc()
-            
+        self.handle_close()
+        
     def handle_close(self):
         self.fire(self.EVT_DISCONNECT)
         self.close()

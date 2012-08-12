@@ -36,13 +36,16 @@ def op_endif(vm, instr):
         raise Exception("OP_ENDIF: Missing OP_IF")
     vm.cond_stack.pop()
 
+def op_noif(vm, instr):
+    executed = all(vm.cond_stack)
+    if executed:
+        if (len(vm.stack) < 1):
+            raise Exception("OP_NOTIF: Missing argument")
+        expr = cast_to_bool(vm.stack.pop())
+        vm.cond_stack.append(not expr)
+    else:
+        vm.cond_stack.append(False)
 
 '''
-OP_NOP = 97
-OP_IF = 99
-OP_NOTIF = 100
-OP_ELSE = 103
-OP_ENDIF = 104
-OP_VERIFY = 105
 OP_RETURN = 106
 '''

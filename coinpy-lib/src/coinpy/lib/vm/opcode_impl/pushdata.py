@@ -5,18 +5,19 @@ Created on 27 Jul 2011
 @author: kris
 """
 from coinpy.model.scripts.opcodes import OP_1
+from coinpy.lib.vm.stack_valtype import valtype_from_number
 
 def op_pushdata(vm, instr):
     vm.stack.append(instr.data)
 
 def op_1negate(vm, instr):
-    vm.stack.append(chr(- 1))
+    vm.stack.append(valtype_from_number(-1))
 
 def op_push_0(vm, instr):
-    vm.stack.append("")
+    vm.stack.append(valtype_from_number(0)) # changed from ""
 
 def op_push_1_16(vm, instr):
-    vm.stack.append(chr(instr.opcode - (OP_1 - 1)))
+    vm.stack.append(valtype_from_number(instr.opcode - (OP_1 - 1)))
 
 """
 OP_0 = OP_FALSE = 0

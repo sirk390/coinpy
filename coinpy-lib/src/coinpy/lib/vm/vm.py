@@ -27,11 +27,11 @@ class TxValidationVM():
             self.set_checksig_data(transaction, inputindex, unspent_script)
             self.eval(claim_script)
             self.eval(unspent_script)
-            return (len(self.stack) > 0) and (cast_to_bool(self.stack[-1]) == True)
-        except:
-            #TMP:debugging
-            traceback.print_exc()
-            return (False)
+            if (len(self.stack) > 0) and (cast_to_bool(self.stack[-1]) == True):
+                return (True, "")
+            return (False, "Top of stack doens't contain 'True'")
+        except Exception as e:
+            return (False, traceback.format_exc())
 
     def eval(self, script):
         self.current_script = script

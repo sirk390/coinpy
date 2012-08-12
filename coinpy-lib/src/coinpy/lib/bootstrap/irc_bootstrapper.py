@@ -3,7 +3,7 @@ import struct
 from coinpy.tools.bitcoin.base58check import decode_base58check
 from coinpy.tools.observer import Observable
 from coinpy.lib.bootstrap.irc_handler import IrcHandler
-from coinpy.model.protocol.runmode import MAIN
+from coinpy.model.protocol.runmode import MAIN, TESTNET3, TESTNET
 from coinpy.node.network.sockaddr import SockAddr
 
 class IrcBootstrapper(Observable):
@@ -27,7 +27,9 @@ class IrcBootstrapper(Observable):
             
     def on_irc_connected(self, event):
         self.log.info("Connected to irc server : %s" % (str(self.ircserver)))
-        channel = (self.runmode == MAIN) and '#bitcoin' or '#bitcoinTEST'
+        channel ={MAIN : '#bitcoin',
+                  TESTNET: '#bitcoinTEST',
+                  TESTNET3: '#bitcoinTEST3'}[self.runmode]
         name = "x%u" % random.randint(0, 1000000000) 
         self.irc_handler.send('NICK %s\r\n' % name)
         self.irc_handler.send('USER %s 8 * %s\r\n' % (name,name))
