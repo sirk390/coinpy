@@ -9,6 +9,7 @@ import random
 
 class AddrPool(Observable):
     EVT_ADDED_ADDR = Observable.createevent()
+    EVT_ADDED_BANNED = Observable.createevent()
     def __init__(self):
         super(AddrPool, self).__init__()
         self.known_peers = set()
@@ -31,7 +32,9 @@ class AddrPool(Observable):
     def misbehaving(self, sockaddr, reason):
         if sockaddr in self.known_peers:
             self.known_peers.remove(sockaddr)
-        self.banned_peers.add(sockaddr)
+        if sockaddr not in self.banned_peers:
+            self.fire(self.EVT_ADDED_BANNED, sockaddr=sockaddr, reason=reason)
+            self.banned_peers.add(sockaddr)
     
     '''Get peers from the addr pool.
         

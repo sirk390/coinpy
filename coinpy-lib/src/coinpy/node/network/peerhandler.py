@@ -2,6 +2,7 @@ import asyncore
 import socket
 import traceback
 from coinpy.tools.observer import Observable
+import sys
 
 """
 Note: We are not using dispatcher_with_send as it doesn't take into account 
@@ -11,7 +12,8 @@ This very small feature is reimplemented here.
 class PeerHandler(asyncore.dispatcher, Observable):
     EVT_CONNECT = Observable.createevent()
     EVT_DISCONNECT = Observable.createevent()
-   
+    EVT_ERROR = Observable.createevent()
+    
     def __init__(self, sockaddr, sock=None):
         Observable.__init__(self)
         asyncore.dispatcher.__init__(self, sock=sock)
@@ -26,8 +28,8 @@ class PeerHandler(asyncore.dispatcher, Observable):
         self.fire(self.EVT_CONNECT)
  
     def handle_error(self):
-        traceback.print_exc()
-        self.handle_close()
+        type, value, traceback = sys.exc_info()
+        self.fire(self.EVT_ERROR, error=str(value), handler=self, traceback=str(traceback))
         
     def handle_close(self):
         self.fire(self.EVT_DISCONNECT)

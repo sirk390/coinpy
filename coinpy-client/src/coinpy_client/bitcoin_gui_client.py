@@ -7,7 +7,7 @@ Created on 22 Feb 2012
 #import warnings
 
 #warnings.filterwarnings("error", "integer argument expected")
-from coinpy.model.protocol.runmode import MAIN, TESTNET
+from coinpy.model.protocol.runmode import MAIN, TESTNET, TESTNET3
 import random
 from coinpy_client.view.coinpy_gui import CoinpyGUI
 from coinpy_client.presenter.coinpy_presenter import CoinpyPresenter
@@ -25,13 +25,26 @@ def coinpy_gui_client(client_params):
 if __name__ == '__main__':
     # testnet faucet: mhFwRrjRNt8hYeWtm9LwqCpCgXjF38RJqn
     # old peer : 88.114.198.141:18333
-    runmode=TESTNET
-    data_directory = "data_testnet" if  runmode == TESTNET else "data_main"
+    mode = 2
+    if mode == 1:
+        runmode=TESTNET3
+        data_directory = r"D:\repositories\data\data_testnet_3" 
+        #seeds = [SockAddr("96.241.176.56", 18333)]
+        seeds=[]
+        findpeers = True
+    if mode == 2:
+        runmode=TESTNET
+        data_directory = r"D:\repositories\data\data_testnet" 
+        #seeds = [SockAddr("96.241.176.56", 18333)]
+        seeds=[]
+        findpeers = True
+         
+        
     params = ClientParams(runmode=runmode, 
                           port=2000, #BITCOIN_PORT[runmode],
                           data_directory=data_directory,
-                          findpeers=False,
+                          findpeers=findpeers,
                           #seeds = [SockAddr("178.79.163.96", 18333)])
-                          seeds=[SockAddr("127.0.0.1", 7001)]) #SockAddr("127.0.0.1", 18333)
+                          seeds=seeds) #SockAddr("127.0.0.1", 18333)
     coinpy_gui_client(get_config_params(params))
 

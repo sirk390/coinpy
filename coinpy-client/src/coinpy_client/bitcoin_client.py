@@ -65,7 +65,7 @@ class BitcoinClient():
         for sockaddr in clientparams.seeds:
             self.addr_pool.addpeer(sockaddr)
         # Reconnector
-        self.peer_reconnector = PeerReconnector(self.node, self.addr_pool, min_connections=clientparams.targetpeers)
+        self.peer_reconnector = PeerReconnector(self.log, self.node, self.addr_pool, min_connections=clientparams.targetpeers)
         # Wallets
         self.account_set = AccountSet()
         

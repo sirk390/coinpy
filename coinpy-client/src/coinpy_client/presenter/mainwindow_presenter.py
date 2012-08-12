@@ -22,7 +22,7 @@ class MainWindowPresenter(Observable):
         self.client = client
         self.messages_view = self.mainwindow_view.messages_view
         
-        self.node_presenter = NodePresenter(self.client.node, self.mainwindow_view.node_view)
+        self.node_presenter = NodePresenter(self.client, self.mainwindow_view.node_view)
         self.walletbook_presenter = AccountBookPresenter(self.client, self.client.account_set, self.mainwindow_view.nb_wallet, self.messages_view)
         self.pools_presenter = PoolsPresenter(self.client.node, self.mainwindow_view.pools_view)
         self.blockchain_summary_presenter = BlockchainSummaryPresenter(self.client.blockchain, self.mainwindow_view.blockchain_summary_view)

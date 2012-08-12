@@ -15,13 +15,15 @@ check supported version?
 
 """
 class PeerReconnector():
-    def __init__(self, node, addrpool, min_connections=4):
+    def __init__(self, log, node, addrpool, min_connections=4):
+        self.log = log
         self.addrpool = addrpool
         self.min_connections = min_connections
         self.connecting_peers = set()
         
         self.node = node
         self.node.subscribe(self.node.EVT_CONNECTED, self.on_peer_connected)
+        self.node.subscribe(self.node.EVT_PEER_ERROR, self.on_peer_error)
         self.node.subscribe(self.node.EVT_DISCONNECTED, self.on_peer_disconnected)
         self.addrpool.subscribe(self.addrpool.EVT_ADDED_ADDR, self.on_added_addr)
         self.check_connection_count()
@@ -32,7 +34,13 @@ class PeerReconnector():
         self.addrpool.log_success(time.time(), event.handler.sockaddr)
         if event.handler.sockaddr in self.connecting_peers: #not true for inbound connections
             self.connecting_peers.remove(event.handler.sockaddr)
-        
+    
+    def on_peer_error(self, event):
+        self.log.info("Banning peer %s for error '%s'" %(str(event.handler.sockaddr), str(event.error)))
+        self.addrpool.misbehaving(event.handler.sockaddr, event.error)
+        if event.handler.sockaddr in self.node.peers: # might allready be disconnected (if 2 errors follow each other very fast)
+            self.node.disconnect_peer(event.handler.sockaddr)
+    
     def on_peer_disconnected(self, event):
         addr = event.handler.sockaddr
         if addr in self.connecting_peers:
@@ -41,11 +49,11 @@ class PeerReconnector():
             
     def check_connection_count(self):
         missing_count = int(self.min_connections - \
-                        len(self.node.connection_manager.connected_peers) \
-                        - (len(self.node.connection_manager.connecting_peers) / 2.0))
+                        len(self.node.connected_peers) \
+                        - (len(self.node.connecting_peers) / 2.0))
                         
         if missing_count > 0:
-            connected_or_connecting = set(self.node.connection_manager.peers)
+            connected_or_connecting = set(self.node.peers)
             peeraddrs = self.addrpool.getpeers(missing_count, exclude=connected_or_connecting)
             for peeraddr in peeraddrs:
                 self.node.connect_peer(peeraddr)
