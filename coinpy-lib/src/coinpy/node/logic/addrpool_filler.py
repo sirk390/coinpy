@@ -34,9 +34,9 @@ class AddrPoolFiller():
         
     def check_addrpool(self):
         if len(self.addr_pool.known_peers) < self.min_addrpool_size:
-            if len(self.node.connected_peers):
+            if self.node.connected_peer_count():
                 #take a random connected peer and request more peer addresses
-                peer = random.sample(self.node.connected_peers, 1)[0]
+                peer = random.sample(self.node.peers_with_state(Node.PEER_CONNECTED), 1)[0]
                 self.node.send_message(peer, GetaddrMessage())
             else:
                 #bootstrap

@@ -27,7 +27,9 @@ class Node(asyncore.dispatcher, Observable):
     EVT_CONNECTED = Observable.createevent()
     EVT_PEER_ERROR = Observable.createevent()
     EVT_DISCONNECTED = Observable.createevent()
-            
+    
+    PEER_CONNECTING, PEER_CONNECTED, PEER_DISCONNECTING = PEER_STATES = range(3)
+    
     def __init__(self, params, log):
         Observable.__init__(self)
         asyncore.dispatcher.__init__(self)
@@ -41,18 +43,27 @@ class Node(asyncore.dispatcher, Observable):
         self.bind(('localhost', self.params.port))
         self.listen(5)
         self.log.info("Listening on port :%d " % (self.params.port))
-        self.peers = {}               # addr => handler
-        self.connecting_peers = set() # set(handler,...)
-        self.connected_peers = set()  # set(handler,...)
-        
+        self.peers = {}                  # addr => handler
+        self.peer_states = {}            # handler => state
             
     def disconnect_peer(self, sockaddr):
         handler = self.peers[sockaddr]
+        self.peer_states[handler] = Node.PEER_DISCONNECTING
         handler.clear_incomming_buffers()
         handler.handle_close()
 
     def connected_peer_count(self):
-        return (len(self.connected_peers))
+        return len(self.peers_with_state(Node.PEER_CONNECTED))
+    
+    def connecting_peer_count(self):
+        return len(self.peers_with_state(Node.PEER_CONNECTING))
+
+    def peers_with_state(self, state):
+        result = []
+        for peer, s in self.peer_states.iteritems():
+            if s == state:
+                result.append(peer)
+        return result
     
     def handle_error(self):
         self.log.error(traceback.format_exc())
@@ -66,28 +77,26 @@ class Node(asyncore.dispatcher, Observable):
         handler.subscribe(handler.EVT_CONNECT, self.on_peer_connected)
         handler.subscribe(handler.EVT_DISCONNECT, self.on_peer_disconnected)
         self.peers[sockaddr] = handler
-        self.connecting_peers.add(handler)
+        self.peer_states[handler] = Node.PEER_CONNECTING
         self.fire(self.EVT_CONNECTING, handler=handler)
         
        
     def on_peer_connected(self, event):
-        self.connecting_peers.remove(event.source)
-        self.connected_peers.add(event.source)
-        self.log.info("Peer Connected(%s) (peers:%d)" % ( event.source.sockaddr, len(self.connected_peers))) 
+        self.peer_states[event.source] = Node.PEER_CONNECTED
+        self.log.info("Peer Connected(%s) (peers:%d)" % ( event.source.sockaddr, self.connected_peer_count())) 
         self.fire(self.EVT_CONNECTED, handler=event.source, outbound=True)
         event.source.subscribe(PeerConnection.EVT_NEW_MESSAGE, self.__on_message)
         event.source.subscribe(PeerConnection.EVT_ERROR, self.on_error)
         
 
     def on_peer_disconnected(self, event):
-        if event.source in self.connected_peers:
-            self.connected_peers.remove(event.source)
-            self.log.info("Peer Disconnected(%s) (peers:%d)" % (str(event.source.sockaddr), len(self.connected_peers))) 
-        if event.source in self.connecting_peers:
-            self.connecting_peers.remove(event.source)
+        if self.peer_states[event.source] == Node.PEER_CONNECTED:
+            self.log.info("Peer Disconnected(%s) (peers:%d)" % (str(event.source.sockaddr), self.connected_peer_count())) 
+        if self.peer_states[event.source] == Node.PEER_CONNECTING:
             self.log.info("Connection Failed(%s)" % (str(event.source.sockaddr))) 
         self.fire(self.EVT_DISCONNECTED, handler=event.source)     
         del self.peers[event.source.sockaddr]
+        del self.peer_states[event.source]
         
     def handle_accept(self):
         sock, (remote_ip, remote_port) = self.accept()
@@ -97,13 +106,12 @@ class Node(asyncore.dispatcher, Observable):
         handler.subscribe(PeerConnection.EVT_NEW_MESSAGE, self.__on_message)
         handler.subscribe(PeerConnection.EVT_ERROR, self.on_error)
         self.peers[remote_addr] = handler
-        self.connected_peers.add(handler)
-        self.log.info("Peer Accepted(%s) (peers:%d)" % ( remote_addr, len(self.connected_peers))) 
+        self.peer_states[handler] = Node.PEER_CONNECTED
+        self.log.info("Peer Accepted(%s) (peers:%d)" % ( remote_addr, self.connected_peer_count())) 
         self.fire(self.EVT_CONNECTED, handler=handler, outbound=False)
 
     def send_message(self, peer, message):
         peer.send_message(message)
-
 
     def __on_message(self, event):
         handler, message = event.handler, event.message

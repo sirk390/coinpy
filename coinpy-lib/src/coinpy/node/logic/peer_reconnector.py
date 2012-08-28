@@ -5,6 +5,7 @@ Created on 26 Feb 2012
 @author: kris
 """
 import time
+from coinpy.node.node import Node
 
 """
 check supported version?
@@ -36,9 +37,11 @@ class PeerReconnector():
             self.connecting_peers.remove(event.handler.sockaddr)
     
     def on_peer_error(self, event):
-        self.log.info("Banning peer %s for error '%s'" %(str(event.handler.sockaddr), str(event.error)))
+        self.log.info("Banning peer %s for err '%s'" %(str(event.handler.sockaddr), str(event.error)))
         self.addrpool.misbehaving(event.handler.sockaddr, event.error)
-        if event.handler.sockaddr in self.node.peers: # might allready be disconnected (if 2 errors follow each other very fast)
+        if (event.handler in self.node.peers and
+            self.node.peer_states[event.handler] != Node.PEER_DISCONNECTING): # might allready be disconnecting (if 2 errors follow each other closely)
+            self.log.info("Banning peer %s for error '%s'" %(str(event.handler.sockaddr), str(event.error)))
             self.node.disconnect_peer(event.handler.sockaddr)
     
     def on_peer_disconnected(self, event):
@@ -49,8 +52,8 @@ class PeerReconnector():
             
     def check_connection_count(self):
         missing_count = int(self.min_connections - \
-                        len(self.node.connected_peers) \
-                        - (len(self.node.connecting_peers) / 2.0))
+                        self.node.connected_peer_count() \
+                        - (self.node.connecting_peer_count() / 2.0))
                         
         if missing_count > 0:
             connected_or_connecting = set(self.node.peers)
