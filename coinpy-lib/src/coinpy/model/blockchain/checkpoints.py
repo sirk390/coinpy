@@ -5,7 +5,7 @@ Created on 10 Jan 2012
 @author: kris
 """
 from coinpy.model.protocol.structures.uint256 import Uint256
-from coinpy.model.protocol.runmode import TESTNET, MAIN
+from coinpy.model.protocol.runmode import TESTNET, MAIN, TESTNET3
 
 BLOCKCHAIN_CHECKPOINTS_MAIN = \
 { 11111 :  Uint256.from_hexstr("0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d"),
@@ -19,7 +19,8 @@ BLOCKCHAIN_CHECKPOINTS_MAIN = \
  140700 :  Uint256.from_hexstr("000000000000033b512028abb90e1626d8b346fd0ed598ac0a3c371138dce2bd")}
 
 BLOCKCHAIN_CHECKPOINTS = {   MAIN    : BLOCKCHAIN_CHECKPOINTS_MAIN,
-                             TESTNET : {} }
+                             TESTNET : {},
+                             TESTNET3 : {}  }
 
 def verify_checkpoints(runmode, height, hash):
     checkpoints = BLOCKCHAIN_CHECKPOINTS[runmode]

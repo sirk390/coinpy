@@ -51,7 +51,7 @@ class BitcoinClient():
         # Node
         nodeparams = NodeParams(runmode=clientparams.runmode,
                                 port=clientparams.port,
-                                version=60000,
+                                version=70000,
                                 enabledservices=SERVICES_NODE_NETWORK,
                                 nonce=clientparams.nonce,
                                 sub_version_num=clientparams.sub_version_num)

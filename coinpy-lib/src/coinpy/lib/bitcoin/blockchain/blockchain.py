@@ -17,7 +17,7 @@ from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
 from coinpy.model.protocol.structures.blocklocator import BlockLocator
 from coinpy.tools.reactor.asynch import asynch_method
 from coinpy.tools.observer import Observable
-from coinpy.model.protocol.runmode import TESTNET
+from coinpy.model.protocol.runmode import TESTNET, TESTNET3
 from coinpy.lib.bitcoin.blockchain.blockchain_update import Reorganize, Append
 
 class Blockchain(Observable):
@@ -162,8 +162,8 @@ class Blockchain(Observable):
         # Difficulty changes only once every TARGET_INTERVAL blocks (except for testnet)
         if ((blkprev.get_height() + 1) % TARGET_INTERVAL):
             # Special rules for testnet after 15 Feb 2012
-            if self.database.runmode == TESTNET: 
-                if (block.blockheader.time > 1329264000):
+            if ((self.database.runmode == TESTNET and (block.blockheader.time > 1329264000))  
+                or (self.database.runmode == TESTNET3)):
                     return self.get_testnet_work_required_15feb1012(blkprev, block)
             # Difficulty unchanged
             return (blkprev.get_blockheader().bits)
