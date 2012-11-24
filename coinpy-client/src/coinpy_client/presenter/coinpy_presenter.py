@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Feb 2012
-
-@author: kris
-"""
-
 from coinpy_client.presenter.mainwindow_presenter import MainWindowPresenter
 from coinpy.tools.reactor.reactor import reactor
 

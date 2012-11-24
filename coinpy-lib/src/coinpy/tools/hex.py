@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Jun 2011
-
-@author: kris
-"""
 
 def printablechar(c):
     return ((32 <= ord(c) <= 126) and c or ".")

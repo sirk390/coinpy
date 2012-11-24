@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 10 Feb 2012
-
-@author: kris
-"""
 from coinpy.model.constants.bitcoin import COINBASE_MATURITY, TARGET_INTERVAL,\
     TARGET_TIMESPAN, PROOF_OF_WORK_LIMIT, MEDIAN_TIME_SPAN, TARGET_SPACING
 from coinpy.lib.bitcoin.hash_tx import hash_tx

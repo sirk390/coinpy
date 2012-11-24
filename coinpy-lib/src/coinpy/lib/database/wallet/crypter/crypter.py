@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 19 Apr 2012
-
-@author: kris
-"""
 import ctypes
 from coinpy.tools.crypto.ssl.ssl import ssl
 

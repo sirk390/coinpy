@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 19 Apr 2012
-
-@author: kris
-"""
 from coinpy.tools.hex import decodehexstr
 from coinpy.tools.hex import hexstr
 from coinpy.model.wallet.masterkey import MasterKey

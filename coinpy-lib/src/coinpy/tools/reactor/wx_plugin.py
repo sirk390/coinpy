@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 23 Apr 2012
-
-@author: kris
-"""
 import wx
 
 class WxPlugin(object):

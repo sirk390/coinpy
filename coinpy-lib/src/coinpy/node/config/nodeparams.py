@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Jun 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 from coinpy.model.protocol.runmode import MAIN
 

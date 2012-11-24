@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Jul 2011
-
-@author: kris
-"""
-
 class DbBlockIndex():
     def __init__(self, version, hash_next, file, blockpos, height, blockheader):
         self.version = version

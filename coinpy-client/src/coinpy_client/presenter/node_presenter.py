@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 22 Feb 2012
-
-@author: kris
-"""
 from coinpy.node.logic.version_exchange import VersionExchangeService
 
 class NodePresenter():

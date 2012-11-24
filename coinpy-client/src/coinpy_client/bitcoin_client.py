@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Feb 2012
-
-@author: kris
-"""
 from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
 from coinpy.model.genesis import GENESIS
 from coinpy.lib.database.bsddb_env import BSDDBEnv

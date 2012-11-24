@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 18 Jun 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.structures.invitem import INV_ITEMS, Invitem
 from coinpy.lib.serialization.exceptions import FormatErrorException
 from coinpy.lib.serialization.common.field import Field

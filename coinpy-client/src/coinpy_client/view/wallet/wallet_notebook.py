@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Feb 2012
-
-@author: kris
-"""
 import wx.aui
 from coinpy_client.view.wallet.wallet_panel import WalletPanel
 from coinpy.tools.observer import Observable

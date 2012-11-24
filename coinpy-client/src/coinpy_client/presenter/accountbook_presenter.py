@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 21 Feb 2012
-
-@author: kris
-"""
 #wallets
 from coinpy_client.presenter.account_presenter import AccountPresenter
         #self.wallets = []           # id => Wallet

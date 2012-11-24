@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 6 May 2012
-
-@author: kris
-"""
 from optparse import OptionParser
 from coinpy_client.model.client_params import ClientParams
 from coinpy.model.protocol.runmode import MAIN, TESTNET

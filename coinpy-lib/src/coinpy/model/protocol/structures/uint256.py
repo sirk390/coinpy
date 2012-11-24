@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Jun 2011
-
-@author: kris
-"""
 from coinpy.tools.hex import decodehexstr
 from coinpy.tools.bitcoin.base256 import base256encode
 

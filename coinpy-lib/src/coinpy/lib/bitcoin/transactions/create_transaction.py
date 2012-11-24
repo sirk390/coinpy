@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 4 Mar 2012
-
-@author: kris
-"""
 from coinpy.model.protocol.structures.tx import Tx
 from coinpy.model.protocol.structures.tx_out import TxOut
 from coinpy.lib.script.script_pubkeyhash import make_script_pubkeyhash

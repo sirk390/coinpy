@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 6 Mar 2012
-
-@author: kris
-"""
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 from coinpy.tools.bitcoin.sha256 import doublesha256
 from coinpy.lib.script.script_pubkeyhash import make_script_pubkeyhash_sig

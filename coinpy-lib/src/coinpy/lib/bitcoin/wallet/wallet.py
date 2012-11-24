@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Feb 2012
-
-@author: kris
-"""
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 from coinpy.lib.script.standard_script_tools import tx_pubkeyhash_get_address,\

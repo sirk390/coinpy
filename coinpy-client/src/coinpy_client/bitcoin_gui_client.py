@@ -1,12 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 22 Feb 2012
-
-@author: kris
-"""
-#import warnings
-
-#warnings.filterwarnings("error", "integer argument expected")
 from coinpy.model.protocol.runmode import MAIN, TESTNET, TESTNET3
 import random
 from coinpy_client.view.coinpy_gui import CoinpyGUI

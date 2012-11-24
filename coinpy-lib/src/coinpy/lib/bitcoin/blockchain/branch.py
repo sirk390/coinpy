@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 9 Aug 2011
-
-@author: kris
-"""
 from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
 
 class Branch():

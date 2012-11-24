@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 27 Jul 2011
-
-@author: kris
-"""
 from coinpy.tools.bitcoin.hash160 import hash160
 import copy
 from coinpy.tools.bitcoin.sha256 import doublesha256

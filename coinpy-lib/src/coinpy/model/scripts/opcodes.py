@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 2 Jul 2011
-
-@author: kris
-"""
 
 ''' Constants '''
 OP_0 = OP_FALSE = 0

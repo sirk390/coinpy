@@ -1,11 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 21 Feb 2012
-
-@author: kris
-"""
-
-
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.model.protocol.messages.ping import PingMessage
 

@@ -1,17 +1,11 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 16 Feb 2012
-
-@author: kris
-"""
 import traceback
 from coinpy.tools.reactor.future import Future
 from coinpy.tools.reactor.reactor import reactor
 
-"""
-Note: in case of error, the error contains "(exception, traceback_string)"
-"""
 def process_coroutines(gen, future, result=None, error=None):
+    """
+    Note: in case of error, the error contains "(exception, traceback_string)"
+    """
     try:
         if error:
             exc, tbstr = error

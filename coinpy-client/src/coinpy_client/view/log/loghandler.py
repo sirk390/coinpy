@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Feb 2012
-
-@author: kris
-"""
 from logging import Handler, DEBUG, INFO, WARNING, ERROR
 from collections import deque
 import wx

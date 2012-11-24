@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 14 Feb 2012
-
-@author: kris
-"""
 import wx
 from coinpy.tools.id_pool import IdPool
 

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Jun 2011
-
-@author: kris
-"""
 from coinpy.tools.observer import Observable
 from coinpy.lib.bootstrap.irc_bootstrapper import IrcBootstrapper
 from coinpy.lib.bootstrap.dns import DnsBoostrapper

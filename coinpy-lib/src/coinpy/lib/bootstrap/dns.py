@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 9 May 2012
-
-@author: kris
-"""
 import socket
 from coinpy.node.network.sockaddr import SockAddr
 from coinpy.node.network.bitcoin_port import BITCOIN_PORT

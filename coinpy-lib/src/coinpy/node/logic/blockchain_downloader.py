@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Sep 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.structures.invitem import INV_BLOCK, Invitem
 from coinpy.model.protocol.messages.types import MSG_INV, MSG_BLOCK
 from coinpy.model.protocol.messages.getblocks import GetblocksMessage

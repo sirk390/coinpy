@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Jun 2011
-
-@author: kris
-"""
 
 NULL_DISKTXPOS=4294967295
 

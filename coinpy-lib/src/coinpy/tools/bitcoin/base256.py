@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 2 Jul 2011
-
-@author: kris
-"""
 
 # Make a big endian bytestring from an integer.
 def base256encode(value, pad=None):

@@ -1,17 +1,9 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 10 Jan 2012
-
-@author: kris
-"""
 from coinpy.tools.bitcoin.sha256 import double_sha256_2_input
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 from coinpy.model.protocol.structures.uint256 import Uint256
 
-"""
-    hashes: list of bytestring hashes ( use Uint256.get_bytestr() )
-"""
 def next_merkle_level(hashes):
+    """hashes: list of bytestring hashes ( use Uint256.get_bytestr() )"""
     n = len(hashes)
     result = []
     # if odd number of hashes, dupplicate the last one.
@@ -31,18 +23,18 @@ def get_merkle_tree(block):
         merkle_tree.append(next_merkle_level(merkle_tree[-1]))
     return (merkle_tree)
 
-"""Get the merkle branch of a transaction.
-
-block:    block that contains the transaction
-index_tx: index of the transaction in the block
-
-Return value: [list of Uint256] 
-The first element is a hash of a transaction at the bottom of the merkle tree.  
-The last element is the merkle root.
-
-The algorithm uses XOR 1, to select the opposite element at each level.
-"""
 def get_merkle_branch(block, index_tx):
+    """Get the merkle branch of a transaction.
+    
+    block:    block that contains the transaction
+    index_tx: index of the transaction in the block
+    
+    Return value: [list of Uint256] 
+    The first element is a hash of a transaction at the bottom of the merkle tree.  
+    The last element is the merkle root.
+    
+    The algorithm uses XOR 1, to select the opposite element at each level.
+    """
     merkle_branch = []
     merkle_tree = get_merkle_tree(block)
     for level in merkle_tree:

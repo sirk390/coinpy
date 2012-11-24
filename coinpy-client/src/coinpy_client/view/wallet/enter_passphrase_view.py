@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 29 Feb 2012
-
-@author: kris
-"""
 import wx
 from coinpy.tools.observer import Observable
 from coinpy_client.view.guithread import guithread

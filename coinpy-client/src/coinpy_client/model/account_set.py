@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 4 Mar 2012
-
-@author: kris
-"""
 from coinpy.tools.observer import Observable
 
 class AccountSet(Observable):

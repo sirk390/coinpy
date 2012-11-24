@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 11 Feb 2012
-
-@author: kris
-"""
 from coinpy.tools.hex import hexstr
 
 class WalletKeypair(object):

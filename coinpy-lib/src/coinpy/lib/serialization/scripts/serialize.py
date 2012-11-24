@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 2 Jul 2011
-
-@author: kris
-"""
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.tools.bitcoin.base256 import base256encode, base256decode
 from coinpy.model.scripts.script import Script, RawScript

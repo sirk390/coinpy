@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Feb 2012
-
-@author: kris
-"""
-
 """
     starts with the highest block, ends with the genesis block 
     (dense and the beginning but then sparse)

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 15 Feb 2012
-
-@author: kris
-"""
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 27 Jul 2011
-
-@author: kris
-"""
 from coinpy.lib.vm.stack_valtype import cast_to_number, valtype_from_number
 from coinpy.lib.vm.opcode_impl.flow import op_verify
 import functools

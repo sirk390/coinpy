@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 27 Jul 2011
-
-@author: kris
-"""
 from coinpy.lib.vm.stack_valtype import cast_to_bool
 
 def op_nop(vm, instr):

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 9 Dec 2011
-
-@author: kris
-"""
 import collections
 import time
 import heapq

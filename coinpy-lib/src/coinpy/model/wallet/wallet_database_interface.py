@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 16 Feb 2012
-
-@author: kris
-"""
 
 class WalletDatabaseInterface():
     def open(self):

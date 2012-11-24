@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Aug 2011
-
-@author: kris
-"""
-
 from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.model.blockchain.block_handle import BlockHandle
 

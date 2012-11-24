@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 26 Jan 2012
-
-@author: kris
-"""
 from coinpy.model.constants.bitcoin import TARGET_INTERVAL, TARGET_TIMESPAN,\
     PROOF_OF_WORK_LIMIT, MEDIAN_TIME_SPAN
 from coinpy.model.protocol.structures.uint256 import Uint256

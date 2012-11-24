@@ -1,14 +1,6 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 26 Jun 2011
 
-@author: kris
-"""
-
-"""
-    timestamped netaddr
-"""
 class Timenetaddr():
+    """Timestamped netaddr"""
     def __init__(self, timestamp, netaddr):
         self.timestamp = timestamp  
         self.netaddr = netaddr

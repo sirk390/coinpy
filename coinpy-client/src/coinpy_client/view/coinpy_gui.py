@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 21 Feb 2012
-
-@author: kris
-"""
 from coinpy_client.view.mainwindow import MainWindow
 import wx
 from coinpy.tools.observer import Observable

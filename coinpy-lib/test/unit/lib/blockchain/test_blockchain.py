@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 8 Feb 2012
-
-@author: kris
-"""
 import unittest
 from coinpy_tests.mock import Mock, MockMethod
 from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain

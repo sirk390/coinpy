@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 18 Jun 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.services import SERVICES_NONE
 from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_VERACK,\
     MESSAGE_NAMES

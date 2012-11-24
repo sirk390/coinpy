@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 11 Mar 2012
-
-@author: kris
-"""
 
 class BlockchainSummaryPresenter:
     def __init__(self, blockchain, block_summary_view):

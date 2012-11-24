@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 9 Mar 2012
-
-@author: kris
-"""
 from coinpy.model.scripts.opcodes import OP_PUSHDATA1, OP_PUSHDATA1_75_MAX,\
     OP_PUSHDATA1_75_MIN, OP_PUSHDATA4, OP_PUSHDATA2
 from coinpy.model.scripts.instruction import Instruction

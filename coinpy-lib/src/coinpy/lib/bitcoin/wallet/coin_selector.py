@@ -1,11 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 3 Mar 2012
-
-@author: kris
-"""
-
-
 """Select coins to send from a list of TxOut's.
 
     Currently selects outputs in the order of arrival

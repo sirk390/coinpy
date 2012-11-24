@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 22 Jun 2011
-
-@author: kris
-"""
 from coinpy.lib.serialization.scripts.serialize import ScriptSerializer
 
 class TxIn():

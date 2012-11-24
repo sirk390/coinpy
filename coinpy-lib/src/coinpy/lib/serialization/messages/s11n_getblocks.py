@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 23 Jun 2011
-
-@author: kris
-"""
-
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.model.protocol.messages.getblocks import GetblocksMessage

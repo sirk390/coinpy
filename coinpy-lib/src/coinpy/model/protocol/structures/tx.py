@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 22 Jun 2011
-
-@author: kris
-"""
 from coinpy.model.constants.bitcoin import LOCKTIME_THRESHOLD
 
 class Tx():

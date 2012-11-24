@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 26 Jun 2011
-
-@author: kris
-"""
 import hashlib
     
 def doublesha256(data):

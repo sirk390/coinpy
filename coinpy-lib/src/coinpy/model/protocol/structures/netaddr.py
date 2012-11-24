@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Jun 2011
-
-@author: kris
-"""
 
 class Netaddr():
     def __init__(self, services, ip, port):

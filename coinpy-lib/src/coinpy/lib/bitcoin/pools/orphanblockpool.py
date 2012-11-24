@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Dec 2011
-
-@author: kris
-"""
 from coinpy.tools.observer import Observable
 
 """ OrphanBlockPool """

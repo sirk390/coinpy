@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 12 Mar 2012
-
-@author: kris
-"""
 
 class Account():
     def iter_my_outputs(self):

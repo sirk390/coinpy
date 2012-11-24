@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 10 Jan 2012
-
-@author: kris
-"""
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 from coinpy.model.constants.bitcoin import MAX_BLOCK_SIZE, is_money_range
 from coinpy.lib.serialization.scripts.serialize import ScriptSerializer

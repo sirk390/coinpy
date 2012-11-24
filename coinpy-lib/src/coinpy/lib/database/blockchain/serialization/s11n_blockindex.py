@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 5 Jul 2011
-
-@author: kris
-"""
 from coinpy.lib.serialization.common.field import Field
 
 from coinpy.lib.serialization.common.structure import Structure

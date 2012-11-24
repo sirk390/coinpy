@@ -1,19 +1,13 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 4 Mar 2012
-
-@author: kris
-"""
 import random
 from coinpy.model.protocol.messages.inv import InvMessage
 from coinpy.model.protocol.structures.invitem import Invitem, INV_TX
 
-"""Listen to "account" and publish new transactions on the "node".
-
-Transactions are trickled out by selecting a random node.
-trickle out tx inv: see main.cpp:2971 "Message: inventory"
-"""
 class TransactionPublisher():
+    """Listen to "account" and publish new transactions on the "node".
+    
+    Transactions are trickled out by selecting a random node.
+    trickle out tx inv: see main.cpp:2971 "Message: inventory"
+    """
     def __init__(self, node, account):
         self.node = node
         self.account = account

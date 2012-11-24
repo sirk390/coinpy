@@ -1,15 +1,7 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 8 Dec 2011
-
-@author: kris
-"""
 import collections
 
-"""
-    Basic Synchroneous executor
-"""
 class Executor():
+    """Basic Synchroneous executor"""
     def __init__(self):
         self.workqueue = collections.deque()
         

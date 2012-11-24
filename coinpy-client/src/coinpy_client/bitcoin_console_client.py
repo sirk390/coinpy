@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 22 Feb 2012
-
-@author: kris
-"""
- 
 from coinpy.model.protocol.runmode import MAIN, TESTNET
 import random
 from coinpy_client.bitcoin_client import BitcoinClient

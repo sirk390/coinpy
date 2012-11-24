@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 26 Feb 2012
-
-@author: kris
-"""
 import random
 from coinpy.model.protocol.messages.getaddr import GetaddrMessage
 from coinpy.model.protocol.messages.types import MSG_ADDR
@@ -12,13 +6,13 @@ from coinpy.node.network.sockaddr import SockAddr
 from coinpy.node.logic.version_exchange import VersionExchangeService
 from coinpy.tools.reactor.reactor import reactor
 
-"""Fill 'addr_pool' by bootstrapping and sending get_addr() messages.
- 
-AddrPoolFiller fills 'addr_pool' until it contains 'min_addrpool_size' addresses using:
-        get_addr() messages if some peers are connected
-        bootstrapping if no peers are connected
-"""
 class AddrPoolFiller():
+    """Fill 'addr_pool' by bootstrapping and sending get_addr() messages.
+     
+    AddrPoolFiller fills 'addr_pool' until it contains 'min_addrpool_size' addresses using:
+            get_addr() messages if some peers are connected
+            bootstrapping if no peers are connected
+    """
     def __init__(self, node, bootstrapper, addr_pool, min_addrpool_size=10):
         self.bootstrapper = bootstrapper
         self.addr_pool = addr_pool

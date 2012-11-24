@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 27 Apr 2012
-
-@author: kris
-"""
 from coinpy.tools.observer import Observable
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 

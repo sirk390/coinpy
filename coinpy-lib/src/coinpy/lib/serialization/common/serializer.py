@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Jun 2011
-
-@author: kris
-"""
 
 class Serializer(object):
     def __init__(self, desc=""):

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 9 Mar 2012
-
-@author: kris
-"""
 import wx
 from coinpy.lib.bitcoin.hash_block import hash_block
 from coinpy.model.protocol.runmode import MAIN

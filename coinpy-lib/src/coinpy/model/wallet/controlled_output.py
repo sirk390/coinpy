@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 6 Mar 2012
-
-@author: kris
-"""
 
 ''' 
     Output for which we have a keypair

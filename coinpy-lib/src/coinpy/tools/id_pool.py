@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 15 Feb 2012
-
-@author: kris
-"""
 import random
 
 class IdPool():

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 19 Apr 2012
-
-@author: kris
-"""
 from coinpy.lib.database.wallet.crypter.crypter import Crypter,\
     WALLET_CRYPTO_KEY_SIZE, WALLET_CRYPTO_SALT_SIZE
 from coinpy.tools.crypto.ssl.ssl import ssl
@@ -13,8 +7,8 @@ from coinpy.tools.crypto.random.random import Random
 import time
 from coinpy.model.wallet.masterkey import MasterKey
 
-"""Derive (key, initialization_vector) from passphrase and derivation parameters"""
 def derive_key_from_passphrase(passphrase, salt, derive_iterations, deriv_method):
+    """Derive (key, initialization_vector) from passphrase and derivation parameters"""
     passphrase = passphrase.encode("utf-8")
     chKey = ctypes.create_string_buffer (WALLET_CRYPTO_KEY_SIZE)
     chIV = ctypes.create_string_buffer (WALLET_CRYPTO_KEY_SIZE)
@@ -27,8 +21,8 @@ def derive_key_from_passphrase(passphrase, salt, derive_iterations, deriv_method
         raise Exception("Error decrypting masterkey: EVP_BytesToKey")
     return (chKey, chIV)
 
-"""Return plain master key bytestring from a MasterKey object and a passphrase"""
 def decrypt_masterkey(master_key, passphrase):
+    """Return plain master key bytestring from a MasterKey object and a passphrase"""
     key, init_vect = derive_key_from_passphrase(passphrase, master_key.salt,  master_key.derive_iterations, master_key.derivation_method)
     crypter = Crypter()
     crypter.set_key(key, init_vect)
@@ -36,8 +30,8 @@ def decrypt_masterkey(master_key, passphrase):
     return plain_masterkey
 
 
-"""Create a new masterkey"""
 def new_masterkey(passphrase):
+    """Create a new masterkey"""
     rand = Random()
     crypter = Crypter()
     plain_master_key = rand.get_random_bytes(WALLET_CRYPTO_KEY_SIZE)

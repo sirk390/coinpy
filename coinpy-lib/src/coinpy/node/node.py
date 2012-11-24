@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 18 Jun 2011
-
-@author: kris
-"""
 from coinpy.node.network.peerconnection import PeerConnection
 from coinpy.tools.observer import Observable
 from coinpy.node.network.sockaddr import SockAddr
@@ -16,11 +10,12 @@ from coinpy.node.network.peerhandler import PeerHandler
 import asyncore
 
 reactor.install(AsyncorePlugin())
-"""Node: connect, disconnect peers, send and receive bitcoin messages. 
 
-No logic included.
-"""
 class Node(asyncore.dispatcher, Observable):
+    """Node: connect, disconnect peers, send and receive bitcoin messages. 
+    
+    No logic included.
+    """
     EVT_NEED_PEERS = Observable.createevent()
     EVT_BASIC_MESSAGE = Observable.createevent()
     EVT_CONNECTING = Observable.createevent()

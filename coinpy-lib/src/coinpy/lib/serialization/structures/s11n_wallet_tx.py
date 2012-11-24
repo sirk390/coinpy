@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 15 Feb 2012
-
-@author: kris
-"""
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.structures.s11n_merkle_tx import MerkleTxSerializer
 from coinpy.lib.serialization.common.structure import Structure

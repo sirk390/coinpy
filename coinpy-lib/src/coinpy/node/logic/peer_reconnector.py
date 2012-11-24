@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 26 Feb 2012
-
-@author: kris
-"""
 import time
 from coinpy.node.node import Node
 

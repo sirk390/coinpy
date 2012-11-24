@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 4 Jul 2011
-
-@author: kris
-"""
 class BlockHandle():
     def __init__(self):
         pass

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Apr 2012
-
-@author: kris
-"""
 import os
 import ctypes
 import ctypes.util

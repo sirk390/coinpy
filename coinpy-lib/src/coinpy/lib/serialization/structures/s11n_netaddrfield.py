@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Jun 2011
-
-@author: kris
-"""
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.structures.s11n_ipaddrfield import IPAddrSerializer
 from coinpy.lib.serialization.common.serializer import Serializer

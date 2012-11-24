@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 18 Jun 2011
-
-@author: kris
-"""
 from coinpy.node.network.peerhandler import PeerHandler
 from coinpy.lib.serialization.exceptions import MissingDataException
 from coinpy.tools.observer import Observable

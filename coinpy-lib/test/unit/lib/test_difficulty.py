@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 8 Feb 2012
-
-@author: kris
-"""
 import unittest
 from coinpy.lib.bitcoin.difficulty import uint256_difficulty, compact_difficulty
 from coinpy.model.protocol.structures.uint256 import Uint256

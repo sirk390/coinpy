@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 7 Aug 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.structures.block import Block
 from coinpy.model.protocol.structures.blockheader import BlockHeader
 from coinpy.model.protocol.structures.uint256 import Uint256

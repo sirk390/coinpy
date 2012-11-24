@@ -1,16 +1,9 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 15 Feb 2012
-
-@author: kris
-"""
-
-""" A transaction with a merkle branch linking it to the blockchain
-
-    tx: transaction
-    nindex: int 
-"""
 class MerkleTx():
+    """ A transaction with a merkle branch linking it to the blockchain
+    
+        tx: transaction
+        nindex: int 
+    """
     def __init__(self, tx, blockhash, merkle_branch, nindex):
         self.tx = tx
         self.blockhash = blockhash

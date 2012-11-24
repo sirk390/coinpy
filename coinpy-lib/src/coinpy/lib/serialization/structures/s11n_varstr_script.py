@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 3 Jul 2011
-
-@author: kris
-"""
 from coinpy.lib.serialization.structures.s11n_varstr import VarstrSerializer
 from coinpy.lib.serialization.scripts.serialize import ScriptSerializer
 from coinpy.lib.serialization.common.serializer import Serializer

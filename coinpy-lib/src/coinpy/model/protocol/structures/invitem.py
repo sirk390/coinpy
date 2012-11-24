@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 18 Jun 2011
-
-@author: kris
-"""
-
 INV_TX = 1
 INV_BLOCK = 2
 INV_ITEMS = (INV_TX, INV_BLOCK)

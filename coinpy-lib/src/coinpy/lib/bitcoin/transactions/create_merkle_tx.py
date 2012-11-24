@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 4 Mar 2012
-
-@author: kris
-"""
-
 from coinpy.lib.bitcoin.merkle_tree import get_merkle_branch
 from coinpy.model.protocol.structures.merkle_tx import MerkleTx
 

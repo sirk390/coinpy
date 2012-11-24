@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Jun 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.structures.uint256 import Uint256
 import struct
 from coinpy.lib.serialization.exceptions import MissingDataException

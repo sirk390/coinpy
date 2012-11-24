@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 26 Jun 2011
-
-@author: kris
-"""
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
 from coinpy.lib.serialization.common.varsizelist import VarsizelistSerializer

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 2 Jul 2011
-
-@author: kris
-"""
 from coinpy.model.scripts.opcodes import OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY,\
     OP_HASH160, OP_PUSHDATA, OP_CHECKSIGVERIFY, OP_CHECKMULTISIG,\
     OP_CHECKMULTISIGVERIFY, OP_CODESEPARATOR

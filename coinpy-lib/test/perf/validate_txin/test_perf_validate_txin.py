@@ -1,10 +1,3 @@
-# -***- coding:utf-8 -*-
-"""
-Created on 12 May 2012
-
-@author: kris
-"""
-
 import unittest
 import cPickle
 from coinpy.lib.vm.vm import TxValidationVM

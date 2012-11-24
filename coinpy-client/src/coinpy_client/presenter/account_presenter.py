@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 21 Feb 2012
-
-@author: kris
-"""
 #wallets
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.bitcoin.wallet.wallet import Wallet, KeyDecryptException

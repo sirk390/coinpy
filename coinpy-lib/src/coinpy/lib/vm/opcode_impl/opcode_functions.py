@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 27 Jul 2011
-
-@author: kris
-"""
 from coinpy.model.scripts.opcodes import *
 from coinpy.lib.vm.opcode_impl.reserved import op_not_implemented, op_invalid
 from coinpy.lib.vm.opcode_impl.pushdata import * 

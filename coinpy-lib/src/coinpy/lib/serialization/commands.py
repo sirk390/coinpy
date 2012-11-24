@@ -1,8 +1,3 @@
-"""
-Created on 13 Jun 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.messages.types import MSG_VERSION, MSG_VERACK, MSG_ADDR,\
     MSG_INV, MSG_GETDATA, MSG_GETBLOCKS, MSG_GETHEADERS, MSG_TX, MSG_BLOCK,\
     MSG_HEADERS, MSG_GETADDR, MSG_CHECKORDER, MSG_SUBMITORDER, MSG_REPLY,\

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 6 May 2012
-
-@author: kris
-"""
 from coinpy_client.bitcoin_gui_client import coinpy_gui_client
 from coinpy.model.protocol.runmode import TESTNET
 from coinpy_client.model.client_params import ClientParams

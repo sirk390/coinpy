@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 16 Nov 2011
-
-@author: kris
-"""
 import itertools
 
 ''' Enhanced version of itertools.groupby that sorts and returns a dictionary '''

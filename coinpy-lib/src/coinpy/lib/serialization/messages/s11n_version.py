@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Jun 2011
-
-@author: kris
-"""
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.structures.s11n_netaddrfield import NetAddrSerializer
 from coinpy.lib.serialization.common.field import Field

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 6 May 2012
-
-@author: kris
-"""
 from coinpy.model.protocol.messages.types import MSG_INV, MSG_TX
 from coinpy.node.logic.version_exchange import VersionExchangeService
 from coinpy.node.node import Node

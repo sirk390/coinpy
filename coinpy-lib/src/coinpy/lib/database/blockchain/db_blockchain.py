@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Jul 2011
-
-@author: kris
-"""
-
 from coinpy.lib.database.blockchain.block_storage import BlockStorage
 from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.database.blockchain.objects.blockindex import DbBlockIndex

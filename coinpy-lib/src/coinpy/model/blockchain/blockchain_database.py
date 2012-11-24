@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 25 Jul 2011
-
-@author: kris
-"""
-
 class BlockChainDatabase():
     def contains_block(self, block_hash):
         pass

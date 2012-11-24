@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 6 Aug 2011
-
-@author: kris
-"""
 import os
 from coinpy.lib.serialization.exceptions import MissingDataException
 from coinpy.lib.serialization.magic import MAGICS

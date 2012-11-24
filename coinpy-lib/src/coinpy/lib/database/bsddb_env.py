@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 11 Feb 2012
-
-@author: kris
-"""
 import bsddb
 from bsddb.db import DB_CREATE, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_MPOOL, \
     DB_INIT_TXN, DB_THREAD, DB_RECOVER

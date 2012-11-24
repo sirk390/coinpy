@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 22 Jun 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.structures.uint256 import Uint256
 
 NULL_OUTPOINT_INDEX = 4294967295

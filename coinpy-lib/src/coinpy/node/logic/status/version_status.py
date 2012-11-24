@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 11 Sep 2011
-
-@author: kris
-"""
 
 class VersionStatus():
     def __init__(self):

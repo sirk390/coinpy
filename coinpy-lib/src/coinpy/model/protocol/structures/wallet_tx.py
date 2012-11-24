@@ -1,35 +1,29 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 15 Feb 2012
-
-@author: kris
-"""
 import time
 
-"""
-     WalletTx:    A transaction with metadata as saved in the wallet
-         merkle_tx: (MerkleTx) the transaction 
-         merkle_tx_prev: (MerkleTx) of the supporting the transactions.
-                         Contains the merkle_tx for each input transaction, and input transaction 
-                         of these transactions, etc... until COPY_DEPTH (=3)
-         map_value: {key => value} map for saving metadata information.
-                     recognized keys: 
-                         "fromaccount", account name for JSON-RPC, default=empty
-                         "spent" (string of "0" and "1" for each output) (probably only usefull for outputs that are mine) 
-         order_from: [[str,str], ...]:    
-                     obsolete & unused, historically linked to market.cpp/market.h
-                     use []
-         time_received_is_tx_time: bool
-             true if we sent the transaction. 
-             seems to be used hitorically with sumbitorder/checkorde. 
-         time_received: int
-             time of the transaction.
-         from_me: bool  
-             true if we sent the transaction
-         spent: bool: true if any of mapvalue.spent is spent
-                      obsolete, use mapvalue.spent.
- """       
 class WalletTx():
+    """
+         WalletTx:    A transaction with metadata as saved in the wallet
+             merkle_tx: (MerkleTx) the transaction 
+             merkle_tx_prev: (MerkleTx) of the supporting the transactions.
+                             Contains the merkle_tx for each input transaction, and input transaction 
+                             of these transactions, etc... until COPY_DEPTH (=3)
+             map_value: {key => value} map for saving metadata information.
+                         recognized keys: 
+                             "fromaccount", account name for JSON-RPC, default=empty
+                             "spent" (string of "0" and "1" for each output) (probably only usefull for outputs that are mine) 
+             order_from: [[str,str], ...]:    
+                         obsolete & unused, historically linked to market.cpp/market.h
+                         use []
+             time_received_is_tx_time: bool
+                 true if we sent the transaction. 
+                 seems to be used hitorically with sumbitorder/checkorde. 
+             time_received: int
+                 time of the transaction.
+             from_me: bool  
+                 true if we sent the transaction
+             spent: bool: true if any of mapvalue.spent is spent
+                          obsolete, use mapvalue.spent.
+    """       
     def __init__(self, 
                  merkle_tx, merkle_tx_prev, map_value, order_from,
                  time_received_is_tx_time, time_received, from_me, spent):

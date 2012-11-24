@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 7 May 2012
-
-@author: kris
-"""
 import wx
 
 class ProgressView(wx.Dialog):

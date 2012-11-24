@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 13 Sep 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.messages.types import MSG_GETDATA, MSG_GETBLOCKS,\
     MSG_GETHEADERS
 from coinpy.tools.observer import Observable

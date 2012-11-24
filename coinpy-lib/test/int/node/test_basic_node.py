@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 16 Apr 2012
-
-@author: kris
-"""
-
 import unittest
 from coinpy.node.node import Node
 from coinpy.tools.reactor.reactor import Reactor

@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 6 Jul 2011
-
-@author: kris
-"""
 from coinpy.model.protocol.structures.uint256 import Uint256
 
 class BlockHeader():

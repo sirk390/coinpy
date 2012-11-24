@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 11 Feb 2012
-
-@author: kris
-"""
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 from coinpy.model.wallet.wallet_keypair import WalletKeypair
 from coinpy.model.wallet.wallet_name import WalletName

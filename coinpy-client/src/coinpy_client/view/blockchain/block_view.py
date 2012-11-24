@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 9 Mar 2012
-
-@author: kris
-"""
 import wx
 import wx.lib.agw.hyperlink as hyperlink
 

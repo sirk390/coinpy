@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 27 Jul 2011
-
-@author: kris
-"""
 import hashlib
 
 def hash160(data):

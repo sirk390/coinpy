@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 26 Jul 2011
-
-@author: kris
-"""
 
 class Block():
     def __init__(self,

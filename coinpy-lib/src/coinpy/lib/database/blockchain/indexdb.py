@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 7 Aug 2011
-
-@author: kris
-"""
 import bsddb
 from coinpy.lib.database.blockchain.serialization.s11n_txindex import TxIndexSerializer
 from coinpy.lib.database.blockchain.serialization.s11n_blockindex import BlockIndexSerializer

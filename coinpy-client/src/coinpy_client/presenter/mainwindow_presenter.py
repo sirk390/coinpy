@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 22 Feb 2012
-
-@author: kris
-"""
 from coinpy_client.presenter.node_presenter import NodePresenter
 from coinpy.tools.observer import Observable
 from coinpy_client.presenter.pools_presenter import PoolsPresenter

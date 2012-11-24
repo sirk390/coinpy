@@ -1,10 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 19 Apr 2012
-
-@author: kris
-"""
-
 import unittest
 from coinpy.lib.database.bsddb_env import BSDDBEnv
 from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase

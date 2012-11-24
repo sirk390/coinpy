@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 7 Jan 2012
-
-@author: kris
-"""
 from coinpy.model.protocol.structures.uint256 import Uint256
 
 def uint256_difficulty(bits):

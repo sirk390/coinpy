@@ -1,9 +1,4 @@
 import struct
-"""
-Created on 13 Jun 2011
-
-@author: kris
-"""
 from coinpy.lib.serialization.common.serializer import Serializer
 
 class Structure(Serializer):

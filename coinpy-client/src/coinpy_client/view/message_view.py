@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 1 Mar 2012
-
-@author: kris
-"""
 import wx
 
 class MessageView():

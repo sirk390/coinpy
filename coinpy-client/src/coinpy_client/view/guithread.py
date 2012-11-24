@@ -1,9 +1,3 @@
-# -*- coding:utf-8 -*-
-"""
-Created on 17 Mar 2012
-
-@author: kris
-"""
 import wx
 
 def guithread(fct):
