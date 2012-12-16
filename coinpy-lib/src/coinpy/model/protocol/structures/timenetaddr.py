@@ -1,6 +1,11 @@
 
 class Timenetaddr():
-    """Timestamped netaddr"""
+    """Timestamped netaddr
+        
+        Attributes:
+            timestamp (int): standard UNIX timestamp (seconds since 1970 UTC)
+            netaddr (Netaddr): Bitcoin network address
+    """
     def __init__(self, timestamp, netaddr):
         self.timestamp = timestamp  
         self.netaddr = netaddr

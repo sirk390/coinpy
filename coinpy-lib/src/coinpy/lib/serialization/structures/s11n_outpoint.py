@@ -14,6 +14,6 @@ class OutpointSerializer(Serializer):
     def serialize(self, outpoint):
         return (self.OUTPOINT.serialize([outpoint.hash, outpoint.index]))
 
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         (hash, index), cursor = self.OUTPOINT.deserialize(data, cursor)
         return (Outpoint(hash, index), cursor)

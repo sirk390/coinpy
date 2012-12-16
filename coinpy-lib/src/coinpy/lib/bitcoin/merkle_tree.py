@@ -42,6 +42,29 @@ def get_merkle_branch(block, index_tx):
         index_tx = index_tx >> 1
     return (merkle_branch)
 
+
+def check_merkle_branch(txhash, merkle_branch, index_tx):
+    """Return True if the merkle branch is valid for txhash and index_tx.
+       
+       Attributes:
+           txhash(Uint256): Hash of a Transaction
+           merkle_branch(list of Uint256): Merkle Branch
+           index_tx(int): Index of the transaction in the block.
+        
+    """
+    hash = txhash.get_bytestr()
+    index = index_tx
+    otherside_branch, merkle_root = merkle_branch[:-1], merkle_branch[-1]
+    for otherside in otherside_branch:
+        if index & 1:
+            hash = double_sha256_2_input(otherside.get_bytestr(), hash)
+        else:
+            hash = double_sha256_2_input(hash, otherside.get_bytestr())
+        index = index >> 1
+        print "u", Uint256.from_bytestr(hash)           
+    return (Uint256.from_bytestr(hash) == merkle_root)
+    
+
 """
 static Uint256 CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBranch, int nIndex)
     {

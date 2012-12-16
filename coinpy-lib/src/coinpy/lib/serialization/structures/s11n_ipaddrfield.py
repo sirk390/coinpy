@@ -4,7 +4,7 @@ import struct
 
 class IPAddrSerializer(Serializer):
     IP6HEADER = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xFF"
-    def __init__(self, desc):
+    def __init__(self, desc=""):
         pass
 
     def get_size(self, ip):
@@ -13,7 +13,7 @@ class IPAddrSerializer(Serializer):
     def serialize(self, ip):
         return (self.IP6HEADER + struct.pack(">4B", *[int(b) for b in ip.split(".")]))
     
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         if (len(data) - cursor < 16):
             raise MissingDataException("Decoding error: not enough data for ip address")
         if (data[cursor:cursor+12] != IPAddrSerializer.IP6HEADER):

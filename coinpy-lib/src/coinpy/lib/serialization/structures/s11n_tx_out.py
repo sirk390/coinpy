@@ -14,7 +14,7 @@ class TxoutSerializer(Serializer):
     def serialize(self, outpoint):
         return (self.TXOUT.serialize([outpoint.value, outpoint.script]))
 
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         (value, script), cursor = self.TXOUT.deserialize(data, cursor)
         return (TxOut(value, script), cursor)
 

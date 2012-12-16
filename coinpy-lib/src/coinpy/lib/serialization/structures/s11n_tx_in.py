@@ -17,7 +17,7 @@ class TxinSerializer(Serializer):
     def serialize(self, txin):
         return (self.TXIN.serialize([txin.previous_output, txin.script, txin.sequence]))
 
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         (previous_output, script, sequence), cursor = self.TXIN.deserialize(data, cursor)
         return (TxIn(previous_output, script, sequence), cursor)
 

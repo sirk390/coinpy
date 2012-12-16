@@ -6,17 +6,16 @@ from coinpy.model.protocol.structures.netaddr import Netaddr
 
 
 class NetAddrSerializer(Serializer):
-    def __init__(self, desc):
+    def __init__(self, desc=""):
         self.NETADDR = Structure([Field("<Q", "services"),
                                   IPAddrSerializer("ip"),
                                   Field(">H", "port")], "netaddr")
-        pass
 
     def serialize(self, a_netaddr):
         data = self.NETADDR.serialize([a_netaddr.services, a_netaddr.ip, a_netaddr.port])
         return (data)
 
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         (services, ip, port), cursor = self.NETADDR.deserialize(data, cursor)
         return (Netaddr(services, ip, port), cursor)
 
