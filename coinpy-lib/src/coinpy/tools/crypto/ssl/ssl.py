@@ -1,7 +1,8 @@
 import ctypes
 import ctypes.util
 
-ssl = ctypes.cdll.LoadLibrary (ctypes.util.find_library ('libeay32'))
+#ssl = ctypes.cdll.LoadLibrary (ctypes.util.find_library ('libeay32'))
+ssl = ctypes.cdll.LoadLibrary (r'c:\programs\python27\libeay32.dll')
 
 #EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha512()
 """

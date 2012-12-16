@@ -9,9 +9,9 @@ class AddrMessageSerializer(Serializer):
                                  TimenetaddrSerializer())
     
     def serialize(self, addr_msg):
-        return (self.ADDR.serialize(addr_msg.addr_list))
+        return (self.ADDR.serialize(addr_msg.timenetaddr_list))
 
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         addr_list, cursor = self.ADDR.deserialize(data, cursor)
         return (AddrMessage(addr_list), cursor)
 
