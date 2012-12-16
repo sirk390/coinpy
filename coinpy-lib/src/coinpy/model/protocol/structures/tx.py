@@ -42,7 +42,13 @@ class Tx():
             if (not txin.isfinal()):
                 return False
         return True
-          
+
+    def __eq__(self, other):
+        return (self.version == other.version and 
+                self.in_list == other.in_list and 
+                self.out_list == other.out_list and 
+                self.locktime == other.locktime)
+
     def __str__(self):
         return ("tx(v:%d,in(%d)[%s...],out(%d)[%s...],lock:%d)" % 
                     (self.version, 

@@ -19,7 +19,7 @@ class BlockSerializer(Serializer):
         return (self.BLOCK.serialize([block.blockheader,
                                       block.transactions]))
         
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         (blockheader, transactions), new_cursor = self.BLOCK.deserialize(data, cursor)
         block = Block(blockheader, transactions)
         block.rawdata = data[cursor:new_cursor]

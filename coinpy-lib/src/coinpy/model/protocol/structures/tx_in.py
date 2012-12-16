@@ -10,6 +10,11 @@ class TxIn():
                 
     def isfinal(self):
         return (self.sequence == self.NSEQUENCE_FINAL)
-    
+
+    def __eq__(self, other):
+        return (self.previous_output == other.previous_output and 
+                self.script == other.script and 
+                self.sequence == other.sequence)
+
     def __str__(self):
         return ("tx_in: %s %s sequence:%d" % (self.previous_output, str(self.script), self.sequence))

@@ -44,12 +44,16 @@ class Uint256():
 
     def __str__(self):
         return (self.get_hexstr())
+    
     def __eq__(self, other):
         return self.bytestr == other.bytestr
+    
     def __cmp__(self, other):
         return (cmp(self.get_bignum(), other.get_bignum()))
+    
     def __ne__(self, other):
         return self.bytestr != other.bytestr
+    
     def __hash__(self):
         return hash(self.bytestr)
         

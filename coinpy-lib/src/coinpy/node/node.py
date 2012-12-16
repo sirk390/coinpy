@@ -68,12 +68,16 @@ class Node(asyncore.dispatcher, Observable):
         if (sockaddr in self.peers):
             raise Exception("allready connecting/connected: %s" % (str(sockaddr)))
         self.log.info("Connecting: %s" % (str(sockaddr)))
-        handler = PeerConnection(sockaddr, self.message_encoder, None, log=self.log)       
-        handler.subscribe(handler.EVT_CONNECT, self.on_peer_connected)
-        handler.subscribe(handler.EVT_DISCONNECT, self.on_peer_disconnected)
-        self.peers[sockaddr] = handler
-        self.peer_states[handler] = Node.PEER_CONNECTING
-        self.fire(self.EVT_CONNECTING, handler=handler)
+        try:
+            handler = PeerConnection(sockaddr, self.message_encoder, None, log=self.log)       
+        except:
+            self.log.warning("Warning error connection to " + str(sockaddr))
+        else:
+            handler.subscribe(handler.EVT_CONNECT, self.on_peer_connected)
+            handler.subscribe(handler.EVT_DISCONNECT, self.on_peer_disconnected)
+            self.peers[sockaddr] = handler
+            self.peer_states[handler] = Node.PEER_CONNECTING
+            self.fire(self.EVT_CONNECTING, handler=handler)
         
        
     def on_peer_connected(self, event):
