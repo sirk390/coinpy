@@ -1,6 +1,6 @@
 import unittest
 from coinpy.lib.database.bsddb_env import BSDDBEnv
-from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
+from coinpy.lib.wallet.bsddb.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.tools.hex import hexstr
 
 class TestWalletDatabase(unittest.TestCase):

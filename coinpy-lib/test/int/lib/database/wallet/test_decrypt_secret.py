@@ -4,8 +4,8 @@ from coinpy.model.wallet.masterkey import MasterKey
 from coinpy.tools.bitcoin.sha256 import doublesha256
 from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
 import unittest
-from coinpy.lib.database.wallet.crypter.crypter import Crypter
-from coinpy.lib.database.wallet.crypter.passphrase import decrypt_masterkey
+from coinpy.lib.wallet.bsddb.crypter.crypter import Crypter
+from coinpy.lib.wallet.bsddb.crypter.passphrase import decrypt_masterkey
 
 
 class TestWalletDatabase(unittest.TestCase):

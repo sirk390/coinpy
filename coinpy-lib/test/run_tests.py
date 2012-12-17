@@ -6,7 +6,7 @@ def run_unittests(do_coverage=True):
     loader = TestLoader()
     suite = loader.discover("unit", pattern='test_*.py')
     if do_coverage:
-        cov = coverage.coverage(source=["coinpy"])
+        cov = coverage.coverage(source=["coinpy"], branch=True)
         cov.start()
     
     runner = unittest.TextTestRunner()

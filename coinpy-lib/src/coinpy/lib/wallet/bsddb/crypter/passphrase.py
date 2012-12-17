@@ -1,4 +1,4 @@
-from coinpy.lib.database.wallet.crypter.crypter import Crypter,\
+from coinpy.lib.wallet.bsddb.crypter.crypter import Crypter,\
     WALLET_CRYPTO_KEY_SIZE, WALLET_CRYPTO_SALT_SIZE
 from coinpy.tools.crypto.ssl.ssl import ssl
 import ctypes

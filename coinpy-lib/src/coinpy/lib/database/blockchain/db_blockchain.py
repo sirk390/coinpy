@@ -15,11 +15,11 @@ from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 
 class BSDDbBlockChainDatabase(BlockChainDatabase):
-    def __init__(self, log, bdsdb_env, runmode):
+    def __init__(self, log, bsddb_env, runmode):
         self.log = log
         self.runmode = runmode
-        self.indexdb = IndexDB(runmode, bdsdb_env)
-        self.blockstore = BlockStorage(runmode, bdsdb_env.directory)
+        self.indexdb = IndexDB(runmode, bsddb_env)
+        self.blockstore = BlockStorage(runmode, bsddb_env.directory)
         self.version = 32200
         self.genesishash = None
         self.genesisblock = None
