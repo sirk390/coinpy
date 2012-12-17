@@ -11,7 +11,7 @@ from coinpy.node.node import Node
 from coinpy.node.logic.version_exchange import VersionExchangeService
 from coinpy.model.protocol.messages.inv import InvMessage
 from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
-from coinpy.lib.bitcoin.pools.orphanblockpool import OrphanBlockPool
+from coinpy.node.pools.orphanblockpool import OrphanBlockPool
 from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
 
 class BlockchainDownloader():

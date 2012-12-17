@@ -1,7 +1,7 @@
 from coinpy.node.logic.blockchain_downloader import BlockchainDownloader
 from coinpy.node.logic.blockchain_server import BlockchainServer
 from coinpy.node.basic_node import BasicNode
-from coinpy.lib.bitcoin.pools.transactionpool import TransactionPool
+from coinpy.node.pools.transactionpool import TransactionPool
 from coinpy.node.logic.txdownloadservice import TxDownloadService
 
 class BitcoinNode(BasicNode):
