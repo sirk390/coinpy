@@ -3,16 +3,16 @@ from coinpy.model.constants.bitcoin import COINBASE_MATURITY, TARGET_INTERVAL,\
 from coinpy.lib.bitcoin.hash_tx import hash_tx
 import traceback
 from coinpy.lib.vm.vm import TxValidationVM
-from coinpy.lib.bitcoin.blockchain.branch import Branch
+from coinpy.lib.blockchain.branch import Branch
 from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.bitcoin.difficulty import compact_difficulty
 from coinpy.tools.stat import median
-from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
+from coinpy.lib.blockchain.block_iterator import BlockIterator
 from coinpy.model.protocol.structures.blocklocator import BlockLocator
 from coinpy.tools.reactor.asynch import asynch_method
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.runmode import TESTNET, TESTNET3
-from coinpy.lib.bitcoin.blockchain.blockchain_update import Reorganize, Append
+from coinpy.lib.blockchain.blockchain_update import Reorganize, Append
 
 class Blockchain(Observable):
     EVT_APPENDED_BLOCK = Observable.createevent()

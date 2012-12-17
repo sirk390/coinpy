@@ -1,4 +1,4 @@
-from coinpy.lib.bitcoin.blockchain.block_iterator import BlockIterator
+from coinpy.lib.blockchain.block_iterator import BlockIterator
 
 class Branch():
     def __init__(self, log, database, lasthash, firsthash=None):
