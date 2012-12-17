@@ -3,7 +3,7 @@ from coinpy.model.constants.bitcoin import COINBASE_MATURITY,\
 from coinpy.lib.bitcoin.address import BitcoinAddress
 from coinpy.tools.bitcoin.base58check import decode_base58check
 from coinpy.tools.observer import Observable
-from coinpy.lib.bitcoin.wallet.coin_selector import CoinSelector
+from coinpy.lib.wallet.coin_selector import CoinSelector
 from coinpy.lib.bitcoin.transactions.create_transaction import create_pubkeyhash_transaction
 from coinpy.lib.bitcoin.transactions.sign_transaction import sign_transaction
 from coinpy.model.protocol.structures.uint256 import Uint256
@@ -13,7 +13,7 @@ from coinpy.lib.bitcoin.hash_tx import hash_tx
 import time
 import random
 from coinpy.model.planned_transaction import PlannedTransaction
-from coinpy.lib.bitcoin.wallet.wallet import KeyDecryptException
+from coinpy.lib.wallet.wallet import KeyDecryptException
 from coinpy.tools.reactor.reactor import reactor
 
 

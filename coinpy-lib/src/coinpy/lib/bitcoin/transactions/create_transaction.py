@@ -26,9 +26,9 @@ if __name__ == '__main__':
     from coinpy.lib.database.bsddb_env import BSDDBEnv
     from coinpy_tests.mock import Mock
     from coinpy.model.protocol.runmode import MAIN, TESTNET
-    from coinpy.lib.bitcoin.wallet.wallet import Wallet
+    from coinpy.lib.wallet.wallet import Wallet
     from coinpy.lib.wallet.bsddb.bsddb_wallet_database import BSDDBWalletDatabase
-    from coinpy.lib.bitcoin.wallet.coin_selector import CoinSelector
+    from coinpy.lib.wallet.coin_selector import CoinSelector
     from coinpy.tools.bitcoin.base58check import decode_base58check
     from coinpy.model.constants.bitcoin import COIN
     from coinpy.lib.vm.vm import TxValidationVM
