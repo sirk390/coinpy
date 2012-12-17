@@ -10,9 +10,9 @@ from collections import deque
 from coinpy.node.node import Node
 from coinpy.node.logic.version_exchange import VersionExchangeService
 from coinpy.model.protocol.messages.inv import InvMessage
-from coinpy.lib.bitcoin.checks.block_checks import BlockVerifier
+from coinpy.lib.blockchain.checks.block_checks import BlockVerifier
 from coinpy.node.pools.orphanblockpool import OrphanBlockPool
-from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
+from coinpy.lib.blockchain.blockchain import Blockchain
 
 class BlockchainDownloader():
     # TODO: protect againts hosts that don't respond to GETDATA(timeout => misbehaving)
