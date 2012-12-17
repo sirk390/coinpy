@@ -12,7 +12,7 @@ from coinpy.model.scripts.hash_types import SIGHASH_ANYONECANPAY, SIGHASH_SINGLE
 from coinpy.model.protocol.structures.tx_out import TxOut
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.model.scripts.opcodes import OP_PUSHDATA
-from coinpy.lib.script.push_data import auto_push_data_instruction
+from coinpy.lib.vm.script.push_data import auto_push_data_instruction
 from coinpy.model.protocol.structures.tx import Tx
 from coinpy.model.protocol.structures.tx_in import TxIn
 import hashlib

@@ -1,8 +1,8 @@
 from coinpy.model.scripts.opcodes import OP_PUSHDATA
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 from coinpy.model.scripts.opcodes_info import is_pushdata
-from coinpy.lib.script.script_pubkeyhash import SCRIPT_PUBKEYHASH_OPCODES
-from coinpy.lib.script.script_pubkey import SCRIPT_PUBKEY_OPCODES
+from coinpy.lib.vm.script.script_pubkeyhash import SCRIPT_PUBKEYHASH_OPCODES
+from coinpy.lib.vm.script.script_pubkey import SCRIPT_PUBKEY_OPCODES
 
 
 

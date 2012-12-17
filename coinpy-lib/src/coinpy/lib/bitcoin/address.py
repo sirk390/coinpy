@@ -4,7 +4,7 @@ from coinpy.tools.bitcoin.base58check import encode_base58check,\
     decode_base58check
 from coinpy.model.protocol.runmode import RUNMODE_NAMES
 from coinpy.tools.hex import hexstr
-from coinpy.lib.script.standard_script_tools import identify_script,\
+from coinpy.lib.vm.script.standard_script_tools import identify_script,\
     tx_pubkeyhash_get_address, tx_pubkey_get_pubkey
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 
