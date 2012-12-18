@@ -7,7 +7,7 @@ from coinpy.tools.functools import first
 from coinpy.model.protocol.messages.block import BlockMessage
 from coinpy.model.protocol.messages.inv import InvMessage
 from coinpy.node.logic.version_exchange import VersionExchangeService
-from coinpy.lib.blockchain.hash_block import hash_block
+from coinpy.lib.blocks.hash_block import hash_block
 
 
 class BlockchainServer(Observable):

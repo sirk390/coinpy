@@ -6,7 +6,7 @@ from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.invitem import INV_TX
 from coinpy.model.protocol.messages.getdata import GetdataMessage
 from collections import deque
-from coinpy.lib.blockchain.checks.tx_checks import TxVerifier
+from coinpy.lib.transactions.tx_checks import TxVerifier
 import traceback
 from coinpy.tools.reactor.asynch import asynch_method
 

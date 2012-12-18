@@ -1,4 +1,4 @@
-from coinpy.tools.bsddb_env import BSDDBEnv
+from coinpy.tools.bsddb.bsddb_env import BSDDBEnv
 from coinpy.model.wallet.wallet_keypair import WalletKeypair
 from coinpy.model.wallet.wallet_name import WalletName
 import struct

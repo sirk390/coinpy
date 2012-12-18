@@ -62,7 +62,7 @@ GENESIS_TESTNET3 =  Block(
 GENESIS = {MAIN : GENESIS_MAIN, TESTNET : GENESIS_TESTNET, TESTNET3: GENESIS_TESTNET3}
 
 if __name__ == '__main__':
-    from coinpy.lib.blockchain.hash_block import hash_block
+    from coinpy.lib.blocks.hash_block import hash_block
     from coinpy.tools.hex import hexstr
 
     print GENESIS_MAIN
