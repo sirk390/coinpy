@@ -1,11 +1,11 @@
 from coinpy.model.constants.bitcoin import COINBASE_MATURITY, TARGET_INTERVAL,\
     TARGET_TIMESPAN, PROOF_OF_WORK_LIMIT, MEDIAN_TIME_SPAN, TARGET_SPACING
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 import traceback
 from coinpy.lib.vm.vm import TxValidationVM
 from coinpy.lib.blockchain.branch import Branch
 from coinpy.model.protocol.structures.uint256 import Uint256
-from coinpy.lib.bitcoin.difficulty import compact_difficulty
+from coinpy.lib.blockchain.difficulty import compact_difficulty
 from coinpy.tools.stat import median
 from coinpy.lib.blockchain.block_iterator import BlockIterator
 from coinpy.model.protocol.structures.blocklocator import BlockLocator

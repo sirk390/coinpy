@@ -1,15 +1,15 @@
 from coinpy.model.constants.bitcoin import COINBASE_MATURITY,\
     CONFIRMATIONS
-from coinpy.lib.bitcoin.address import BitcoinAddress
+from coinpy.lib.transactions.address import BitcoinAddress
 from coinpy.tools.bitcoin.base58check import decode_base58check
 from coinpy.tools.observer import Observable
 from coinpy.lib.wallet.coin_selector import CoinSelector
-from coinpy.lib.bitcoin.transactions.create_transaction import create_pubkeyhash_transaction
-from coinpy.lib.bitcoin.transactions.sign_transaction import sign_transaction
+from coinpy.lib.transactions.create_transaction import create_pubkeyhash_transaction
+from coinpy.lib.transactions.sign_transaction import sign_transaction
 from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.model.protocol.structures.merkle_tx import MerkleTx
-from coinpy.lib.bitcoin.transactions.create_wallet_tx import create_wallet_tx
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.create_wallet_tx import create_wallet_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 import time
 import random
 from coinpy.model.planned_transaction import PlannedTransaction

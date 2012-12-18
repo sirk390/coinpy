@@ -3,12 +3,12 @@ from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.database.blockchain.objects.blockindex import DbBlockIndex
 from coinpy.model.protocol.runmode import MAIN
 from coinpy.lib.database.blockchain.indexdb import IndexDB
-from coinpy.lib.bitcoin.hash_block import hash_block
+from coinpy.lib.blockchain.hash_block import hash_block
 from coinpy.model.blockchain.blockchain_database import BlockChainDatabase
 from coinpy.lib.database.blockchain.db_blockhandle import DBBlockHandle
 from coinpy.lib.database.blockchain.db_txhandle import DBTxHandle
 from coinpy.lib.database.blockchain.objects.txindex import DbTxIndex
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 from coinpy.lib.database.blockchain.objects.disktxpos import DiskTxPos
 from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
 from coinpy.lib.serialization.structures.s11n_varint import VarintSerializer

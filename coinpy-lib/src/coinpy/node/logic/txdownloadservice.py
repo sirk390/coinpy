@@ -1,7 +1,7 @@
 from coinpy.model.protocol.messages.types import MSG_INV, MSG_TX
 from coinpy.node.logic.version_exchange import VersionExchangeService
 from coinpy.node.node import Node
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.invitem import INV_TX
 from coinpy.model.protocol.messages.getdata import GetdataMessage

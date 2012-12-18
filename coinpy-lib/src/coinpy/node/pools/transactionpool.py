@@ -1,5 +1,5 @@
 from coinpy.tools.observer import Observable
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 
 class TransactionPool(Observable):
     EVT_ADDED_TX = Observable.createevent()

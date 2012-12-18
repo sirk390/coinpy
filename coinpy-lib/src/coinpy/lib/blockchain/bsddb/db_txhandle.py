@@ -1,7 +1,7 @@
 from coinpy.model.blockchain.tx_handle import TxHandle
-from coinpy.lib.bitcoin.hash_block import hash_blockheader
+from coinpy.lib.blockchain.hash_block import hash_blockheader
 from coinpy.lib.database.blockchain.db_blockhandle import DBBlockHandle
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 
 class DBTxHandle(TxHandle):
     def __init__(self, log, indexdb, blockstorage, hash):

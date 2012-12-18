@@ -1,9 +1,9 @@
 from coinpy.lib.serialization.structures.s11n_block import BlockSerializer
 from coinpy.model.constants.bitcoin import MAX_BLOCK_SIZE, PROOF_OF_WORK_LIMIT,\
     MEDIAN_TIME_SPAN
-from coinpy.lib.bitcoin.merkle_tree import compute_merkle_root
+from coinpy.lib.transactions.merkle_tree import compute_merkle_root
 from coinpy.model.protocol.structures.uint256 import Uint256
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 from coinpy.model.blockchain.checkpoints import verify_checkpoints,\
     get_checkpoint
 from coinpy.lib.blockchain.checks.tx_checks import TxVerifier

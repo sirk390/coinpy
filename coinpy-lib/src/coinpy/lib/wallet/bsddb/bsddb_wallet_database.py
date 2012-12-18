@@ -1,4 +1,4 @@
-from coinpy.lib.database.bsddb_env import BSDDBEnv
+from coinpy.tools.bsddb_env import BSDDBEnv
 from coinpy.model.wallet.wallet_keypair import WalletKeypair
 from coinpy.model.wallet.wallet_name import WalletName
 import struct
@@ -10,7 +10,7 @@ from coinpy.lib.serialization.structures.s11n_wallet_tx import WalletTxSerialize
 import bsddb
 from coinpy.model.wallet.wallet_database_interface import WalletDatabaseInterface
 from coinpy.lib.wallet.bsddb.serialization.master_key_serializer import MasterKeySerializer
-from coinpy.lib.bitcoin.address import BitcoinAddress
+from coinpy.lib.transactions.address import BitcoinAddress
 
 class BSDDBWalletDatabase(WalletDatabaseInterface):
     def __init__(self, bsddb_env, filename):

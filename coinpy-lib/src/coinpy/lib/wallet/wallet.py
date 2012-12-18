@@ -1,9 +1,9 @@
-from coinpy.lib.database.bsddb_env import BSDDBEnv
+from coinpy.tools.bsddb_env import BSDDBEnv
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
 from coinpy.lib.vm.script.standard_script_tools import tx_pubkeyhash_get_address,\
     identify_script, tx_pubkey_get_pubkey
 from coinpy.lib.wallet.bsddb.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.lib.bitcoin.address import BitcoinAddress, extract_txout_address
+from coinpy.lib.transactions.address import BitcoinAddress, extract_txout_address
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.outpoint import Outpoint
 import time

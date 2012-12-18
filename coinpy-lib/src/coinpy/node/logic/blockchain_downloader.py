@@ -2,7 +2,7 @@ from coinpy.model.protocol.structures.invitem import INV_BLOCK, Invitem
 from coinpy.model.protocol.messages.types import MSG_INV, MSG_BLOCK
 from coinpy.model.protocol.messages.getblocks import GetblocksMessage
 from coinpy.model.protocol.structures.uint256 import Uint256
-from coinpy.lib.bitcoin.hash_block import hash_block
+from coinpy.lib.blockchain.hash_block import hash_block
 from coinpy.model.protocol.messages.getdata import GetdataMessage
 import traceback
 from coinpy.tools.reactor.asynch import asynch_method
