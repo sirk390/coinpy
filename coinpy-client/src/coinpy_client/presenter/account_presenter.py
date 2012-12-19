@@ -1,8 +1,8 @@
 #wallets
-from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.lib.bitcoin.wallet.wallet import Wallet, KeyDecryptException
+from coinpy.lib.wallet.bsddb.bsddb_wallet_database import BSDDBWalletDatabase
+from coinpy.lib.wallet.wallet import Wallet, KeyDecryptException
 import os
-from coinpy.lib.bitcoin.address import BitcoinAddress
+from coinpy.lib.transactions.address import BitcoinAddress
 from coinpy.tools.float import is_float
 from coinpy.model.constants.bitcoin import COIN
 from coinpy.tools.reactor.asynch import asynch_method
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     #n4MsBRWD7VxKGsqYRSLaFZC6hQrsrKLaZo
     import wx
     from coinpy_client.view.wallet.wallet_panel import WalletPanel
-    from coinpy.lib.database.bsddb_env import BSDDBEnv
+    from coinpy.tools.bsddb.bsddb_env import BSDDBEnv
     from coinpy_tests.mock import Mock
     from coinpy.model.protocol.runmode import MAIN, TESTNET
     from coinpy_client.view.message_view import MessageView

@@ -6,7 +6,7 @@ from coinpy_client.presenter.accountbook_presenter import AccountBookPresenter
 import traceback
 from coinpy.tools.reactor.asynch import asynch_method
 from coinpy_client.view.wallet.enter_passphrase_view import EnterPassphraseView
-from coinpy.lib.database.wallet.crypter.passphrase import new_masterkey
+from coinpy.lib.wallet.bsddb.crypter.passphrase import new_masterkey
 
 class MainWindowPresenter(Observable):
     #    EVT_WALLET_OPENED = Observable.createevent()

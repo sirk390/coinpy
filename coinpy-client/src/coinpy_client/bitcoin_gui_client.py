@@ -16,18 +16,18 @@ def coinpy_gui_client(client_params):
 if __name__ == '__main__':
     # testnet faucet: mhFwRrjRNt8hYeWtm9LwqCpCgXjF38RJqn
     # old peer : 88.114.198.141:18333
-    mode = 1 
+    mode = 1
     if mode == 1:
         runmode=TESTNET3
-        data_directory = r"D:\repositories\data\data_testnet_3" 
+        data_directory = r"C:\dev\data\data_testnet_3" 
         seeds=[]
         #seeds = [SockAddr("96.241.176.56", 18333)]
-        seeds = [SockAddr("69.64.46.74", 18333)]
+        #seeds = [SockAddr("69.64.46.74", 18333)]
         
-        findpeers = False
+        findpeers = True
     if mode == 2:
         runmode=TESTNET
-        data_directory = r"D:\repositories\data\data_testnet" 
+        data_directory = "C:\\dev\\data\\data_testnet" 
         #seeds = [SockAddr("96.241.176.56", 18333)]
         seeds=[]
         findpeers = True

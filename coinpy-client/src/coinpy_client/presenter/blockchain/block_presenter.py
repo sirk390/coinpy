@@ -1,7 +1,7 @@
 import wx
-from coinpy.lib.bitcoin.hash_block import hash_block
+from coinpy.lib.blocks.hash_block import hash_block
 from coinpy.model.protocol.runmode import MAIN
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 from coinpy.model.constants.bitcoin import COIN
 import time
  

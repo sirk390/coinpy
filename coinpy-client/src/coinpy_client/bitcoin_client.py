@@ -1,23 +1,23 @@
-from coinpy.lib.database.blockchain.db_blockchain import BSDDbBlockChainDatabase
+from coinpy.lib.blockchain.bsddb.db_blockchain import BSDDbBlockChainDatabase
 from coinpy.model.genesis import GENESIS
-from coinpy.lib.database.bsddb_env import BSDDBEnv
+from coinpy.tools.bsddb.bsddb_env import BSDDBEnv
 import os
 from coinpy.node.transaction_publisher import TransactionPublisher
 from coinpy_client.model.account_set import AccountSet
-from coinpy.lib.bitcoin.wallet.wallet import Wallet
-from coinpy.lib.database.wallet.bsddb_wallet_database import BSDDBWalletDatabase
-from coinpy.lib.bitcoin.wallet.wallet_account import WalletAccount
+from coinpy.lib.wallet.wallet import Wallet
+from coinpy.lib.wallet.bsddb.bsddb_wallet_database import BSDDBWalletDatabase
+from coinpy.lib.wallet.wallet_account import WalletAccount
 from coinpy.node.config.nodeparams import NodeParams
 from coinpy.model.protocol.services import SERVICES_NODE_NETWORK
 import logging.handlers
 from coinpy.tools.bsddb.bsddb_file_id import bsddb_read_file_uid
 from coinpy.node.bitcoin_node import BitcoinNode
-from coinpy.lib.bitcoin.pools.transactionpool import TransactionPool
+from coinpy.node.pools.transactionpool import TransactionPool
 from coinpy.node.addrpool import AddrPool
 from coinpy.node.logic.peer_reconnector import PeerReconnector
 from coinpy.lib.bootstrap.bootstrapper import Bootstrapper
 from coinpy.node.logic.addrpool_filler import AddrPoolFiller
-from coinpy.lib.bitcoin.blockchain.blockchain_with_altbranches import BlockchainWithAltbranches
+from coinpy.lib.blockchain.blockchain_with_altbranches import BlockchainWithAltbranches
 import multiprocessing
 
 
@@ -67,6 +67,7 @@ class BitcoinClient():
     def get_dbenv_handle(self, directory):
         normdir = os.path.normcase(os.path.normpath(os.path.abspath(directory)))
         if normdir not in self.dbenv_handles:
+            print BSDDBEnv(normdir)
             self.dbenv_handles[normdir] = BSDDBEnv(normdir)
         return self.dbenv_handles[normdir]
     

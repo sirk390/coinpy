@@ -1,3 +1,4 @@
+import wx
 import wx.aui
 from coinpy_client.view.wallet.wallet_notebook import WalletNotebook
 from coinpy_client.view.log.logpanel import LogPanel
