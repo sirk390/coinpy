@@ -1,6 +1,6 @@
 from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
-from coinpy.lib.database.blockchain.objects.disktxpos import DiskTxPos
+from coinpy.lib.blockchain.bsddb.objects.disktxpos import DiskTxPos
 
 class DiskTxPosSerializer():
     DISKTXPOS = Structure([Field("<I", "file"),

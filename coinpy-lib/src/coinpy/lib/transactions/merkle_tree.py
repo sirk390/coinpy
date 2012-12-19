@@ -1,5 +1,5 @@
 from coinpy.tools.bitcoin.sha256 import double_sha256_2_input
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 from coinpy.model.protocol.structures.uint256 import Uint256
 
 def next_merkle_level(hashes):

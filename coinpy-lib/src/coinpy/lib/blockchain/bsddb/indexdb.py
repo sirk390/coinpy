@@ -1,6 +1,6 @@
 import bsddb
-from coinpy.lib.database.blockchain.serialization.s11n_txindex import TxIndexSerializer
-from coinpy.lib.database.blockchain.serialization.s11n_blockindex import BlockIndexSerializer
+from coinpy.lib.blockchain.bsddb.serialization.s11n_txindex import TxIndexSerializer
+from coinpy.lib.blockchain.bsddb.serialization.s11n_blockindex import BlockIndexSerializer
 from coinpy.model.protocol.structures.uint256 import Uint256
 
 class IndexDB():

@@ -3,7 +3,7 @@ from coinpy.model.protocol.structures.tx_out import TxOut
 from coinpy.lib.vm.script.script_pubkeyhash import make_script_pubkeyhash
 from coinpy.model.protocol.structures.tx_in import TxIn
 from coinpy.model.scripts.script import Script
-from coinpy.lib.bitcoin.transactions.sign_transaction import sign_transaction
+from coinpy.lib.transactions.sign_transaction import sign_transaction
 
 """
     output_list: list of (Outpoint, TxOut) tuples

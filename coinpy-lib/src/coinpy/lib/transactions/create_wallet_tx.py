@@ -1,7 +1,7 @@
-from coinpy.lib.bitcoin.merkle_tree import get_merkle_branch
+from coinpy.lib.transactions.merkle_tree import get_merkle_branch
 from coinpy.model.protocol.structures.merkle_tx import MerkleTx
 from coinpy.model.protocol.structures.wallet_tx import WalletTx
-from coinpy.lib.bitcoin.hash_tx import hash_tx
+from coinpy.lib.transactions.hash_tx import hash_tx
 import time
 
 COPY_DEPTH = 1

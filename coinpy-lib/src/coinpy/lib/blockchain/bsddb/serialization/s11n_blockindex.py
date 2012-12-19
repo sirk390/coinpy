@@ -3,7 +3,7 @@ from coinpy.lib.serialization.common.field import Field
 from coinpy.lib.serialization.common.structure import Structure
 from coinpy.lib.serialization.structures.s11n_uint256 import Uint256Serializer
 from coinpy.lib.serialization.structures.s11n_blockheader import BlockheaderSerializer
-from coinpy.lib.database.blockchain.objects.blockindex import DbBlockIndex
+from coinpy.lib.blockchain.bsddb.objects.blockindex import DbBlockIndex
 
 
 class BlockIndexSerializer():

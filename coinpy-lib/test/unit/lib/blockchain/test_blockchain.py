@@ -1,6 +1,6 @@
 """import unittest
 from coinpy_tests.mock import Mock, MockMethod
-from coinpy.lib.bitcoin.blockchain.blockchain import Blockchain
+from coinpy.lib.blockchain.blockchain import Blockchain
 from coinpy.model.protocol.structures.block import Block
 from coinpy.model.protocol.structures.blockheader import BlockHeader
 

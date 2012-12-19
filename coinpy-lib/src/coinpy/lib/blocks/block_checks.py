@@ -6,7 +6,7 @@ from coinpy.model.protocol.structures.uint256 import Uint256
 from coinpy.lib.transactions.hash_tx import hash_tx
 from coinpy.model.blockchain.checkpoints import verify_checkpoints,\
     get_checkpoint
-from coinpy.lib.blockchain.checks.tx_checks import TxVerifier
+from coinpy.lib.transactions.tx_checks import TxVerifier
 
 class BlockVerifier():
     def __init__(self, runmode):

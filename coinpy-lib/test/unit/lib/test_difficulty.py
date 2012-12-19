@@ -1,5 +1,5 @@
 import unittest
-from coinpy.lib.bitcoin.difficulty import uint256_difficulty, compact_difficulty
+from coinpy.lib.blocks.difficulty import uint256_difficulty, compact_difficulty
 from coinpy.model.protocol.structures.uint256 import Uint256
 
 class TestDifficulty(unittest.TestCase):
