@@ -11,6 +11,6 @@ class InvMessageSerializer(Serializer):
     def serialize(self, inv_msg):
         return (self.INV_ENCODER.serialize(inv_msg.items))
     
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         invitems, cursor = self.INV_ENCODER.deserialize(data, cursor)
         return (InvMessage(invitems), cursor)

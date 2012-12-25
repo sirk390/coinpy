@@ -5,7 +5,7 @@ class VerackMessageSerializer(Serializer):
     def serialize(self, verack):
         return ("")
     
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         return (VerackMessage(), cursor)
 
 

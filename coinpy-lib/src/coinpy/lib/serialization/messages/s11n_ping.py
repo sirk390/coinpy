@@ -5,7 +5,7 @@ class PingMessageSerializer(Serializer):
     def serialize(self, ping_message):
         return ("")
     
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         return (PingMessage(), cursor)
 
 

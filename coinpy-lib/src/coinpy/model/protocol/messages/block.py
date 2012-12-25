@@ -7,5 +7,8 @@ class BlockMessage(Message):
         super(BlockMessage,self).__init__(MSG_BLOCK)
         self.block = block
         
+    def __eq__(self, other):
+        return (self.block == other.block)
+    
     def __str__(self):
         return ("msg_block(%s)" % (str(self.block)))

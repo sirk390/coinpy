@@ -25,7 +25,7 @@ class VersionMessageSerializer(Serializer):
                                                version_msg.sub_version_num,
                                                version_msg.start_height]))
     
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         result, cursor = self.VERSION_STRUCT.deserialize(data, cursor)
         return (VersionMessage(*result), cursor)
 

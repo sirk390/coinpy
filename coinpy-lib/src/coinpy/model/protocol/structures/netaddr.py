@@ -1,9 +1,16 @@
 
 class Netaddr():
+    """Bitcoin node network address.
+    
+    Attributes:
+       services (SERVICES_NONE=0 or SERVICES_NODE_NETWORK=1)
+       ip (string)
+       port (int)
+    """
     def __init__(self, services, ip, port):
-        self.services = services    #int (bitfield)
-        self.ip = ip                #string "a.b.c.d"
-        self.port = port            #int
+        self.services = services
+        self.ip = ip
+        self.port = port
     
     def __eq__(self, other):
         return (self.services == other.services and 

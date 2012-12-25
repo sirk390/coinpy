@@ -11,7 +11,7 @@ class BlockMessageSerializer(Serializer):
     def serialize(self, block_msg):
         return (self.block_serializer.serialize(block_msg.block))
         
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         block, cursor = self.block_serializer.deserialize(data, cursor)
         return (BlockMessage(block), cursor)
 

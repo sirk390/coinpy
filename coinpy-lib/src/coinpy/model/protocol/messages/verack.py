@@ -4,6 +4,9 @@ from coinpy.model.protocol.messages.message import Message
 class VerackMessage(Message):
     def __init__(self):
         super(VerackMessage, self).__init__(MSG_VERACK)
-        
+    
+    def __eq__(self, other):
+        return True
+    
     def __str__(self):
         return ("verack.") 

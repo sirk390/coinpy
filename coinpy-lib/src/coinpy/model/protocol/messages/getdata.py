@@ -7,5 +7,8 @@ class GetdataMessage(Message):
         super(GetdataMessage, self).__init__(MSG_GETDATA)       
         self.invitems = invitems
         
+    def __eq__(self, other):
+        return self.invitems == other.invitems
+    
     def __str__(self):
         return ("getdata invitems(%d)[%s...]" % (len(self.invitems), ",".join(str(i) for i in self.invitems[:5])))

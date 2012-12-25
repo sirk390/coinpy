@@ -9,12 +9,12 @@ from coinpy.lib.serialization.exceptions import FormatErrorException,\
 import string
 from coinpy.lib.serialization.messages.s11n_verack import VerackMessageSerializer
 from coinpy.lib.serialization.messages.s11n_inv import InvMessageSerializer
-from coinpy.lib.serialization.messages.s11n_getblocks import GetBlocksMessageSerializer
+from coinpy.lib.serialization.messages.s11n_getblocks import GetblocksMessageSerializer
 from coinpy.lib.serialization.messages.s11n_getheaders import GetheadersMessageSerializer
 from coinpy.lib.serialization.messages.s11n_tx import TxMessageSerializer
 from coinpy.lib.serialization.messages.s11n_getdata import GetdataMessageSerializer
 from coinpy.lib.serialization.messages.s11n_addr import AddrMessageSerializer
-from coinpy.lib.serialization.messages.s11n_getaddr import GetAddrMessageSerializer
+from coinpy.lib.serialization.messages.s11n_getaddr import GetaddrMessageSerializer
 from coinpy.model.protocol.runmode import MAIN
 from coinpy.tools.bitcoin.sha256 import sha256checksum
 from coinpy.lib.serialization.messages.s11n_block import BlockMessageSerializer
@@ -28,12 +28,12 @@ ENCODERS = {MSG_VERSION: VersionMessageSerializer(),
             MSG_ADDR: AddrMessageSerializer(),
             MSG_INV: InvMessageSerializer(),
             MSG_GETDATA: GetdataMessageSerializer(),
-            MSG_GETBLOCKS: GetBlocksMessageSerializer(),
+            MSG_GETBLOCKS: GetblocksMessageSerializer(),
             MSG_GETHEADERS: GetheadersMessageSerializer(),
             MSG_TX: TxMessageSerializer(),
             MSG_BLOCK: BlockMessageSerializer(),
             MSG_HEADERS: None,
-            MSG_GETADDR: GetAddrMessageSerializer(),
+            MSG_GETADDR: GetaddrMessageSerializer(),
             MSG_CHECKORDER: None,
             MSG_SUBMITORDER: None,
             MSG_REPLY: None,
