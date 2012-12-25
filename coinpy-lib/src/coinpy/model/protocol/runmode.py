@@ -1,4 +1,4 @@
 
-TESTNET, TESTNET3, MAIN = RUNMODES = range(3)
+UNITNET, TESTNET, TESTNET3, MAIN  = RUNMODES = range(4)
 
-RUNMODE_NAMES = {TESTNET : "Testnet", TESTNET3 : "Testnet_3", MAIN : "Main"}
+RUNMODE_NAMES = {UNITNET: "UnittestNet", TESTNET : "Testnet", TESTNET3 : "Testnet_3", MAIN : "Main"}

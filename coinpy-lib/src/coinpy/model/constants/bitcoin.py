@@ -1,4 +1,4 @@
-from coinpy.model.protocol.runmode import MAIN, TESTNET, TESTNET3
+from coinpy.model.protocol.runmode import MAIN, TESTNET, TESTNET3, UNITNET
 from coinpy.model.protocol.structures.uint256 import Uint256
 
 COIN = 100000000
@@ -25,7 +25,8 @@ MAX_BLOCK_SIZE = 1000000
 
 PROOF_OF_WORK_LIMIT = {MAIN:     Uint256.from_bignum((1 << (256 - 32)) - 1), #~uint256(0) >> 32
                        TESTNET : Uint256.from_bignum((1 << (256 - 28)) - 1),
-                       TESTNET3 : Uint256.from_bignum((1 << (256 - 28)) - 1)} #~uint256(0) >> 28
+                       TESTNET3 : Uint256.from_bignum((1 << (256 - 28)) - 1),
+                       UNITNET: Uint256.from_bignum((1 << (256 - 10)) - 1)}
 
 def is_money_range(value):
     return (value >= 0 and value <= MAX_MONEY)

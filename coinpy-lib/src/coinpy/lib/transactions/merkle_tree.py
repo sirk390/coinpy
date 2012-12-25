@@ -84,8 +84,8 @@ static Uint256 CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBra
 """
 
 
-def compute_merkle_root(block):
-    hashes = [hash_tx(tx).get_bytestr() for tx in block.transactions]
+def compute_merkle_root(transactions):
+    hashes = [hash_tx(tx).get_bytestr() for tx in transactions]
     while (len(hashes) != 1):
         hashes = next_merkle_level(hashes)
     return (Uint256.from_bytestr(hashes[0]))

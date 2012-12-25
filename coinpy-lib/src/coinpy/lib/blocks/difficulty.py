@@ -12,3 +12,10 @@ def compact_difficulty(uin256):
     exp, value = shr + 3, (bignumvalue >> (shr * 8) )
     return (exp << (3*8)| value)
 
+if __name__ == "__main__":
+    from coinpy.model.constants.bitcoin import PROOF_OF_WORK_LIMIT
+    from coinpy.model.protocol.runmode import UNITNET, TESTNET, MAIN
+
+    print compact_difficulty(PROOF_OF_WORK_LIMIT[UNITNET])
+    print compact_difficulty(PROOF_OF_WORK_LIMIT[TESTNET])
+    print compact_difficulty(PROOF_OF_WORK_LIMIT[MAIN])

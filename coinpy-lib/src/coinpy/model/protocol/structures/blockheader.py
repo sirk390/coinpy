@@ -11,6 +11,8 @@ class BlockHeader():
             bits (int): Difficulty target. 
             nonce (int): Nonce.
     """
+    MAX_NONCE = 4294967296
+    
     def __init__(self, version, hash_prev, hash_merkle, time, bits, nonce):
         self.version, self.hash_prev, self.hash_merkle, self.time, self.bits, self.nonce = version, hash_prev, hash_merkle, time, bits, nonce
         # optional extra fields used to cache the hash value once computed

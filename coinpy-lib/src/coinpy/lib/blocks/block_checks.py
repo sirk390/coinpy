@@ -62,7 +62,7 @@ class BlockVerifier():
                 return err
 
     def check_merkle_root(self, hash, block):
-        merkle = compute_merkle_root(block)
+        merkle = compute_merkle_root(block.transactions)
         if merkle != block.blockheader.hash_merkle:
             raise Exception("merkel root incorrect for block %s: %s != %s" % (str(hash), str(merkle), str(block.blockheader.hash_merkle)) )
             

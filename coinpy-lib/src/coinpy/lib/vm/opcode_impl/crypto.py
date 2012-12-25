@@ -12,7 +12,7 @@ from coinpy.model.scripts.hash_types import SIGHASH_ANYONECANPAY, SIGHASH_SINGLE
 from coinpy.model.protocol.structures.tx_out import TxOut
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.model.scripts.opcodes import OP_PUSHDATA
-from coinpy.lib.vm.script.push_data import auto_push_data_instruction
+from coinpy.lib.vm.script.push_data import push_data_instruction
 from coinpy.model.protocol.structures.tx import Tx
 from coinpy.model.protocol.structures.tx_in import TxIn
 import hashlib
@@ -67,7 +67,7 @@ def checksig(vm, sig_param, pubkey_param):
     #except the current one that is replaced by the signed part (e.g. from the last OP_CODESEPARATOR)
     # of current_script with signature push_data removed
     # note: only 'optimal' push_data instructions with the same signature are removed
-    current_script = Script(filter(lambda instr: instr!=auto_push_data_instruction(sig_param),
+    current_script = Script(filter(lambda instr: instr!=push_data_instruction(sig_param),
                             vm.current_script.signed_part().instructions))
     tx_tmp.in_list[inputindex].script = current_script
     #serialize and append hash type
