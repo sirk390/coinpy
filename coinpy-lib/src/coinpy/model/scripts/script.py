@@ -1,24 +1,31 @@
 from coinpy.model.scripts.opcodes import OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY,\
     OP_HASH160, OP_PUSHDATA, OP_CHECKSIGVERIFY, OP_CHECKMULTISIG,\
-    OP_CHECKMULTISIGVERIFY, OP_CODESEPARATOR
+    OP_CHECKMULTISIGVERIFY, OP_CODESEPARATOR, OP_16
 from coinpy.tools.hex import hexstr
 from coinpy.model.scripts.opcodes_info import is_pushdata
 
-# Used when a script cannot be decoded (error cases with PUSHDATA missing data)
 class RawScript(object):
+    """Script representation used when a script cannot be decoded.
+    
+       For example in PUSHDATA instructions with missing data.
+    """
     def __init__(self, data):
         self.data = data
     def __str__(self):
         return ("RawScript:" + hexstr(self.data))
-         
+
+    
 class Script(object):
     #STANDARD_TX = [OP_PUBKEY, OP_CHECKSIG]
     STANDARD_ADDRESS_TX = [OP_DUP, OP_HASH160, OP_PUSHDATA, OP_EQUALVERIFY, OP_CHECKSIG]
     
     
-    def __init__(self, instructions):
+    def __init__(self, instructions, serialized_size=None):
         self.instructions = instructions
-    
+        self.serialized_size = serialized_size
+        if len([i for i in self.instructions if (i.opcode > OP_16)]) > 201:
+            raise Exception(">201 opcodes")
+            
     def opcodes(self):
         return ([i.opcode for i in self.instructions])
 
@@ -43,7 +50,7 @@ class Script(object):
         return (self.is_standard_address_tx())
     
     def is_pushonly(self):
-        return (all(i.ispush() for i in self.instructions))
+        return (all(i.is_pushdata() for i in self.instructions))
 
     def sig_op_count(self):
         count = 0

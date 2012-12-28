@@ -15,6 +15,15 @@ from coinpy.model.protocol.runmode import TESTNET, TESTNET3
 from coinpy.lib.blockchain.blockchain_update import Reorganize, Append
 
 class Blockchain(Observable):
+    """Base Blockchain logic
+    
+        * Independent of database.
+        * Link between Outpoints and Inputs are not verified.
+        * There is only a mainchain (no albranches)
+        
+    See Also: `ConnectingBlockchain` and `BlockchainWithAltbranches`
+    
+    """
     EVT_APPENDED_BLOCK = Observable.createevent()
     EVT_CONNECTED_BLOCK = Observable.createevent()
     EVT_DISCONNECTED_BLOCK = Observable.createevent()
@@ -53,7 +62,6 @@ class Blockchain(Observable):
         if not (0 <= outpoint.index < len(tx.out_list)):
             return  Exception("Outpoint not found")
         return (tx.out_list[outpoint.index], tx_handle.get_block().get_height(), tx.iscoinbase())
-
 
     def get_work_after_block(self, blckhash):
         pos = self.database.get_block_handle(self.get_bestblock())

@@ -1,4 +1,5 @@
 from opcodes import *
+from coinpy.tools.functools import invert_dict
 
 OPCODE_NAMES = {
     OP_0 : "OP_0",
@@ -125,10 +126,15 @@ OPCODE_NAMES = {
     OP_NOP10 : "OP_NOP10"
 }
 
+OPCODES_BY_NAME = invert_dict(OPCODE_NAMES)
+
 def is_conditionnal(op):
     return (OP_IF <= op <= OP_ENDIF) 
 
 def is_pushdata(opcode):
+    return (opcode < OP_16 and opcode != OP_RESERVED)
+
+def is_pushdata_with_param(opcode):
     return (OP_PUSHDATA1_75_MIN <= opcode <= OP_PUSHDATA1_75_MAX or
             opcode == OP_PUSHDATA1 or
             opcode == OP_PUSHDATA2 or

@@ -20,7 +20,7 @@ import hashlib
 def op_hash160(vm, instr):
     if not vm.stack:
         raise Exception("OP_HASH160: Argument required")
-    vm.stack[-1] = hash160(vm.stack[-1])
+    vm.stack.append(hash160(vm.stack.pop()))
 
 def checksig(vm, sig_param, pubkey_param):
     transaction, inputindex, unspent_script = vm.checksig_data

@@ -1,5 +1,6 @@
 from coinpy.model.scripts.opcodes import OP_PUSHDATA1_75_MIN, OP_PUSHDATA1_75_MAX, OP_PUSHDATA1, OP_PUSHDATA4, OP_PUSHDATA2
-from coinpy.model.scripts.opcodes_info import OPCODE_NAMES, is_pushdata
+from coinpy.model.scripts.opcodes_info import OPCODE_NAMES, is_pushdata,\
+    is_pushdata_with_param
 from coinpy.tools.hex import hexstr
 
 # Note: Instructions are modelized using specific opcodes for each different PUSH_DATA variant.
@@ -9,7 +10,8 @@ class Instruction():
     def __init__(self, opcode, data=None):
         self.opcode = opcode            #value defined in opcodes.py
         self.data = data                #optional (bytestring for pushdata)
-        
+        if is_pushdata_with_param(self.opcode) and len(self.data) > 520:
+            raise Exception("PUSH_DATA with >520 bytes")
     #def ispush(self):
     #    return (OP_0 <= self.opcode <= OP_16)
 
@@ -25,7 +27,7 @@ class Instruction():
             return ("OP_PUSHDATA4:%s" % (datastr))
         
     def __str__(self):
-        if is_pushdata(self.opcode):
+        if is_pushdata_with_param(self.opcode):
             return self.__pushdata__str__()
         if (self.opcode in OPCODE_NAMES):
             return OPCODE_NAMES[self.opcode]
@@ -36,7 +38,10 @@ class Instruction():
     def __ne__(self, other):
         return (self.opcode != other.opcode or self.data != other.data)
     def __hash__(self):
-        if is_pushdata(self.opcode):
+        if is_pushdata_with_param(self.opcode):
             return hash(self.data)
         return self.opcode
     
+    def is_pushdata(self):
+        return is_pushdata(self.opcode)
+        

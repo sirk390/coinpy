@@ -16,7 +16,7 @@ import collections
 from coinpy.lib.time.time_source import SystemTimeSource
 from coinpy.tools.bitcoin.base256 import base256encode
 from coinpy.tools.hex import hexstr
-from coinpy.lib.serialization.scripts.serialize import IntructionSerializer,\
+from coinpy.lib.serialization.scripts.serialize import InstructionSerializer,\
     ScriptSerializer
 from coinpy.lib.vm.script.push_data import push_bignum_instruction,\
     push_data_instruction

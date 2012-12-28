@@ -1,13 +1,14 @@
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.tools.bitcoin.base256 import base256encode, base256decode
 from coinpy.model.scripts.script import Script, RawScript
-from coinpy.model.scripts.opcodes_info import is_pushdata
+from coinpy.model.scripts.opcodes_info import is_pushdata,\
+    is_pushdata_with_param
 from coinpy.lib.serialization.exceptions import MissingDataException
 from coinpy.lib.serialization.common.serializer import Serializer
 from coinpy.model.scripts.opcodes import OP_PUSHDATA1, OP_PUSHDATA2,\
     OP_PUSHDATA4, OP_PUSHDATA1_75_MAX, OP_PUSHDATA1_75_MIN
 
-class IntructionSerializer(Serializer):
+class InstructionSerializer(Serializer):
     """
         Deserialisation + serialisation shouldn't change opcodes even 
         in case of errors in the script.
@@ -61,24 +62,24 @@ class IntructionSerializer(Serializer):
        
     
     def serialize(self, instr):
-        if is_pushdata(instr.opcode):
+        if is_pushdata_with_param(instr.opcode):
             return self.serialize_pushdata(instr)
         return chr(instr.opcode)
     
     def get_size(self, instr):
-        if is_pushdata(instr.opcode):
+        if is_pushdata_with_param(instr.opcode):
             return self._get_size_pushdata(instr)
         return 1
     
     def deserialize(self, data, cursor):
         op = ord(data[cursor])
-        if is_pushdata(op):
+        if is_pushdata_with_param(op):
             return (self._deserialize_pushdata(data, cursor))
         return (Instruction(op), cursor + 1)
 
 class ScriptSerializer():
     def __init__(self):
-        self.iser = IntructionSerializer()
+        self.iser = InstructionSerializer()
         
     def serialize(self, script):
         if type(script) is RawScript:
@@ -97,7 +98,7 @@ class ScriptSerializer():
             while (pos < l):
                 instr, pos = self.iser.deserialize(data, pos)
                 instructions.append(instr)
-            return Script(instructions)
+            return Script(instructions, l)
         except:
             return RawScript(data)
         

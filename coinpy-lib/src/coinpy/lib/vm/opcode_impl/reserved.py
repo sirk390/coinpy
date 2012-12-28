@@ -5,3 +5,6 @@ def op_not_implemented(vm, instr):
 
 def op_invalid(vm, instr):
     raise Exception ("Opcode invalid: %s" % (OPCODE_NAMES[instr.opcode]))
+
+def op_disabled(vm, instr):
+    raise Exception ("Opcode disabled: %s" % (OPCODE_NAMES[instr.opcode]))

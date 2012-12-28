@@ -13,5 +13,8 @@ def first(iterable, func):
             return elm
     return None
 
+def invert_dict(d):
+    return {v:k for k,v in d.iteritems()}
+
 if (__name__ == '__main__'):
     print xgroupby(range(10), lambda x: x%5)

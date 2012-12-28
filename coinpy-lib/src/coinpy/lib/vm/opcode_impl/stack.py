@@ -29,7 +29,7 @@ def op_toaltstack(vm, instr):
     if not vm.stack:
         raise Exception("OP_TOALTSTACK: Stack empty")
     elm = vm.stack.pop()
-    vm.altstack.append(elm)
+    vm.stack.append_altstack(elm)
 
 
 """
@@ -39,9 +39,9 @@ OP_FROMALTSTACK:         (alt)x1 -> x1
         
 """
 def op_fromaltstack(vm, instr):
-    if not vm.altstack:
+    if not vm.stack.altstack:
         raise Exception("OP_FROMALTSTACK: Altstack empty")
-    elm = vm.altstack.pop()
+    elm = vm.stack.pop_altstack()
     vm.stack.append(elm)
 
 
@@ -55,7 +55,7 @@ def op_tuck(vm, instr):
         raise Exception("OP_TUCK: Not enought arguments")
     x2 = vm.stack.pop()
     x1 = vm.stack.pop()
-    vm.stack += [x2, x1, x2]
+    vm.stack.append_list([x2, x1, x2])
 
 """
 OP_SWAP:                   x1 x2  -> x2 x1
@@ -66,7 +66,7 @@ def op_swap(vm, instr):
         raise Exception("OP_SWAP: Not enought arguments")
     x2 = vm.stack.pop()
     x1 = vm.stack.pop()
-    vm.stack += [x2, x1]
+    vm.stack.append_list([x2, x1])
 
 """
 OP_ROLL:                   xn ... x2 x1 x0 <n>  -> ... x2 x1 x0 xn
@@ -117,7 +117,7 @@ def op_nip(vm, instr):
         raise Exception("OP_NIP: Not enought arguments")
     x2 = vm.stack.pop()
     x1 = vm.stack.pop()
-    vm.stack += [x2]
+    vm.stack.append(x2)
 
                   
 """
@@ -143,7 +143,7 @@ def op_rot(vm, instr):
     x3 = vm.stack.pop()
     x2 = vm.stack.pop()
     x1 = vm.stack.pop()
-    vm.stack += [x2, x3, x1]
+    vm.stack.append_list([x2, x3, x1])
 
 """
 OP_2DUP:                   x1 x2 -> x1 x2 x1 x2
@@ -199,7 +199,7 @@ def op_2rot(vm, instr):
     x3 = vm.stack.pop()
     x2 = vm.stack.pop()
     x1 = vm.stack.pop()
-    vm.stack += [x3, x4, x5, x6, x1, x2]
+    vm.stack.append_list([x3, x4, x5, x6, x1, x2])
 
 
 """
@@ -212,5 +212,4 @@ def op_2swap(vm, instr):
     x3 = vm.stack.pop()
     x2 = vm.stack.pop()
     x1 = vm.stack.pop()
-    vm.stack += [x3, x4, x1, x2]
-                 
+    vm.stack.append_list([x3, x4, x1, x2])

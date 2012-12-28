@@ -57,7 +57,7 @@ OPCODE_FUNCTIONS = {
     OP_2ROT : op_2rot,
     OP_2SWAP : op_2swap,
 # Splice 
-    OP_CAT : op_cat,
+    OP_CAT : op_cat, 
     OP_SUBSTR : op_substr,
     OP_LEFT : op_left,
     OP_RIGHT : op_right,
