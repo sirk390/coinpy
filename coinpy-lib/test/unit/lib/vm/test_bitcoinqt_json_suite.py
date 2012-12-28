@@ -56,9 +56,10 @@ def test_script(vm, claim_script_str, unspent_script_str):
 class TestScriptsJson(unittest.TestCase):
     def setUp(self):
         self.vm = TxValidationVM()
-  
+        self.current_dir = os.path.dirname(__file__)
+        
     def test_scripts_valid(self):
-        with open(os.path.join("data","script_valid.json")) as fp:
+        with open(os.path.join(self.current_dir, "data","script_valid.json")) as fp:
             testcase_list = json.load(fp)
         for testcase in testcase_list:
             claim_script = parse_script(testcase[0])
@@ -68,7 +69,7 @@ class TestScriptsJson(unittest.TestCase):
                 raise Exception(reason)
                 
     def test_scripts_invalid(self):
-        with open(os.path.join("data","script_invalid.json")) as fp:
+        with open(os.path.join(self.current_dir, "data","script_invalid.json")) as fp:
             testcase_list = json.load(fp)
         for testcase in testcase_list:
             valid, reason = test_script(self.vm, testcase[0], testcase[1])
