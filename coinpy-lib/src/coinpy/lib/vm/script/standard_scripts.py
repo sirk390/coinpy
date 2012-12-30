@@ -18,7 +18,9 @@ from coinpy.model.scripts.opcodes import OP_CHECKSIG, OP_PUSHDATA, OP_DUP,\
 from coinpy.model.scripts.instruction import Instruction
 from coinpy.model.scripts.script import Script
 from coinpy.lib.vm.script.push_data import push_data_instruction,\
-    push_bignum_instruction
+    push_bignum_instruction, push_smallint
+from coinpy.model.scripts.opcodes_info import is_smallint_pushdata,\
+    get_pushed_smallint
 
 SCRIPT_PUBKEY_OPCODES = [OP_PUSHDATA, OP_CHECKSIG]
 SCRIPT_PUBKEYHASH_OPCODES = [OP_DUP, OP_HASH160, OP_PUSHDATA, OP_EQUALVERIFY, OP_CHECKSIG]
@@ -34,17 +36,21 @@ class ScriptPubkey():
         return Script([push_data_instruction(data=self.pubkey),
                        Instruction(OP_CHECKSIG)])
     @staticmethod
-    def from_script(self, script):
-        if not self.match(script):
+    def from_script(script):
+        if not ScriptPubkey.match(script):
             raise Exception("Not a SCRIPT_PUBKEY script")
         return ScriptPubkey(script.instructions[0].data)
     
     @staticmethod
     def match(script):
         return (len(script.instructions) == 2 and
-                script.instructions[0].ispushdata() and
+                script.instructions[0].is_pushdata() and
                 33 <= len(script.instructions[0].data) <= 120 and
                 script.instructions[1].opcode == OP_CHECKSIG)
+
+    def __eq__(self, other):
+        return self.pubkey == other.pubkey
+    
 
 class ScriptPubkeyHash():
     """TX_PUBKEYHASH: Script of the form 'OP_DUP, OP_HASH160, OP_PUSHDATA(20), OP_EQUALVERIFY, OP_CHECKSIG'"""
@@ -58,8 +64,8 @@ class ScriptPubkeyHash():
                        Instruction(OP_EQUALVERIFY),
                        Instruction(OP_CHECKSIG)])
     @staticmethod
-    def from_script(self, script):
-        if not self.match(script):
+    def from_script(script):
+        if not ScriptPubkeyHash.match(script):
             raise Exception("Not a SCRIPT_PUBKEY_HASH script")
         return ScriptPubkeyHash(script.instructions[2].data)
     
@@ -68,10 +74,13 @@ class ScriptPubkeyHash():
         return (len(script.instructions) == 5 and
                 script.instructions[0].opcode == OP_DUP and
                 script.instructions[1].opcode == OP_HASH160 and
-                script.instructions[2].ispushdata() and
+                script.instructions[2].is_pushdata() and
                 len(script.instructions[2].data) == 20 and
                 script.instructions[3].opcode == OP_EQUALVERIFY and
                 script.instructions[4].opcode == OP_CHECKSIG)
+
+    def __eq__(self, other):
+        return self.pubkey_hash == other.pubkey_hash
     
 class ScriptHash():
     """TX_SCRIPTHASH: Script of the form 'OP_HASH160, OP_PUSHDATA(?), OP_EQUAL'"""
@@ -103,26 +112,47 @@ class ScriptMutlisig():
         public_keys (list of str) : public keys.
         m (int) : number of required signatures.
     """
-    def __init__(self, public_keys, m):
-        self.public_keys = public_keys
+    def __init__(self, m, public_keys):
         self.m = m
+        self.public_keys = public_keys
         
     def get_script(self):
-        return Script([push_bignum_instruction(data=self.m)] +
+        return Script([push_smallint(self.m)] +
                       [push_data_instruction(pubkey) for pubkey in self.public_keys] + 
-                      [push_bignum_instruction(data=len(self.public_keys))] +
-                      Instruction(OP_CHECKMULTISIG))
+                      [push_smallint(len(self.public_keys))] +
+                      [Instruction(OP_CHECKMULTISIG)])
     @staticmethod
-    def from_script(self, script):
-        if not self.match(script):
+    def from_script(script):
+        if not ScriptMutlisig.match(script):
             raise Exception("Not a TX_SCRIPT_HASH script")
-        #TODO
-        return ScriptMutlisig()
+        m = get_pushed_smallint(script.instructions[0].opcode)
+        n = get_pushed_smallint(script.instructions[-2].opcode)
+        pubkeys = [script.instructions[i+1].data for i in range(n) ]
+        return ScriptMutlisig(m, pubkeys)
     
     @staticmethod
     def match(script):
-        #TODO
-        return (False)
+        if (len(script.instructions) <= 4 or # 4 is the minimum size (n=1)
+            script.instructions[-1].opcode != OP_CHECKMULTISIG or 
+            not is_smallint_pushdata(script.instructions[-2].opcode)):
+            return False
+        n = get_pushed_smallint(script.instructions[-2].opcode)
+        if len(script.instructions) != n + 3: # n*pubkeys + (m,n,OP_CHECKMULTISIG)
+            return False
+        if not is_smallint_pushdata(script.instructions[0].opcode):
+            return False
+        m = get_pushed_smallint(script.instructions[0].opcode)
+        if m > n:
+            return False
+        for i in range(n):
+            if (not script.instructions[1+i].is_pushdata() or 
+                not (33 <= len(script.instructions[1+i].data) <= 120)):
+                return False
+        return (True)
+
+    def __eq__(self, other):
+        return self.public_keys == other.public_keys and self.m == other.m
+    
 
 STANDARD_SCRIPTS = [ScriptPubkey, ScriptPubkeyHash, ScriptMutlisig]
 STANDARD_SCRIPTS_OR_P2SH = STANDARD_SCRIPTS + [ScriptHash]

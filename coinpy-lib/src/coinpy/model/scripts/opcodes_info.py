@@ -139,5 +139,10 @@ def is_pushdata_with_param(opcode):
             opcode == OP_PUSHDATA1 or
             opcode == OP_PUSHDATA2 or
             opcode == OP_PUSHDATA4)
+    
+def is_smallint_pushdata(opcode):
+    return (OP_1 <= opcode <= OP_16)
 
-        
+def get_pushed_smallint(opcode):
+    return (opcode - OP_1 + 1)
+

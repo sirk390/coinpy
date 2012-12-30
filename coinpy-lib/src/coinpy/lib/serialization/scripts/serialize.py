@@ -41,7 +41,7 @@ class InstructionSerializer(Serializer):
         
     def _deserialize_pushdata_data(self, op, datalength, data, pos):
         if (len(data) < pos + datalength):
-            raise MissingDataException("pushdata data required %d bytes remaining %d ", datalength, len(data)-pos)
+            raise MissingDataException("pushdata data required %d bytes remaining %d " % (datalength, len(data)-pos))
         return (Instruction(op, data[pos:pos+datalength]), pos+datalength)
     
     def _deserialize_pushdata_length_and_data(self, op, data, pos):
@@ -71,7 +71,7 @@ class InstructionSerializer(Serializer):
             return self._get_size_pushdata(instr)
         return 1
     
-    def deserialize(self, data, cursor):
+    def deserialize(self, data, cursor=0):
         op = ord(data[cursor])
         if is_pushdata_with_param(op):
             return (self._deserialize_pushdata(data, cursor))
