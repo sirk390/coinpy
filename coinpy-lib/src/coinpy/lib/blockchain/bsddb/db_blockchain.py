@@ -58,6 +58,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         Transaction Operations
     """    
     def get_transaction_handle(self, hash):
+        """Raises an exception if not found """
         return DBTxHandle(self.log, self.indexdb, self.blockstore, hash)
     
     def contains_transaction(self, txhash):
@@ -113,6 +114,9 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
             yield (hash, blockindex)
             hash = blockindex.blockheader.hash_prev
 
+    def pop_block(self):
+        pass
+    """
     def reorganize(self, reorganize_update):
         old_afterfork_hash, old_afterfork_block = reorganize_update.old_mainchain[0]
         new_mainchain_besthash, new_mainchain_bestblock = reorganize_update.new_mainchain[-1]
@@ -148,14 +152,16 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
         self.indexdb.set_blockindex(hashfork, blkindex)
         #set hashbestchain
         self.indexdb.set_hashbestchain(new_mainchain_besthash)
-
-    def is_mainchain(self, hash):
-        pass
+    """
             
     def get_mainchain(self):
+        raise Exception("deprecated: use get_best_hash()")
+        return self.indexdb.get_hashbestchain()
+
+    def get_best_hash(self):
         return self.indexdb.get_hashbestchain()
     
-    def get_genesis(self):
+    def get_genesis_hash(self):
         return self.genesishash
     
     def _index_transactions(self, blockhash, block=None):

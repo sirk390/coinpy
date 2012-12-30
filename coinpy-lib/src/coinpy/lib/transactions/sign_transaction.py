@@ -1,11 +1,11 @@
 from coinpy.lib.serialization.structures.s11n_tx import TxSerializer
 from coinpy.tools.bitcoin.sha256 import doublesha256
-from coinpy.lib.vm.script.script_pubkeyhash import make_script_pubkeyhash_sig
 from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
-from coinpy.lib.vm.script.standard_script_tools import identify_script
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
-from coinpy.lib.vm.script.script_pubkey import make_script_pubkey_sig
 from coinpy.model.scripts.script import Script
+from coinpy.lib.vm.script.standard_scripts import make_script_pubkeyhash_sig,\
+    make_script_pubkey_sig
+from coinpy.lib.vm.script.identify_scripts import identify_script
 
 def sign_transaction_input(tx, input_index, txout_script, intput_script_type, secret):
     # Set all txin to empty

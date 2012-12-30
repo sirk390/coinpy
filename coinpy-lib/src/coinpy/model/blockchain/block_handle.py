@@ -5,9 +5,6 @@ class BlockHandle():
     def get_block(self):
         pass
     
-    def is_mainchain(self):
-        pass
-
     def get_height(self):
         pass
 
