@@ -43,9 +43,6 @@ class InMemoryBlockchainDatabase(BlockChainDatabase):
 
     def append_block(self, block):
         """
-        
-        raises
-            InvalidHashException: if block.hash_prev is not equal to the current best_hash
         """
         blkhash = hash_block(block)
         self.indexed_blocks[blkhash] = block
