@@ -19,7 +19,7 @@ from coinpy.model.protocol.runmode import MAIN
 from coinpy.tools.bitcoin.sha256 import sha256checksum
 from coinpy.lib.serialization.messages.s11n_block import BlockMessageSerializer
 from coinpy.lib.serialization.common.serializer import Serializer
-from coinpy.tools.hex import hexdump
+from coinpy.tools.hex import hexdump, hexstr
 from coinpy.lib.serialization.messages.s11n_alert import AlertMessageSerializer
 from coinpy.lib.serialization.messages.s11n_ping import PingMessageSerializer
 
@@ -44,13 +44,12 @@ class MessageSerializer(Serializer):
     MESSAGE_HEADER = Structure([Field("<I",  "magic"),
                                 Field("12s","command"),
                                 Field("<I",  "length")], "message")
-    def __init__(self, runmode, log):
+    def __init__(self, runmode):
         self.runmode= runmode
-        self.log = log
 
     def serialize(self, msg):
         if (msg.type not in ENCODERS):
-            raise Exception("Encoder not found for type: %d" % (msg.type))
+            raise FormatErrorException("Encoder not found for type: %d" % (msg.type))
         payload = ENCODERS[msg.type].serialize(msg)
         result = self.MESSAGE_HEADER.serialize([MAGICS[self.runmode],
                                                 COMMANDS[msg.type],
@@ -68,7 +67,7 @@ class MessageSerializer(Serializer):
         if (command not in COMMANDS_TYPES):
             raise FormatErrorException("Error: unknown command : %s" % (command))
         if ( ENCODERS[COMMANDS_TYPES[command]] == None):
-            raise Exception("Error: Unsupported command : %s" % (command))
+            raise FormatErrorException("Error: Unsupported command : %s" % (command))
         msg_type = COMMANDS_TYPES[command]
         #if (msg_type != MSG_VERSION and msg_type != MSG_VERACK):
         checksum = data[cursor:cursor+4]
@@ -87,7 +86,7 @@ class MessageSerializer(Serializer):
         verify = sha256checksum(data[startplayload:cursor])
         if (checksum != verify):
             #raise FormatErrorException("Checksum error in command: %s %s != %s" % (command, hexdump1(checksum,""), hexdump1(verify,"")))
-            self.log.warning( "Checksum error in command: %s %s != %s" % (command, hexdump(checksum,""), hexdump(verify,"")))
+            raise FormatErrorException( "Checksum error in command: %s %s != %s" % (command, hexstr(checksum), hexstr(verify)))
         return (res, cursor)  
 
 if __name__ == '__main__':
