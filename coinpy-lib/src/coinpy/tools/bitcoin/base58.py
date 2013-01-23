@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from coinpy.tools.functools import count_leading_chars
 
 b58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 b58chars_values = dict((c, val) for val, c in enumerate(b58chars))
@@ -18,6 +19,9 @@ def base58decode(b58str):
     for c in b58str:
         value = value * 58 + b58chars_values[c]
     return (value)
+
+def count_leading_base58_zeros(b58str):
+    return count_leading_chars(b58str, b58chars[0])
 
 if __name__ == '__main__':
     print base58encode(726378263726783267836783)

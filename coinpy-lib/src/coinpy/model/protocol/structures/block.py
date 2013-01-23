@@ -17,7 +17,15 @@ class Block():
     def __eq__(self, other):
         return (self.blockheader == other.blockheader and 
                 self.transactions == other.transactions)
-  
+    
+    def iter_transactions_forwards(self):
+        for tx in self.transactions:
+            yield tx
+            
+    def iter_transactions_backwards(self):
+        for tx in reversed(self.transactions):
+            yield tx
+            
     def __str__(self):
         return ("Block(%s, transactions(%d)[%s...])" % 
                     (str(self.blockheader), 

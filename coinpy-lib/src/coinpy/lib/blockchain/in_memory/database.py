@@ -27,7 +27,7 @@ class InMemoryBlockchainDatabase(BlockChainDatabase):
     def get_block_handle(self, block_hash):
         if not block_hash in self.indexed_blocks:
             raise BlockNotFound(str(block_hash))
-        return InMemoryBlockHandle(self.indexed_blocks[block_hash], self.block_heights[block_hash])
+        return InMemoryBlockHandle(block_hash, self.indexed_blocks[block_hash], self.block_heights[block_hash])
     
     def get_transaction_handle(self, txhash):
         if txhash not in self.indexed_tx:

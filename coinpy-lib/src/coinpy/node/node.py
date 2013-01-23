@@ -31,7 +31,7 @@ class Node(asyncore.dispatcher, Observable):
         self.params = params
         self.log = log
         
-        self.message_encoder = MessageSerializer(self.params.runmode, log)
+        self.message_encoder = MessageSerializer(self.params.runmode)
 
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.set_reuse_addr()

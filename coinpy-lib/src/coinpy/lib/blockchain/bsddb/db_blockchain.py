@@ -4,7 +4,8 @@ from coinpy.lib.blockchain.bsddb.objects.blockindex import DbBlockIndex
 from coinpy.model.protocol.runmode import MAIN
 from coinpy.lib.blockchain.bsddb.indexdb import IndexDB
 from coinpy.lib.blocks.hash_block import hash_block
-from coinpy.model.blockchain.blockchain_database import BlockChainDatabase
+from coinpy.model.blockchain.blockchain_database import BlockChainDatabase,\
+    BlockNotFound
 from coinpy.lib.blockchain.bsddb.db_blockhandle import DBBlockHandle
 from coinpy.lib.blockchain.bsddb.db_txhandle import DBTxHandle
 from coinpy.lib.blockchain.bsddb.objects.txindex import DbTxIndex
@@ -75,7 +76,7 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
 
     def get_next_in_mainchain(self, blockhash):
         if not self.indexdb.contains_block(blockhash):
-            return None
+            raise BlockNotFound(str(blockhash))
         blockindex = self.indexdb.get_blockindex(blockhash)
         if (blockindex.hash_next == Uint256.zero()):
             return None
@@ -93,6 +94,9 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
             self.indexdb.set_hashbestchain(blockhash)
             self._index_transactions(blockhash, block)
         return DBBlockHandle(self.log, self.indexdb, self.blockstore, blockhash, block=block)
+
+    def pop_block(self):
+        pass
 
     """
         Mainchain Operations
@@ -114,8 +118,6 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
             yield (hash, blockindex)
             hash = blockindex.blockheader.hash_prev
 
-    def pop_block(self):
-        pass
     """
     def reorganize(self, reorganize_update):
         old_afterfork_hash, old_afterfork_block = reorganize_update.old_mainchain[0]

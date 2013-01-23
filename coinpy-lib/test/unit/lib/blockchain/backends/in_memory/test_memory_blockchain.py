@@ -42,6 +42,7 @@ class TestInMemoryBlockchainDatabase(unittest.TestCase):
             self.database1.get_block_handle(Uint256.from_hexstr("041f9c93fece90e2e1f729bb9c2b04ba59432592f8ebdc7d117146c74f7c833a"))
         handle1 = self.database1.get_block_handle(Uint256.from_hexstr("001f9c93fece90e2e1f729bb9c2b04ba59432592f8ebdc7d117146c74f7c833a"))
         self.assertEquals(handle1.get_height(), 4)
+        self.assertEquals(handle1.get_hash(), Uint256.from_hexstr("001f9c93fece90e2e1f729bb9c2b04ba59432592f8ebdc7d117146c74f7c833a"))
         assert isinstance(handle1.get_block(), Block)
         assert isinstance(handle1.get_blockheader(), BlockHeader)
 

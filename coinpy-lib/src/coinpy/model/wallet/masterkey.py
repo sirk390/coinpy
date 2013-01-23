@@ -47,6 +47,13 @@ class MasterKey():
         self.derive_iterations = derive_iterations
         self.other_derivation_parameters = other_derivation_parameters
     
+    def __eq__(self, other):
+        return (self.crypted_key == other.crypted_key and 
+                self.salt == other.salt and 
+                self.derivation_method == other.derivation_method and 
+                self.derive_iterations == other.derive_iterations and 
+                self.other_derivation_parameters == other.other_derivation_parameters)
+
     def __str__(self):
         return "MasterKey(crypted:%s, salt:%s, method:%s, iterations:%d)" % (
                                   hexstr(self.crypted_key), 

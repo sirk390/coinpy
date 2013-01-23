@@ -10,14 +10,40 @@ BLOCKHEADER_READSIZE=1024
 BLOCK_READSIZE=1024*1024
 TX_READSIZE=8*1024
 
-class BlockStorage:
-    def __init__(self, runmode, directory):
+class StorageFile():
+    def __init__(self, directory, filenum):
+        file.__init__()
+        self._directory = directory
+        self._filename = os.path.join(self._directory, "blk%04d.dat" % (filenum))
+        self.handle = open(self.filename, "a+b")
+    
+class BlockStorage(object):
+    """Storage consisting in a pool of "blk{NNNN}.dat" files where {NNNN} is the integer "filenum".
+       
+       The files contain serialized blocks with an extra header. 
+       A block can be located by its filenum and fileoffset.
+    
+       Limitation: Currently it writes only a single filenum(1).
+    """
+    def __init__(self, 
+                 runmode, 
+                 directory,
+                 storagefiles={}, 
+                 blockheaderserialize=BlockheaderSerializer(),
+                 blockserialize=BlockSerializer(),
+                 txserialize=TxSerializer(),
+                 blockheader_readsize=BLOCKHEADER_READSIZE,
+                 block_readsize=BLOCK_READSIZE,
+                 tx_readsize=TX_READSIZE):
         self.runmode = runmode
         self.directory = directory
-        self.openhandles = {}
-        self.blockheaderserialize =  BlockheaderSerializer()
-        self.blockserialize =  BlockSerializer()
-        self.txserialize = TxSerializer()
+        self.storagefiles = storagefiles
+        self.blockheaderserialize = blockheaderserialize
+        self.blockserialize = blockserialize
+        self.txserialize = txserialize
+        self.blockheader_readsize = blockheader_readsize
+        self.block_readsize = block_readsize
+        self.tx_readsize = tx_readsize
         
     def saveblock(self, block):
         file = 1
@@ -32,61 +58,44 @@ class BlockStorage:
         #Write block
         handle.write(block.rawdata)
         #Flush and commit to disk
-        
-        #FIXME?
         handle.flush()
         os.fsync(handle.fileno())
         return (file, blockpos)
     
     def commit(self):
-        for filenum, handle in self.openhandles.iteritems():
-            handle.flush()
-            os.fsync(handle.fileno())
+        for filenum, file in self.storagefiles.iteritems():
+            file.handle.flush()
+            os.fsync(file.handle.fileno())
         
     def _gethandle(self, filenum):
-        if filenum not in self.openhandles:
-            filename = os.path.join(self.directory, "blk%04d.dat" % (filenum))
-            handle = open(filename, "a+b")
-            self.openhandles[filenum] = handle
-            return (handle)
-        return self.openhandles[filenum]
+        if filenum not in self.storagefiles:
+            self.storagefiles[filenum] = StorageFile(self.directory, filenum)
+        return self.storagefiles[filenum].handle
     
     def _read_data(self, handle, size):
         data = handle.read(size)
         if len(data) == 0:
             raise Exception("End of file") 
         return data
+
+    def load_serialized_data(self, filenum, pos, serializer, readsize):
+        handle = self._gethandle(filenum)
+        handle.seek(pos)
+        block, data = None, self._read_data(handle, readsize)
+        while (block is None):
+            try:
+                block, _ = serializer.deserialize(data, 0)
+            except MissingDataException:
+                data += self._read_data(handle, readsize)
+        return (block)
         
     def load_blockheader(self, filenum, blockpos):
-        handle = self._gethandle(filenum)
-        handle.seek(blockpos)
-        block, data = None, self._read_data(handle, BLOCKHEADER_READSIZE)
-        while (block is None):
-            try:
-                block, _ = self.blockheaderserialize.deserialize(data, 0)
-            except MissingDataException:
-                data += self._read_data(handle, BLOCKHEADER_READSIZE)
-        return (block)
+        return self.load_serialized_data(filenum, blockpos, self.blockheaderserialize, self.blockheader_readsize)
     
     def load_block(self, filenum, blockpos):
-        handle = self._gethandle(filenum)
-        handle.seek(blockpos)
-        block, data = None, self._read_data(handle, BLOCK_READSIZE)
-        while (block is None):
-            try:
-                block, _ = self.blockserialize.deserialize(data, 0)
-            except MissingDataException:
-                data += self._read_data(handle, BLOCK_READSIZE)
-        return (block)
+        return self.load_serialized_data(filenum, blockpos, self.blockserialize, self.block_readsize)
     
     def load_tx(self, filenum, txpos):
-        handle = self._gethandle(filenum)
-        handle.seek(txpos)
-        tx, data = None, self._read_data(handle, TX_READSIZE)
-        while (tx is None):
-            try:
-                tx, _ = self.txserialize.deserialize(data, 0)
-            except MissingDataException:
-                data += self._read_data(handle, TX_READSIZE)
-        return (tx)
+        return self.load_serialized_data(filenum, txpos, self.txserialize, self.tx_readsize)
+
 

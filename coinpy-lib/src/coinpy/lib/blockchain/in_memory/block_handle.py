@@ -3,7 +3,8 @@ from coinpy.lib.blocks.hash_block import hash_block
 from coinpy.model.blockchain.block_handle import BlockHandle
 
 class InMemoryBlockHandle(BlockHandle):
-    def __init__(self, block, height):
+    def __init__(self, hash, block, height):
+        self.hash = hash
         self.block = block
         self.height = height
         
@@ -15,4 +16,6 @@ class InMemoryBlockHandle(BlockHandle):
 
     def get_blockheader(self):
         return self.block.blockheader
-
+    
+    def get_hash(self):
+        return self.hash

@@ -30,9 +30,8 @@ def decrypt_masterkey(master_key, passphrase):
     return plain_masterkey
 
 
-def new_masterkey(passphrase):
+def new_masterkey(passphrase, rand=Random(), get_time=time.time, nb_iterations_test=25000):
     """Create a new masterkey"""
-    rand = Random()
     crypter = Crypter()
     plain_master_key = rand.get_random_bytes(WALLET_CRYPTO_KEY_SIZE)
     rand.add_system_seeds()
@@ -41,13 +40,13 @@ def new_masterkey(passphrase):
     
     target_seconds = 0.1 #100ms
     # estimate number of derivations for 100ms per decrypt using 25000 iterations.
-    start_time = time.time()
-    derive_key_from_passphrase(passphrase, salt, 25000, deriv_method)
-    estimate1 = int((25000.0 * target_seconds) / (time.time() - start_time))
+    start_time = get_time()
+    derive_key_from_passphrase(passphrase, salt, nb_iterations_test, deriv_method)
+    estimate1 = int((nb_iterations_test * 1.0 * target_seconds) / (get_time() - start_time))
     # try it and take the mean of the estimate1 and estimate2
-    start_time = time.time()
+    start_time = get_time()
     derive_key_from_passphrase(passphrase, salt, estimate1, deriv_method)
-    estimate2 = int(estimate1 * target_seconds / (time.time() - start_time))
+    estimate2 = int(estimate1 * target_seconds / (get_time() - start_time))
     deriv_iterations = (estimate1 + estimate2) / 2
     # use it
     key, init_vect = derive_key_from_passphrase(passphrase, salt, deriv_iterations, deriv_method)
