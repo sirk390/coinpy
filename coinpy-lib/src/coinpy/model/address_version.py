@@ -45,7 +45,10 @@ class AddressVersion():
     
     def __eq__(self, other):
         return self.value == other.value
-    
+
+    def __hash__(self):
+        return hash(self.value)
+
     def __str__(self):
         return ADDRESS_TYPE_NAMES[self.value]
     

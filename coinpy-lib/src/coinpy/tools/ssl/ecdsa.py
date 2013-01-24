@@ -29,10 +29,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import ctypes
+from coinpy.tools.ssl.ssl import ssl
 
 # ctypes.util.find_library ('ssl')
 # 
-from coinpy.tools.crypto.ssl.ssl import ssl
 
 # this specifies the curve used with ECDSA.
 NID_secp256k1 = 714 # from openssl/obj_mac.h
@@ -76,7 +76,6 @@ def EC_KEY_regenerate_key(key, bn_privkey):
     return (1)
      
 class KEY:
-    
     def __init__ (self):
         self.k = ssl.EC_KEY_new_by_curve_name (NID_secp256k1)
         # keep a reference to ssl.EC_KEY_free, as __del__ can't use global 
@@ -96,12 +95,12 @@ class KEY:
             self.set_compressed()
             
     def set_privkey (self, key):
-        self.mb = ctypes.create_string_buffer (key)
-        ssl.d2i_ECPrivateKey (ctypes.byref (self.k), ctypes.byref (ctypes.pointer (self.mb)), len(key))
+        mb = ctypes.create_string_buffer (key)
+        ssl.d2i_ECPrivateKey (ctypes.byref (self.k), ctypes.byref (ctypes.pointer (mb)), len(key))
 
     def set_pubkey (self, key):
-        self.mb = ctypes.create_string_buffer (key)
-        ssl.o2i_ECPublicKey (ctypes.byref (self.k), ctypes.byref (ctypes.pointer (self.mb)), len(key))
+        mb = ctypes.create_string_buffer (key)
+        ssl.o2i_ECPublicKey (ctypes.byref (self.k), ctypes.byref (ctypes.pointer (mb)), len(key))
 
     def get_privkey (self):
         size = ssl.i2d_ECPrivateKey (self.k, 0)

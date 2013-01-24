@@ -1,8 +1,8 @@
 import os
 
 if os.name == 'nt':
-    from coinpy.tools.crypto.random.perfmon import get_perfmon_data
-    from coinpy.tools.crypto.random.performance_counter import get_performance_counter
+    from coinpy.tools.seeds.perfmon import get_perfmon_data
+    from coinpy.tools.seeds.performance_counter import get_performance_counter
     
     """ Get a list of (random_data, entropy) tuples suitable for ssl.RAND_add """
     def get_system_seeds():

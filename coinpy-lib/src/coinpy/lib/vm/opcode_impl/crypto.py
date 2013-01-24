@@ -1,7 +1,6 @@
 from coinpy.tools.bitcoin.hash160 import hash160
 import copy
 from coinpy.tools.bitcoin.sha256 import doublesha256
-from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
 from coinpy.model.scripts.script import Script
 from coinpy.lib.vm.stack_valtype import valtype_from_boolean, cast_to_number
 from coinpy.lib.vm.opcode_impl.flow import op_verify

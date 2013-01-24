@@ -1,11 +1,11 @@
-from coinpy.lib.wallet.bsddb.crypter.crypter import Crypter,\
+from coinpy.lib.wallet.formats.bitcoinqt.crypter.crypter import Crypter,\
     WALLET_CRYPTO_KEY_SIZE, WALLET_CRYPTO_SALT_SIZE
-from coinpy.tools.crypto.ssl.ssl import ssl
+from coinpy.tools.ssl.ssl import ssl
 import ctypes
 from coinpy.tools.hex import hexstr
-from coinpy.tools.crypto.random.random import Random
 import time
 from coinpy.model.wallet.masterkey import MasterKey
+from coinpy.tools.ssl.random import Random
 
 def derive_key_from_passphrase(passphrase, salt, derive_iterations, deriv_method):
     """Derive (key, initialization_vector) from passphrase and derivation parameters"""

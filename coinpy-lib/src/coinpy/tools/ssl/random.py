@@ -1,5 +1,5 @@
-from coinpy.tools.crypto.random.system_seeds import get_system_seeds
-from coinpy.tools.crypto.ssl.ssl import ssl_RAND_add, ssl_RAND_bytes
+from coinpy.tools.seeds.system_seeds import get_system_seeds
+from coinpy.tools.ssl.ssl import ssl_RAND_add, ssl_RAND_bytes
 
 class Random():
     def __init__(self):

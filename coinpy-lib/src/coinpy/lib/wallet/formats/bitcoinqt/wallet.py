@@ -1,30 +1,29 @@
-from coinpy.tools.bsddb.bsddb_env import BSDDBEnv
+from coinpy.tools.berkeleydb.bsddb_env import BSDDBEnv
 from coinpy.model.scripts.standard_scripts import TX_PUBKEYHASH, TX_PUBKEY
-from coinpy.lib.vm.script.standard_script_tools import tx_pubkeyhash_get_address,\
-    identify_script, tx_pubkey_get_pubkey
-from coinpy.lib.wallet.bsddb.bsddb_wallet_database import BSDDBWalletDatabase
 from coinpy.lib.transactions.address import BitcoinAddress, extract_txout_address
 from coinpy.tools.observer import Observable
 from coinpy.model.protocol.structures.outpoint import Outpoint
 import time
-from coinpy.lib.wallet.bsddb.crypter.passphrase import decrypt_masterkey,\
+from coinpy.lib.wallet.formats.bitcoinqt.crypter.passphrase import decrypt_masterkey,\
     new_masterkey
-from coinpy.tools.crypto.ecdsa.ecdsa_ssl import KEY
-from coinpy.lib.wallet.bsddb.crypter.crypter import Crypter
+from coinpy.tools.ssl.ecdsa import KEY
+from coinpy.lib.wallet.formats.bitcoinqt.crypter.crypter import Crypter
 from coinpy.tools.bitcoin.sha256 import doublesha256
 from coinpy.model.wallet.wallet_poolkey import WalletPoolKey
 from coinpy.model.constants.bitcoin import COIN
+from int.exp.dump_tx import dump_tx
+from coinpy.tools.hex import hexstr
 
 # Wrong passphrase, missing passphrase, or missing master_key
 class KeyDecryptException(Exception):
     pass
 
-'''
-    Wallet implementes the basic satoshi wallet logic.
-       Database logic is implemented in WalletDatabase
-       Features requiring a blockchain are implemented in WalletAccount.
-'''
 class Wallet(Observable):
+    '''
+        Wallet implementes the basic satoshi wallet logic.
+           Database logic is implemented in WalletDatabase
+           Features requiring a blockchain are implemented in WalletAccount.
+    '''
     EVT_NEW_TRANSACTION = Observable.createevent()
     
     def __init__(self, wallet_database, runmode):
@@ -218,7 +217,6 @@ class Wallet(Observable):
     def lock(self):
         self.plain_masterkeys = []
       
-        
 
     def is_mine(self, txout):
         address = extract_txout_address(txout, self.runmode)
@@ -243,16 +241,20 @@ class Wallet(Observable):
         return self.wallet_database.get_master_keys()
     
 if __name__ == '__main__':
-    from coinpy.model.protocol.runmode import MAIN, TESTNET
-    dbenv = BSDDBEnv(r"D:\bitcoin\data\testnet\testnet")
+    from coinpy.model.protocol.runmode import MAIN, TESTNET, TESTNET3
+    from coinpy.lib.wallet.formats.bitcoinqt.bsddb_wallet_database import BSDDBWalletDatabase
+    dbenv = BSDDBEnv(r"C:\bitcoin-0.7.2\data\testnet\testnet3")
     wallet_db = BSDDBWalletDatabase(dbenv, "wallet.dat")
-    wallet = Wallet(wallet_db, TESTNET)
+    wallet = Wallet(wallet_db, TESTNET3)
     wallet.open()
     
     for tx, outpoint, txout in wallet.iter_my_outputs():
-        print extract_txout_address(txout, TESTNET), (txout.value / COIN)
-    #for date, address, name, amount in wallet.iter_transaction_history():
-    #    print date, address, name, amount
+        print extract_txout_address(txout, TESTNET3), (txout.value / COIN)
+    for date, address, name, amount in wallet.iter_transaction_history():
+        print date, address, name, amount
+    for (public_key, is_crypted, address, description) in wallet.iterkeys():
+        print hexstr(public_key)
+        
     #print wallet.get_balance() * 1.0 / COIN 
         
  #   encode_base58check(chr(ADDRESSVERSION[runmode]) + hash160(public_key))

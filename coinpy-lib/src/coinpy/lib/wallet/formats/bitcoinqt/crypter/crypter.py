@@ -1,5 +1,5 @@
 import ctypes
-from coinpy.tools.crypto.ssl.ssl import ssl
+from coinpy.tools.ssl.ssl import ssl
 
 WALLET_CRYPTO_KEY_SIZE = 32
 WALLET_CRYPTO_SALT_SIZE = 8
@@ -47,7 +47,7 @@ class Crypter():
         return crypted_text.raw[:len1.value+len2.value]
 
 if __name__ == '__main__':
-    from coinpy.lib.wallet.bsddb.crypter.passphrase import derive_key_from_passphrase
+    from coinpy.lib.wallet.formats.bitcoinqt.crypter.passphrase import derive_key_from_passphrase
     from coinpy.tools.hex import decodehexstr, hexstr
     from coinpy.model.wallet.masterkey import MasterKey
 
