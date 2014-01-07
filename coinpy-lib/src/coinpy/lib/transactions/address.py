@@ -88,6 +88,17 @@ def extract_txout_address(txout, runmode):
         return BitcoinAddress.from_publickey(tx_pubkey_get_pubkey(txout.script), runmode)
     return None 
 
+def extract_txout_bytestr_address(txout):
+    script_type = identify_script(txout.script)
+    # if unknown script type, return None
+    if (script_type is None): 
+        raise Exception("Unknown script type")
+    if script_type == TX_PUBKEYHASH:
+        return tx_pubkeyhash_get_address(txout.script)
+    if script_type == TX_PUBKEY:
+        return hash160(tx_pubkey_get_pubkey(txout.script))
+    raise Exception("Unexpected script type")
+
     
 if __name__ == '__main__':
     from coinpy.model.protocol.runmode import TESTNET, MAIN
