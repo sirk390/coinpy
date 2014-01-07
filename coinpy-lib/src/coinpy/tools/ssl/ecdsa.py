@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import ctypes
 from coinpy.tools.ssl.ssl import ssl
+from coinpy.tools.bitcoin.base256 import base256decode, base256encode
 
 # ctypes.util.find_library ('ssl')
 # 
@@ -116,8 +117,26 @@ class KEY:
         mb_secret = ctypes.create_string_buffer (nbytes)
         n = ssl.BN_bn2bin(bn, mb_secret)
         return mb_secret.raw.rjust(32, "\x00")
-    
-    def set_secret (self, secret, compressed=False):
+
+    def get_privkey_bignum (self):
+        bn = ssl.EC_KEY_get0_private_key(self.k)
+        if not bn:
+            raise Exception("EC_KEY_get0_private_key failed")
+        nbytes = BN_num_bytes(bn)
+        mb_secret = ctypes.create_string_buffer (nbytes)
+        n = ssl.BN_bn2bin(bn, mb_secret)
+        return base256decode(mb_secret.raw)
+
+    def set_privkey_bignum(self, priv_key, compressed=True):
+        b256privkey = base256encode(priv_key)
+        bn = ssl.BN_bin2bn(b256privkey,32, 0);
+        if bn == 0:
+            raise Exception("set_secret: BN_bin2bn failed")
+        EC_KEY_regenerate_key(self.k, bn)
+        if compressed:
+            self.set_compressed()
+   
+    def set_secret (self, secret, compressed=True):
         if len(secret) != 32:
             raise Exception("set_secret: secret must be 32 bytes")
         bn = ssl.BN_bin2bn(secret,32, 0);

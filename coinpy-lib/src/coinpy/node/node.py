@@ -1,13 +1,13 @@
 from coinpy.node.network.peerconnection import PeerConnection
 from coinpy.tools.observer import Observable
 from coinpy.node.network.sockaddr import SockAddr
-from coinpy.lib.serialization.messages.s11n_message import MessageSerializer
 from coinpy.tools.reactor.asyncore_plugin import AsyncorePlugin
 from coinpy.tools.reactor.reactor import reactor
 import traceback
 import socket
 from coinpy.node.network.peerhandler import PeerHandler
 import asyncore
+from coinpy.lib.serialization.message_serializer import MessageSerializer
 
 reactor.install(AsyncorePlugin())
 

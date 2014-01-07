@@ -1,14 +1,11 @@
-from coinpy.tools.seeds.system_seeds import get_system_seeds
+from coinpy.tools.seeds.system_seeds import get_system_seeds,\
+    ssl_add_system_seeds
 from coinpy.tools.ssl.ssl import ssl_RAND_add, ssl_RAND_bytes
 
 class Random():
     def __init__(self):
-        self.add_system_seeds()
+        ssl_add_system_seeds()
         
-    def add_system_seeds(self):
-        for data, entropy in get_system_seeds():
-            ssl_RAND_add(data, entropy)
-    
     def get_random_bytes(self, length):
         return ssl_RAND_bytes(length)
 
