@@ -3,7 +3,6 @@
     It is used in IRC bootstraping to encode the <IP+Port> of peers.     
 '''
 
-import Crypto.Hash.SHA256 as SHA256
 from coinpy.tools.bitcoin.base256 import base256encode, base256decode
 from coinpy.tools.bitcoin.base58 import base58decode, base58encode, b58chars,\
     count_leading_base58_zeros
@@ -39,9 +38,7 @@ def encode_base58check(content, preserve_leading_zeros=True):
             addrversion=00,hash160=00602005b16851c4f9d0e2c82fa161ac8190e04c will give the bitcoin address:
             112z9tWej11X94khKKzofFgWbdhiXLeHPD
     """
-    digest1 = SHA256.new(content).digest()
-    digest2 = SHA256.new(digest1).digest()
-    data = content + digest2[:4]
+    data = content + doublesha256(content)[:4]
     leading_zeros = None
     if preserve_leading_zeros:
         leading_zeros = 0

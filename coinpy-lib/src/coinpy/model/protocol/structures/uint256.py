@@ -27,6 +27,7 @@ class Uint256():
         return "".join(("%02x" % ord(c)) for c in self.bytestr[::-1])
         #return ("%064x" % (self.value))
 
+
     def get_bignum(self):
         value = 0
         for b in self.bytestr[::-1]:
@@ -41,6 +42,15 @@ class Uint256():
             result = chr(mod) + result
             value = div
         return (result.rjust(32, "\0")[::-1])'''
+    to_bytestr = get_bytestr
+    
+    @staticmethod
+    def from_bytestr_be(bytestr):
+        return Uint256(bytestr=bytestr[::-1])
+    
+    def to_bytestr_be(self):
+        """ To big endian byte string """
+        return self.bytestr[::-1]
 
     def __str__(self):
         return (self.get_hexstr())

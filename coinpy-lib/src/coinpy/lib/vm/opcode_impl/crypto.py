@@ -15,6 +15,7 @@ from coinpy.lib.vm.script.push_data import push_data_instruction
 from coinpy.model.protocol.structures.tx import Tx
 from coinpy.model.protocol.structures.tx_in import TxIn
 import hashlib
+from coinpy.tools.ssl.ecdsa import KEY
 
 def op_hash160(vm, instr):
     if not vm.stack:
