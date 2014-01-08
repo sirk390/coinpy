@@ -113,8 +113,8 @@ class AllocSerializer(FixedSizeSerializer(5)):
 
     @staticmethod
     def deserialize(data):
-        if len(data) != ItemHeaderSerializer.SERIALIZED_LENGTH:
-            raise DeserializationException("item_header incorrect length: %s" % (len(data)))
+        if len(data) != AllocSerializer.SERIALIZED_LENGTH:
+            raise DeserializationException(" Alloc incorrect length: %s" % (len(data)))
         empty, size = struct.unpack(">BI", data)
         return (Alloc(not empty, size))
 

@@ -33,15 +33,28 @@ class FixedSizeEntryReader(object):
         data = self.io.read(pos*self.serialized_length,self.serialized_length)
         return self.serializer.deserialize(data)
     
-
+class InsufficientSpaceException(Exception):
+    pass
 
 class AllocatedRange(object):
-    def __init__(self, io, iosize, allocs=None, serializer=AllocSerializer):
+    def __init__(self, io, iosize, allocs=None, new=True, serializer=AllocSerializer):
         self.io = io
         self.iosize = iosize
         self.serializer = serializer
-        self.allpos = allocs if allocs else {0:Alloc(empty=True, size=iosize)}
         self.header_size = self.serializer.SERIALIZED_LENGTH
+        if allocs is not None:
+            self.allpos = allocs
+        else:
+            if new:
+                self.new()
+            else:
+                self.allpos = dict(self.readall())
+
+    def new(self):
+        """ could be moved to a function """
+        header = Alloc(empty=True, size=self.iosize - self.serializer.SERIALIZED_LENGTH)
+        self.io.write(0, self.serializer.serialize(header))
+        self.allpos = {0: header}
 
     def find_empty_location(self, length):
         for pos, alloc in self.allpos.iteritems():
@@ -57,14 +70,15 @@ class AllocatedRange(object):
             pos += self.serializer.SERIALIZED_LENGTH + header.size
 
     def read(self, pos):
-        header = self.io.read(pos, self.serializer.SERIALIZED_LENGTH)
-        if not header.empty:
-            return header, self.io.read(pos + self.serializer.SERIALIZED_LENGTH, header.size)
+        headerdata = self.io.read(pos, self.serializer.SERIALIZED_LENGTH)
+        header = self.serializer.deserialize(headerdata)
+        obj = None if header.empty else self.io.read(pos + self.serializer.SERIALIZED_LENGTH, header.size)
+        return header, obj
 
     def add(self, data):
         pos = self.find_empty_location(len(data))
         if pos is None:
-            raise Exception("Not enough space for data")
+            raise InsufficientSpaceException("Not enough space for data")
         self.insert(pos, data)
         return pos
         
@@ -106,7 +120,7 @@ class AllocatedRange(object):
         header.empty = True
 
         self.io.write(pos, self.serializer.serialize(header) + 
-                           "\x00" * (self.serializer.SERIALIZED_LENGTH + header.size))
+                           "\x00" * header.size)
         self.allpos[pos] = header
     
     def getallocs(self):
@@ -145,37 +159,25 @@ class VarSizeEntryReader(object):
         self.io = io
         self.iosize = iosize
         self.serializer = serializer
-        if new:
-            self._new()
-        else:
-            self._open()
-        self.objects
+        self.allocated = AllocatedRange(self.io, self.iosize, new=new)
+        self.objects = {}
+        if not new:
+            self.open()
             
-    
-    def _new(self):
-        header = ItemHeader(empty=True, id=0, size=self.iosize - self.alloc_serializer.SERIALIZED_LENGTH)
-        self.io.write(0, self.alloc_serializer.serialize(header))
-        self._add_empty_location(0, header)
-
-    def _open(self):
-        pos = 0
-        while pos + self.alloc_serializer.SERIALIZED_LENGTH <= self.iosize:
-            header, obj = self._readat(pos)
-            if not header.empty:
-                self._add_object(pos, header, obj)
-            else:
-                self._add_empty_location(pos, header)
-            pos += self.alloc_serializer.SERIALIZED_LENGTH + header.size
+    def open(self):
+        for pos, data in self.allocated.readall():
+            self.objects[pos] = self.serializer.deserialize(data)
 
     def iteritems(self):
-        for id, (pos, header, obj) in self.objects.iteritems():
-            yield id, obj
+        for pos, obj in self.objects.iteritems():
+            yield pos, obj
         
-    def add(self, id, obj):
-        pass
-        
-    def remove(self, id):
-        pass
+    def add(self, obj):
+        pos = self.allocated.add(self.serializer.serialize(obj))
+        return pos
+    
+    def remove(self, pos):
+        self.allocated.remove(pos)
         
 class ChunkReader(object):
     """ Go through a file, read and deserialize ChunkHeader's """
