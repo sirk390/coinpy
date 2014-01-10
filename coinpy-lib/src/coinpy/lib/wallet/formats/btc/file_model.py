@@ -70,6 +70,10 @@ class LogIndexEntry(object):
                 self.argument == other.argument and
                 self.needs_commit == other.needs_commit)
 
+    def is_tx_command(self):
+        return (self.command == LogIndexEntry.BEGIN_TX or 
+                self.command == LogIndexEntry.END_TX)
+        
     def __repr__(self):
         return "<%s(%s)>" % (self.__class__.__name__, " ".join("%s:%s" % (k,v) for k,v in  self.__dict__.items()))
                 

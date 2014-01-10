@@ -13,6 +13,21 @@ def first(iterable, func):
             return elm
     return None
 
+
+def lindex(lst, func):
+    ''' Return the first index in "iterable" for which "func" returns true'''
+    for i in range(len(lst)):
+        if func(lst[i]):
+            return i
+    return None
+
+def rindex(lst, func):
+    ''' Return the last index in "iterable" for which "func" returns true'''
+    for i in range(len(lst)-1, -1, -1):
+        if func(lst[i]):
+            return i
+    return None
+
 def nth(gen, n):
     ''' Return the nth element in a generator '''
     try:
