@@ -9,13 +9,13 @@ from coinpy.model.protocol.runmode import TESTNET, TESTNET3, MAIN
 
 #See GetNextWorkRequired: main.cpp:819
 
-class DifficultyHistory(object):
+class DifficultyIterator(object):
     """ time(int) + target(Uint256) organized by heigth.
     
     This allows to test blockchain difficulty algorithms without
     requiring full blockheaders.
     """
-    Item = collections.namedtuple("DifficultyHistory", "time bits")
+    Difficulty = collections.namedtuple("Difficulty", "time bits")
     def get_item(self, n):
         pass
     

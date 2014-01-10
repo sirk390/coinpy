@@ -1,14 +1,13 @@
 import unittest
-from coinpy.lib.blockchain.blockchain import Blockchain
+
 from coinpy.model.protocol.structures.block import Block
 from coinpy.model.protocol.structures.blockheader import BlockHeader
-from coinpy.lib.blockchain.bockchain_work import DifficultyHistory,\
-    get_work_required, retarget, adjust
+from coinpy.lib.blockchain.bockchain_work import DifficultyIterator, get_work_required, retarget, adjust
 from coinpy.model.protocol.runmode import TESTNET, TESTNET3, MAIN
 from coinpy.lib.blocks.difficulty import uint256_difficulty, compact_difficulty
 from coinpy.model.constants.bitcoin import TARGET_TIMESPAN, PROOF_OF_WORK_LIMIT
 
-class StaticDifficultyHistory(DifficultyHistory):
+class StaticDifficultyHistory(DifficultyIterator):
     def __init__(self, history):
         #list of (height, time, difficulty(compact format) )
         self.history = history
@@ -52,22 +51,22 @@ class TestBlockchainWork(unittest.TestCase):
     def test_blockchain_adjust(self):
         # normal case, last not specific difficulty (2016 here)
         difficulty_history1 = StaticDifficultyHistory({
-            2015 : DifficultyHistory.Item(time=1357060298, bits=473464683),
-            2016 : DifficultyHistory.Item(time=1357060898, bits=473464684),
-            2017 : DifficultyHistory.Item(time=1357061498, bits=compact_difficulty(PROOF_OF_WORK_LIMIT[TESTNET])),
-            2018 : DifficultyHistory.Item(time=1357062098, bits=compact_difficulty(PROOF_OF_WORK_LIMIT[TESTNET]))})
+            2015 : DifficultyIterator.Difficulty(time=1357060298, bits=473464683),
+            2016 : DifficultyIterator.Difficulty(time=1357060898, bits=473464684),
+            2017 : DifficultyIterator.Difficulty(time=1357061498, bits=compact_difficulty(PROOF_OF_WORK_LIMIT[TESTNET])),
+            2018 : DifficultyIterator.Difficulty(time=1357062098, bits=compact_difficulty(PROOF_OF_WORK_LIMIT[TESTNET]))})
         self.assertEquals(adjust(2019, difficulty_history1, 1357062698, PROOF_OF_WORK_LIMIT[TESTNET]),
                           473464684)  
         # no block mined since 2*TARGET_SPACING => reset to PROOF_OF_WORK_LIMIT
         difficulty_history2 = StaticDifficultyHistory({
-            3500 : DifficultyHistory.Item(time=1357060298, bits=373464683)})
+            3500 : DifficultyIterator.Difficulty(time=1357060298, bits=373464683)})
         self.assertEquals(adjust(3501, difficulty_history2, 1357061499, PROOF_OF_WORK_LIMIT[TESTNET]),
                           compact_difficulty(PROOF_OF_WORK_LIMIT[TESTNET]))
         
     def test_blockchain_get_work_required_main(self):
         # Simply copy previous difficulty if height % TARGET_INTERVAL != 0
         main_difficulty_history_46367 = StaticDifficultyHistory({
-            46366 : DifficultyHistory.Item(time=1269210928, bits=473464687)})
+            46366 : DifficultyIterator.Difficulty(time=1269210928, bits=473464687)})
         self.assertEquals(get_work_required(46367,
                                             main_difficulty_history_46367,
                                             1269212064, MAIN), 473464687)
@@ -75,8 +74,8 @@ class TestBlockchainWork(unittest.TestCase):
         # Retarget  if height % TARGET_INTERVAL == 0
         # (block 46368 depends on block times of 44352, 46367 and target of block 46367)
         main_difficulty_history_46368 = StaticDifficultyHistory({
-            44352 : DifficultyHistory.Item(time=1268010873, bits=473464687) ,
-            46367 : DifficultyHistory.Item(time=1269211443, bits=473464687)})
+            44352 : DifficultyIterator.Difficulty(time=1268010873, bits=473464687) ,
+            46367 : DifficultyIterator.Difficulty(time=1269211443, bits=473464687)})
         self.assertEquals(get_work_required(46368,
                                             main_difficulty_history_46368,
                                             1269212064, MAIN), 473437045)
@@ -84,7 +83,7 @@ class TestBlockchainWork(unittest.TestCase):
     def test_blockchain_get_work_required_testnet(self):
         # testnet adjusting algorithm (Min to the proof of work  limit)
         difficulty_history = StaticDifficultyHistory({
-            3500 : DifficultyHistory.Item(time=1357060298, bits=373464683)})
+            3500 : DifficultyIterator.Difficulty(time=1357060298, bits=373464683)})
         self.assertEquals(get_work_required(3501, difficulty_history, 1357061499, TESTNET),
                           compact_difficulty(PROOF_OF_WORK_LIMIT[TESTNET]))
 

@@ -98,6 +98,9 @@ class BSDDbBlockChainDatabase(BlockChainDatabase):
     def pop_block(self):
         pass
 
+    def set_besthash(self):
+        pass
+    
     """
         Mainchain Operations
     """    
