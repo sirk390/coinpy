@@ -9,7 +9,8 @@ from coinpy.lib.wallet.formats.btc.entry_reader import FixedSizeEntryReader
 
 CHUNK_SIZE=16
 
-from coinpy.lib.wallet.formats.btc.file_model import LogIndexEntry
+from coinpy.lib.wallet.formats.btc.file_model import LogIndexEntry, Log,\
+    LogHeader
 
 def LogIndexReader(io, nbentries):
     return FixedSizeEntryReader(io, nbentries, LogIndexEntrySerializer)
@@ -68,7 +69,8 @@ class LogIndex(object):
     def __init__(self, tocommit=None):
         self.tocommit = tocommit or deque()
         self.ON_COMMITING = Event()
-        self.ON_LOGGED = Event()
+        self.ON_LOG = Event()
+        self.ON_REVERTLOG = Event()
         self.ON_COMMITED = Event()
         
     def commit_step(self):
@@ -86,11 +88,11 @@ class LogIndex(object):
     def log(self, logindex):
         logindex.needs_commit = True
         self.tocommit.append(logindex)
-        self.ON_LOGGED.fire(logindex=logindex)
+        self.ON_LOG.fire(logindex=logindex)
 
     def revertlog(self):
         logidx = self.tocommit.pop()
-        self.ON_LOGGED.fire(logindex=logidx)
+        self.ON_REVERTLOG.fire(logindex=logidx)
 
     def recover(self):
         # Remove not entirely written logindex transactions at the end.
@@ -114,10 +116,14 @@ class SerializedLogIndex(LogIndex):
         super(SerializedLogIndex, self).__init__(tocommit)
         self.logindex_reader = logindex_reader
         self.start_pos = start_pos
-        self.ON_LOGGED.subscribe(self.on_logged)
+        self.ON_LOG.subscribe(self.on_log)
+        self.ON_REVERTLOG.subscribe(self.on_revertlog)
         self.ON_COMMITED.subscribe(self.on_commited)
 
-    def on_logged(self, event):
+    def on_revertlog(self, event):
+        self.logindex_reader.write_entry(self.start_pos+len(self.tocommit), event.logindex)
+
+    def on_log(self, event):
         self.logindex_reader.write_entry(self.start_pos+len(self.tocommit)-1, event.logindex)
 
     def on_commited(self, logindex):
@@ -150,31 +156,71 @@ class SerializedLogIndex(LogIndex):
         end_pos = end_pos if end_pos is not None else i 
         return SerializedLogIndex(logindex_reader, deque(entries[start_pos:end_pos]), start_pos=0)
 
+
+class LogBuffer(object):
+    def __init__(self, logbuffer_reader, writelogs=None):
+        self.logbuffer_reader = logbuffer_reader
+        self.writelogs = {} if writelogs is None else writelogs
+        
+    def getunallocated(self):
+        #Can be improved a lot by keeping this in memory in a sorted structure
+        last_end = 0
+        unallocated = []
+        for (start_pos, end_pos), log in sorted(self.writelogs.iteritems()):
+            if last_end != start_pos:
+                unallocated.append((last_end, start_pos))
+            last_end = end_pos
+        if last_end != self.logbuffer_reader.iosize:
+            unallocated.append((last_end, self.logbuffer_reader.iosize))
+        return unallocated
+    
+    def find_empty_location(self, sizeneeded):
+        for start, end in self.getunallocated():
+            if sizeneeded <= (end - start):
+                return start
+        raise Exception("LogBuffer Is Full")
+
+    def find_empty_location_for_log(self, log_to_add):
+        sizeneeded = self.logbuffer_reader.get_size(log_to_add)
+        return self.find_empty_location(sizeneeded)
+
+    @staticmethod
+    def load(logindex, logbuffer_reader):
+        writelist = filter(lambda idx: idx.is_write(), logindex.tocommit)
+        writelogs = {}
+        for write in writelist:
+            log, size = logbuffer_reader.read_entry(write.argument)
+            writelogs[(write.argument, write.argument+size)] = log
+        return LogBuffer(logbuffer_reader, writelogs)
+    
+    def write_entry(self, pos, log):
+        size = self.logbuffer_reader.write_entry(pos, log)
+        self.writelogs[(pos, pos+size)] = log
+
 class TransactionLog(object):
+    """
+        writelogs (dict (int,int) => Log): Dictionnary mapping from (start_offset, end_offset) in LogBuffer to Log instance.
+    """
     def __init__(self, io, logindex, logbuffer):
         self.io = io
         self.logindex = logindex
         self.logbuffer = logbuffer
-        self.tocommit = deque()
-        self.index_start = 0
 
     def recover(self):
         self.logindex.recover()
-        
-    def write_logindex(self, pos, e):
-        self.logindex_reader.write_entry(pos, e)
-        self.entries[pos] = e
 
     def start_transaction(self):
-        #TODO: remove assumption that it always writes at pos=0
-        self.logindex.write_entry(0, LogIndexEntry(LogIndexEntry.BEGIN_TX))
+        self.logindex.log(LogIndexEntry(LogIndexEntry.BEGIN_TX))
 
-    def find_empty_buffer_location(self, size):
-        l = self.entries
-    
     def write(self, address, data):
-        logpos = self.logindex.allocate_buffer(len(data))
-        self.logbuffer.write(logpos, address, data)
+        size = len(data)
+        log = Log(LogHeader(address, len(data)), data, self.io.read(address, size))
+        bufferpos = self.logbuffer.find_empty_location_for_log(log)
+        self.logbuffer.write_entry(bufferpos, log)
+        self.logindex.log(LogIndexEntry(LogIndexEntry.WRITE, bufferpos))
+
+    def commit_transaction(self):
+        self.logindex.log(LogIndexEntry(LogIndexEntry.END_TX))
 
 class TransactionalFile(object):
     def __init__(self, io, log):

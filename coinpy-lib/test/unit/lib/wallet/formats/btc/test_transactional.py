@@ -2,10 +2,11 @@ import unittest
 import mock
 from coinpy.lib.wallet.formats.btc.file_model import LogIndexEntry
 from coinpy.lib.wallet.formats.btc.transactional import CorruptLogIndexException, logindex_parse_groups, TransactionLog,\
-    LogIndexReader, SerializedLogIndex
+    LogIndexReader, SerializedLogIndex, LogBuffer
 from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
 from coinpy.lib.wallet.formats.btc.serialization import LogIndexEntrySerializer
 from pydoc import deque
+from coinpy.lib.wallet.formats.btc.entry_reader import LogBufferReader
 
 
 
@@ -115,7 +116,83 @@ class TestSerializedLogIndex(unittest.TestCase):
                                   LogIndexEntry(LogIndexEntry.WRITE, 1),
                                   LogIndexEntry(LogIndexEntry.WRITE, 2),
                                   LogIndexEntry(LogIndexEntry.END_TX)] ))
+
+
+class TestLogBuffer(unittest.TestCase):
+    def test_getunallocated_WithEmptyWriteLogs_ReturnsZeroToBufferSize(self):
+        writelogs = {}
+        logbuff = LogBuffer(mock.Mock(iosize=100), writelogs)
         
+        self.assertEquals(logbuff.getunallocated(), [(0, 100)])
+        
+    def test_getunallocated_WithOneLogStartingAtBegining_ReturnsOnlyOneRangeAtTheEnd(self):
+        logs = {(0,1) : "log1"}
+        logbuff = LogBuffer(mock.Mock(iosize=2), logs)
+        
+        self.assertEquals(logbuff.getunallocated(), [(1, 2)])
+
+    def test_getunallocated_WithOneLogEndingAtBufferSize_ReturnsOnlyOneRangeAtTheBeginning(self):
+        logs = {(1,2) : "log1"}
+        logbuff = LogBuffer(mock.Mock(iosize=2), logs)
+        
+        self.assertEquals(logbuff.getunallocated(), [(0, 1)])
+
+    def test_getunallocated_WithTwoLogsTakingAllSpace_ReturnsEmpty(self):
+        logs = {(0,1) : "log1", (1,2) : "log2"}
+        logbuff = LogBuffer(mock.Mock(iosize=2), logs)
+        
+        self.assertEquals(logbuff.getunallocated(), [])
+
+    def test_getunallocated_WithTwoLogsWithSpaceInbetween_ReturnsSpaceBetweenLogs(self):
+        logs = {(0,1) : "log1", (2,3) : "log2"}
+        logbuff = LogBuffer(mock.Mock(iosize=3), logs)
+        
+        self.assertEquals(logbuff.getunallocated(), [(1, 2)])
+
+    def test_getunallocated_WithMultipleLogs_ReturnsSpaceBetweenLogs(self):
+        logs = {(10,20) : "log1", (30,40) : "log2", (70,99) : "log3"}
+        logbuff = LogBuffer(mock.Mock(iosize=100), logs)
+        
+        self.assertEquals(logbuff.getunallocated(), [(0, 10), (20, 30), (40, 70), (99, 100)])
+
+    def test_FindEmptyLocation_CalledWithMultipleValues_ReturnsFirstLargeEnoughEntry(self):
+        logs = {(1,2) : "log1", (4,5) : "log2", (8,10) : "log3"}
+        logbuff = LogBuffer(mock.Mock(iosize=10), logs)
+        self.assertEquals(logbuff.getunallocated(), [(0, 1), (2, 4), (5, 8)])
+
+        self.assertEquals(logbuff.find_empty_location(1), 0)
+        self.assertEquals(logbuff.find_empty_location(2), 2)
+        self.assertEquals(logbuff.find_empty_location(3), 5)
+
+    def test_load_WhenCalledWithLogIndexAndBufferReader_WriteLogsAreCorrectlyAssigned(self):
+        logbuffer_reader = mock.Mock(read_entry = lambda pos: {0: ("log1", 1), 10: ("log2", 5)}[pos])
+        logindex = mock.Mock(tocommit = [ LogIndexEntry(LogIndexEntry.WRITE, 0),
+                                          LogIndexEntry(LogIndexEntry.WRITE, 10)])
+        
+        logbuff = LogBuffer.load(logindex, logbuffer_reader)
+        
+        self.assertEquals(logbuff.writelogs, 
+                          {(0, 1) : "log1", (10, 15): "log2"})
+
+class TestTransactional(unittest.TestCase):
+    def test_1(self):
+        IO_SIZE = 1000
+        BUFFER_SIZE = 1000
+        INDEX_COUNT = 100
+        io = IoHandle.using_stringio(BUFFER_SIZE)
+        buffer_reader = LogBufferReader(io, BUFFER_SIZE)
+        logbuffer = LogBuffer(buffer_reader)
+        
+        io = IoHandle.using_stringio(LogIndexEntrySerializer.SERIALIZED_LENGTH * INDEX_COUNT)
+        logindex_reader = LogIndexReader(io, INDEX_COUNT)
+        logindex = SerializedLogIndex.new(logindex_reader)
+        
+        io = IoHandle.using_stringio(IO_SIZE)
+        log = TransactionLog(io, logindex, logbuffer)
+        log.start_transaction()
+        log.write(3, "hello test")
+        log.write(12, "hello blog")
+
 class TestTxChunkFile(unittest.TestCase):
     """def test_WalletFile_(self):
         

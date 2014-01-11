@@ -69,7 +69,10 @@ class LogIndexEntry(object):
         return (self.command == other.command and
                 self.argument == other.argument and
                 self.needs_commit == other.needs_commit)
-
+    
+    def is_write(self):
+        return (self.command == LogIndexEntry.WRITE)
+    
     def is_tx_command(self):
         return (self.command == LogIndexEntry.BEGIN_TX or 
                 self.command == LogIndexEntry.END_TX)
@@ -111,18 +114,33 @@ class Metadata():
         self.wallet_id = wallet_id
         self.comment = comment
 
-class Log(object):
-    """ Entry in the write ahead log buffer` """
-    def __init__(self, address, data, original_data):
+class LogHeader(object):
+    """ Header for entries in the write ahead log buffer` """
+    def __init__(self, address, length):
         self.address = address
-        self.data = data
-        self.original_data = original_data
-        
+        self.length = length
+
     def __eq__(self, other):
         return (self.address == other.address and
+                self.length == other.length)
+
+    def __repr__(self):
+        return "<%s(%s)>" % (self.__class__.__name__, " ".join("%s:%s" % (k,v) for k,v in  self.__dict__.items()))
+
+class Log(object):
+    """ Entry in the write ahead log buffer` """
+    def __init__(self, logheader, data, original_data):
+        self.logheader = logheader
+        self.data = data
+        self.original_data = original_data
+        assert(self.logheader.length == len(data)), "data must have the correct length"
+        assert(self.logheader.length == len(original_data)), "original_data must have the correct length"
+
+    def __eq__(self, other):
+        return (self.logheader == other.logheader and
                 self.data == other.data and
                 self.original_data == other.original_data)
 
     def __repr__(self):
         return "<%s(%s)>" % (self.__class__.__name__, " ".join("%s:%s" % (k,v) for k,v in  self.__dict__.items()))
-       
+

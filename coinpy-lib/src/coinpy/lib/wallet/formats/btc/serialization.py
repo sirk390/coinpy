@@ -1,6 +1,6 @@
 import struct
 from coinpy.lib.wallet.formats.btc.file_model import ChunkHeader,\
-     FileHeader, LogIndexEntry, ItemHeader, Log, Alloc
+     FileHeader, LogIndexEntry, ItemHeader, Log, Alloc, LogHeader
 from coinpy.tools.functools import invert_dict
 from coinpy.lib.wallet.formats.btc.wallet_model import PubKeyOutpoint,\
     MultiSigOutpoint, ScriptHashOutpoint, PublicKey, OutpointIndex
@@ -17,6 +17,10 @@ def FixedSizeSerializer(size):
         SERIALIZED_LENGTH = size
     return FixedSizeSerializerParam
 
+class VarSizeSerializer(object):
+    def get_size(self, obj):
+        pass
+    
 class FileHeaderSerializer(FixedSizeSerializer(12)):
     SIGNATURE = "\x89WLT\r\n\x1a\n"
     @staticmethod
@@ -46,20 +50,17 @@ class ChunkHeaderSerializer(FixedSizeSerializer(16)):
         name, version, length, crc  = struct.unpack(">4sIII", data)
         return ChunkHeader(name, version, length, crc)
 
-class LogSerializer(object):
+class LogHeaderSerializer(FixedSizeSerializer(8)):
     @staticmethod
-    def serialize(log):
-        return struct.pack(">II", log.address, len(log.data)) + log.data + log.original_data
+    def serialize(logheader):
+        return struct.pack(">II", logheader.address, logheader.length) 
 
     @staticmethod
     def deserialize(data):
-        if len(data) < 8:
+        if len(data) != 8:
             raise DeserializationException("log incorrect length")
-        address_length, write_data = data[:8], data[8:]
-        address, length = struct.unpack(">II", address_length)
-        if len(write_data) != length * 2:
-            raise DeserializationException("log incorrect length")
-        return Log(address, write_data[:length], write_data[length:])
+        address, length = struct.unpack(">II", data)
+        return LogHeader(address, length)
 
 
 class LogIndexEntrySerializer(object):

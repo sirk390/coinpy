@@ -1,8 +1,8 @@
 from io import SEEK_CUR
 import os
 from coinpy.lib.wallet.formats.btc.serialization import ItemHeaderSerializer,\
-    ChunkHeaderSerializer, AllocSerializer
-from coinpy.lib.wallet.formats.btc.file_model import ItemHeader, Alloc
+    ChunkHeaderSerializer, AllocSerializer, LogHeaderSerializer
+from coinpy.lib.wallet.formats.btc.file_model import ItemHeader, Alloc, Log
 import heapq
 
 
@@ -32,7 +32,7 @@ class FixedSizeEntryReader(object):
             raise Exception("read_entry: position %d is not in range" % pos)
         data = self.io.read(pos*self.serialized_length,self.serialized_length)
         return self.serializer.deserialize(data)
-    
+
 class InsufficientSpaceException(Exception):
     pass
 
@@ -178,7 +178,38 @@ class VarSizeEntryReader(object):
     
     def remove(self, pos):
         self.allocated.remove(pos)
+
+class LogBufferReader(object):
+    """ Read and writes an IO
         
+        This is used for LogBuffer.
+    """
+    def __init__(self, io, iosize, serializer=LogHeaderSerializer):
+        self.io = io
+        self.iosize = iosize
+        self.serializer = serializer
+
+    def get_size(self, log):
+        return self.serializer.SERIALIZED_LENGTH + (2*log.logheader.length)
+    
+    def write_entry(self, pos, log):
+        logheader = self.serializer.serialize(log.logheader)
+        totallength = self.serializer.SERIALIZED_LENGTH + (2*log.logheader.length)
+        if not (0 <= pos and  pos + totallength < self.iosize):
+            raise Exception("write_entry: out of range (pos=%d, datalength=%d, iosize:%d)" % (pos,  totallength, self.iosize))
+        self.io.write(pos, logheader + log.data + log.original_data)
+        return totallength
+
+    def read_entry(self, pos):
+        data = self.io.read(pos, self.serializer.SERIALIZED_LENGTH)
+        logheader = self.serializer.deserialize(data)
+        totallength = self.serializer.SERIALIZED_LENGTH + (2*logheader.length)
+        if not (0 <= pos + totallength < self.iosize):
+            raise Exception("read_entry: out of range (pos=%d, datalength=%d, iosize:%d)" % (pos,  totallength, self.iosize))
+        data = self.io.read(pos+self.serializer.SERIALIZED_LENGTH, 2*logheader.length)
+        return (Log(logheader, data[:logheader.length], data[logheader.length:]), totallength)
+
+    
 class ChunkReader(object):
     """ Go through a file, read and deserialize ChunkHeader's """
     def __init__(self):

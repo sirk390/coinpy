@@ -1,11 +1,10 @@
 import unittest
-from coinpy.lib.wallet.formats.btc.file_model import Alloc, Log
+from coinpy.lib.wallet.formats.btc.file_model import Alloc, Log, LogHeader
 from coinpy.lib.wallet.formats.btc.entry_reader import FixedSizeEntryReader, AllocatedRange,\
-    VarSizeEntryReader, InsufficientSpaceException
+    VarSizeEntryReader, InsufficientSpaceException, LogBufferReader
 import mock
 from unit.parametrized_tests import testcases, UseParametrizedTests
 from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
-from coinpy.lib.wallet.formats.btc.serialization import LogSerializer
 
 class TestLogIndexReader(unittest.TestCase):
     __metaclass__ = UseParametrizedTests
@@ -124,6 +123,7 @@ class TestAllocatedRange(unittest.TestCase):
         self.assertEquals(r.getallocs(), [Alloc(empty=False, size=3), Alloc(empty=True, size=4), Alloc(empty=False, size=7)] )
         
 class TestVarSizeEntryReader(unittest.TestCase):
+    """
     def test_VarSizeEntryReader_AddTwoElementsRemoveFirstThenReRead_SecondElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
@@ -195,9 +195,17 @@ class TestVarSizeEntryReader(unittest.TestCase):
         io2 = io.iohandle.getvalue()
         
         self.assertEquals(io1, io2)
+    """
 
+class TestLogBufferReader(unittest.TestCase):
+    def test_LogBufferReader(self):
+        SIZE = 1000
+        io = IoHandle.using_stringio(SIZE)
+        reader = LogBufferReader(io, SIZE)
+ 
+        reader.write_entry(1, Log(LogHeader(23123, 4), "abcd", "dcba"))
 
-
+        self.assertEquals( reader.read_entry(1), (Log(LogHeader(23123, 4), "abcd", "dcba"), 16))
 
         
     """def test_1(self):
