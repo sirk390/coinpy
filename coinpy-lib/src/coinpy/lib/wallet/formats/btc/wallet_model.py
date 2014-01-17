@@ -145,7 +145,7 @@ class Transaction():
                 
     def commit(self):
         for (itemset, key), change  in self.iterchanges():
-            itemset.ON_CHANGING.fire()
+            itemset.ON_CHANGING.fire(key=key, change=change)
         for (itemset, key), change  in self.iterchanges():
             change.apply(itemset.items_by_key, key)
         for (itemset, key), change  in self.iterchanges():
@@ -195,7 +195,7 @@ class ItemSet( object ):
     def contains(self, key):
         return key in self.items_by_key
 
-    
+
 class BtcWallet(object):
     """
     Attributes:
@@ -209,13 +209,17 @@ class BtcWallet(object):
         self.masterkeys = masterkeys or ItemSet()
         self.private_keys = private_keys or ItemSet()
         self.outpoints = outpoints or ItemSet()
-
+        self.ON_STARTING_TX = Event()
+        self.ON_ENDING_TX = Event()
+        
     def begin_transaction(self):
+        self.ON_STARTING_TX.fire()
         self.tx = Transaction()
         self.private_keys.begin_transaction(self.tx)
         self.outpoints.begin_transaction(self.tx)
     
     def commit_transaction(self):
+        self.ON_ENDING_TX.fire()
         self.tx.commit()
 
 

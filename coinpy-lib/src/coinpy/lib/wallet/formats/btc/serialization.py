@@ -38,7 +38,7 @@ class FileHeaderSerializer(FixedSizeSerializer(12)):
 class ChunkHeaderSerializer(FixedSizeSerializer(16)):
     @staticmethod
     def serialize(chunk_header):
-        return struct.pack(">4sIII", 
+        return struct.pack(">4sIIi", 
                            chunk_header.name,
                            chunk_header.version,
                            chunk_header.length,
@@ -50,17 +50,17 @@ class ChunkHeaderSerializer(FixedSizeSerializer(16)):
         name, version, length, crc  = struct.unpack(">4sIII", data)
         return ChunkHeader(name, version, length, crc)
 
-class LogHeaderSerializer(FixedSizeSerializer(8)):
+class LogHeaderSerializer(FixedSizeSerializer(12)):
     @staticmethod
     def serialize(logheader):
-        return struct.pack(">II", logheader.address, logheader.length) 
+        return struct.pack(">III", logheader.chunk, logheader.address, logheader.length) 
 
     @staticmethod
     def deserialize(data):
-        if len(data) != 8:
+        if len(data) != LogHeaderSerializer.SERIALIZED_LENGTH:
             raise DeserializationException("log incorrect length")
-        address, length = struct.unpack(">II", data)
-        return LogHeader(address, length)
+        chunk, address, length = struct.unpack(">III", data)
+        return LogHeader(chunk, address, length)
 
 
 class LogIndexEntrySerializer(object):
@@ -105,19 +105,20 @@ class ItemHeaderSerializer(FixedSizeSerializer(9)):
         empty, id, size = struct.unpack(">BII", data)
         return (ItemHeader(not empty, id, size))
 
-class AllocSerializer(FixedSizeSerializer(5)):
+class AllocSerializer(FixedSizeSerializer(9)):
     @staticmethod
     def serialize(item_header):
-        return struct.pack(">BI", 
+        return struct.pack(">BII", 
                            not item_header.empty,
+                           item_header.id,
                            item_header.size)
 
     @staticmethod
     def deserialize(data):
         if len(data) != AllocSerializer.SERIALIZED_LENGTH:
             raise DeserializationException(" Alloc incorrect length: %s" % (len(data)))
-        empty, size = struct.unpack(">BI", data)
-        return (Alloc(not empty, size))
+        empty, id, size = struct.unpack(">BII", data)
+        return (Alloc(not empty, size, id))
 
 
 

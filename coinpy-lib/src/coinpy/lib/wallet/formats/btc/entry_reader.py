@@ -1,9 +1,11 @@
 from io import SEEK_CUR
 import os
 from coinpy.lib.wallet.formats.btc.serialization import ItemHeaderSerializer,\
-    ChunkHeaderSerializer, AllocSerializer, LogHeaderSerializer
+    ChunkHeaderSerializer, AllocSerializer, LogHeaderSerializer,\
+    LogIndexEntrySerializer, OutpointIndexSerializer
 from coinpy.lib.wallet.formats.btc.file_model import ItemHeader, Alloc, Log
 import heapq
+from coinpy.lib.serialization.structures.s11n_outpoint import OutpointSerializer
 
 
 class FixedSizeEntryReader(object):
@@ -33,60 +35,82 @@ class FixedSizeEntryReader(object):
         data = self.io.read(pos*self.serialized_length,self.serialized_length)
         return self.serializer.deserialize(data)
 
+def LogIndexReader(io, nbentries):
+    return FixedSizeEntryReader(io, nbentries, LogIndexEntrySerializer)
+        
+
 class InsufficientSpaceException(Exception):
     pass
 
 class AllocatedRange(object):
-    def __init__(self, io, iosize, allocs=None, new=True, serializer=AllocSerializer):
+    #rename to SerilializedDict? / KeySerializer for AllocSerializer
+    def __init__(self, io, iosize, allpos=None, serializer=AllocSerializer):
         self.io = io
         self.iosize = iosize
+        self.allpos = allpos or {}
         self.serializer = serializer
         self.header_size = self.serializer.SERIALIZED_LENGTH
-        if allocs is not None:
-            self.allpos = allocs
-        else:
-            if new:
-                self.new()
-            else:
-                self.allpos = dict(self.readall())
 
-    def new(self):
+    @classmethod
+    def load(cls, io, iosize, serializer=AllocSerializer):
+        allpos = dict(cls.readallocs(io, iosize, serializer))
+        return cls( io, iosize, allpos, serializer)
+
+    @classmethod
+    def new(cls, io, iosize, serializer=AllocSerializer):
         """ could be moved to a function """
-        header = Alloc(empty=True, size=self.iosize - self.serializer.SERIALIZED_LENGTH)
-        self.io.write(0, self.serializer.serialize(header))
-        self.allpos = {0: header}
+        header = Alloc(empty=True, size=iosize - serializer.SERIALIZED_LENGTH)
+        io.write(0, serializer.serialize(header))
+        return cls(io, iosize, {0: header}, serializer)
 
     def find_empty_location(self, length):
         for pos, alloc in self.allpos.iteritems():
             if alloc.empty and alloc.size >= length + self.header_size:
                 return pos
-
-    def readall(self):
+    @classmethod
+    def readallocs(cls, io, iosize, serializer):
         pos = 0
-        while pos + self.serializer.SERIALIZED_LENGTH <= self.iosize:
-            header, data = self.read(pos)
-            if data is not None:
-                yield (pos, data)
-            pos += self.serializer.SERIALIZED_LENGTH + header.size
+        while pos + serializer.SERIALIZED_LENGTH <= iosize:
+            header = cls.read(io, pos, serializer)
+            yield (pos, header)
+            pos += serializer.SERIALIZED_LENGTH + header.size
 
-    def read(self, pos):
-        headerdata = self.io.read(pos, self.serializer.SERIALIZED_LENGTH)
-        header = self.serializer.deserialize(headerdata)
-        obj = None if header.empty else self.io.read(pos + self.serializer.SERIALIZED_LENGTH, header.size)
-        return header, obj
+    def iteritems(self):
+        for pos, header in self.allpos.iteritems(): 
+            yield pos, header
 
-    def add(self, data):
+    def iterposvalues(self):
+        for pos, header in self.allpos.iteritems():
+            if not header.empty:
+                yield pos, self.readobject(pos)
+
+    def itervalues(self):
+        for pos, header in self.allpos.iteritems():
+            if not header.empty:
+                yield self.readobject(pos)
+            
+    def readobject(self, pos):
+        header = self.allpos[pos]
+        return self.io.read(pos + self.serializer.SERIALIZED_LENGTH, header.size)
+        
+    @classmethod
+    def read(cls, io, pos, serializer):
+        headerdata = io.read(pos, serializer.SERIALIZED_LENGTH)
+        header = serializer.deserialize(headerdata)
+        return header
+
+    def add(self, id, data):
         pos = self.find_empty_location(len(data))
         if pos is None:
             raise InsufficientSpaceException("Not enough space for data")
-        self.insert(pos, data)
+        self.insert(pos, id, data)
         return pos
         
-    def insert(self, pos, data):
+    def insert(self, pos, id, data):
         """ Replace an empty location at {pos} by {data} """
         assert self.allpos[pos].empty
         oldemptyheader = self.allpos[pos]
-        newobjheader = Alloc(empty=False, size=len(data))
+        newobjheader = Alloc(empty=False, id=id, size=len(data))
         newemptylocationheader = Alloc(True, oldemptyheader.size - len(data) - self.serializer.SERIALIZED_LENGTH)
         newdata = (self.serializer.serialize(newobjheader) + 
                    data +
@@ -126,6 +150,7 @@ class AllocatedRange(object):
     def getallocs(self):
         return [v for k,v in sorted(self.allpos.items(), key=lambda (k,v):k)]
 
+
     def remove(self, pos):
         nextpos = self._nextpos(pos)
         if nextpos is not None and self.is_empty(nextpos):
@@ -150,34 +175,46 @@ class AllocatedRange(object):
             if p == pos:
                 return sortedpos[i-1] if i else None
     
-class VarSizeEntryReader(object):
+class SerializedObjectDict(object):
     """ Read and writes an IO containing a variable number of unordered entries.
-        This is used for LogBuffer.
-        
+        This is used for OutpointIndex, PrivateKeys, ...
     """
-    def __init__(self, io, iosize, serializer, new=False):
-        self.io = io
-        self.iosize = iosize
+    def __init__(self, allocated, objects, serializer):
+        self.allocated = allocated
+        self.objects = objects
         self.serializer = serializer
-        self.allocated = AllocatedRange(self.io, self.iosize, new=new)
-        self.objects = {}
-        if not new:
-            self.open()
-            
-    def open(self):
-        for pos, data in self.allocated.readall():
-            self.objects[pos] = self.serializer.deserialize(data)
 
-    def iteritems(self):
-        for pos, obj in self.objects.iteritems():
-            yield pos, obj
-        
-    def add(self, obj):
-        pos = self.allocated.add(self.serializer.serialize(obj))
-        return pos
+    @classmethod
+    def new(cls, io, iosize, serializer):
+        allocated = AllocatedRange.new(io, iosize)
+        return cls(allocated, {}, serializer)
+           
+    @classmethod
+    def load(cls, io, iosize, serializer):
+        allocated = AllocatedRange.load(io, iosize)
+        objects = {}
+        for pos, header in allocated.iteritems():
+            if not header.empty:
+                objects[header.id] = (pos, serializer.deserialize(allocated.readobject(pos)))
+        return cls(allocated, objects, serializer)
     
-    def remove(self, pos):
+    def iteritems(self):
+        for id, (pos, obj) in self.objects.iteritems():
+            yield id, obj
+        
+    def set(self, id, obj):
+        data = self.serializer.serialize(obj)
+        if id in self.objects:
+            self.allocated.remove(id)
+        pos = self.allocated.add(id, data)
+        self.objects[id] = (pos, obj)
+    
+    def remove(self, id):
+        pos, obj = self.objects[id]
+        del self.objects[id]
         self.allocated.remove(pos)
+
+
 
 class LogBufferReader(object):
     """ Read and writes an IO

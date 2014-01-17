@@ -12,54 +12,9 @@ CHUNK_SIZE=16
 from coinpy.lib.wallet.formats.btc.file_model import LogIndexEntry, Log,\
     LogHeader
 
-def LogIndexReader(io, nbentries):
-    return FixedSizeEntryReader(io, nbentries, LogIndexEntrySerializer)
-        
 class CorruptLogIndexException(Exception):
     pass
 
-def commits(logindexentries):
-    return ifilter(lambda e: e.needs_commit, logindexentries)
-
-ATOMIC, TX, INCOMPLETE_TX = LOGINDEX_GROUPS = range(3)
-LogGroup = collections.namedtuple("LogIndexGroup", "type changes")
-
-def logindex_parse_groups(commands):
-    """Parse transactions Groups. 
-
-       Return (groups, incomplete) where:
-            groups(list of list of int): list of indexes for each transactions
-            incomplete(list of int): If non empty, the last incomplete transaction.
-            
-        >>> logindex_parse_groups([BEGIN_TX, WRITE, END_TX, BEGIN_TX, END_TX, WRITE, WRITE, BEGIN_TX, WRITE)
-        ([[0,1,2],[3,4],[5],[6]], [7,8])
-    """
-    result = []
-    intx, group = False, []
-    for idx, cmd in enumerate(commands):
-        group.append(idx)
-        if cmd == LogIndexEntry.BEGIN_TX:
-            if intx:
-                raise CorruptLogIndexException("BEGIN_TX: TX already open")
-            intx = True
-        elif cmd == LogIndexEntry.END_TX:
-            if not intx:
-                raise CorruptLogIndexException("END_TX: no TX open")
-            result.append(group)
-            group = []
-            intx = False
-        elif not intx:
-            result.append(group)
-            group = []
-    return (result, group)
-
-def needscommit_are_coherent(logindex_entries):
-    grouped = list(groupby([e.needs_commit for e in logindex_entries]))
-    if len(grouped) > 3:
-        return False
-    if len(grouped) == 3:
-        return not grouped[0][0]
-    return True
 
 class LogIndex(object):
     """
@@ -77,9 +32,9 @@ class LogIndex(object):
         assert self.tocommit
         logidx = self.tocommit.popleft()
         if logidx.command == LogIndexEntry.WRITE:
-            self.ON_COMMITING.fire(logidx)
+            self.ON_COMMITING.fire(logindex=logidx)
         logidx.needs_commit = False    
-        self.ON_COMMITED.fire(logidx)
+        self.ON_COMMITED.fire(logindex=logidx)
 
     def commit(self):
         while self.tocommit:
@@ -126,8 +81,8 @@ class SerializedLogIndex(LogIndex):
     def on_log(self, event):
         self.logindex_reader.write_entry(self.start_pos+len(self.tocommit)-1, event.logindex)
 
-    def on_commited(self, logindex):
-        self.logindex_reader.write_entry(self.start_pos, logindex)
+    def on_commited(self, event):
+        self.logindex_reader.write_entry(self.start_pos, event.logindex)
         self.start_pos += 1
         if not self.tocommit:
             self.start_pos = 0
@@ -138,6 +93,12 @@ class SerializedLogIndex(LogIndex):
             logindex_reader.write_entry(i, LogIndexEntry(LogIndexEntry.WRITE, needs_commit=False))
         return SerializedLogIndex(logindex_reader)
     
+    #@staticmethod
+    #def writenew(io, nbentries):
+    #     for i in range(nbentries):
+    #        io.write(offset=i * LogIndexEntrySerializer.SERIALIZED_LENGTH, 
+    #                 data=LogIndexEntrySerializer.serialize(LogIndexEntry(LogIndexEntry.WRITE, needs_commit=False)))
+
     @staticmethod
     def load(logindex_reader):
         start_pos, end_pos = None, None
@@ -197,6 +158,11 @@ class LogBuffer(object):
         size = self.logbuffer_reader.write_entry(pos, log)
         self.writelogs[(pos, pos+size)] = log
 
+    def read_entry(self, pos):
+        log, length = self.logbuffer_reader.read_entry(pos)
+        return log
+
+
 class TransactionLog(object):
     """
         writelogs (dict (int,int) => Log): Dictionnary mapping from (start_offset, end_offset) in LogBuffer to Log instance.
@@ -205,41 +171,52 @@ class TransactionLog(object):
         self.io = io
         self.logindex = logindex
         self.logbuffer = logbuffer
-
+        self.logindex.ON_COMMITING.subscribe(self.on_commiting)
+        
     def recover(self):
         self.logindex.recover()
 
     def start_transaction(self):
         self.logindex.log(LogIndexEntry(LogIndexEntry.BEGIN_TX))
 
-    def write(self, address, data):
+    def write(self, chunkid, address, data):
         size = len(data)
-        log = Log(LogHeader(address, len(data)), data, self.io.read(address, size))
+        log = Log(LogHeader(chunkid, address, len(data)), data, self.io.read(chunkid, address, size))
         bufferpos = self.logbuffer.find_empty_location_for_log(log)
         self.logbuffer.write_entry(bufferpos, log)
         self.logindex.log(LogIndexEntry(LogIndexEntry.WRITE, bufferpos))
 
-    def commit_transaction(self):
+    def read(self, chunkid, address, length):
+        return self.io.read(chunkid, address, length)
+    
+    def end_transaction(self):
         self.logindex.log(LogIndexEntry(LogIndexEntry.END_TX))
 
-class TransactionalFile(object):
-    def __init__(self, io, log):
-        self.io = io
-        self.log = log
-    
-    def recover(self):
-        """ Verify logindex and erase last indexed transaction if incomplete """
-        self.log.recover()
-
+    def on_commiting(self, event):
+        """ Triggered when applying the write-ahead-log to disk by the LogIndex
+        before the "needs_commit" is unset.
+        If self.io.write raises an Exception, "need_commits" will be unchanged.
+        """
+        logidx = event.logindex
+        log = self.logbuffer.read_entry(logidx.argument)
+        self.io.write(log.logheader.chunk, log.logheader.address, log.data)
+ 
     def commit(self):
-        pass
-    
-    def start_transaction(self):
-        #TODO: remove assumption that it always writes at pos=0
-        self.log.start_transaction()
+        self.logindex.commit()
+        
+class TransactionalIO(object):
+    """ Transactionally read and write a single Chunk.
+        E.g. Allows to write outpoints of privatekeys transactionaly
+    """
+    def __init__(self, transaction_log, chunkid):
+        self.tx_log = transaction_log
+        self.chunkid = chunkid
     
     def write(self, address, data):
-        self.log.write(address, data)
+        return self.tx_log.write(self.chunkid, address, data)
+    
+    def read(self, address, length):
+        return self.tx_log.read(self.chunkid, address, length)
     
     
     

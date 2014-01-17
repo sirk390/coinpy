@@ -1,96 +1,19 @@
 import unittest
 import mock
 from coinpy.lib.wallet.formats.btc.file_model import LogIndexEntry
-from coinpy.lib.wallet.formats.btc.transactional import CorruptLogIndexException, logindex_parse_groups, TransactionLog,\
-    LogIndexReader, SerializedLogIndex, LogBuffer
+from coinpy.lib.wallet.formats.btc.transactional import CorruptLogIndexException, TransactionLog,\
+     SerializedLogIndex, LogBuffer
 from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
 from coinpy.lib.wallet.formats.btc.serialization import LogIndexEntrySerializer
 from pydoc import deque
-from coinpy.lib.wallet.formats.btc.entry_reader import LogBufferReader
+from coinpy.lib.wallet.formats.btc.entry_reader import LogBufferReader,\
+    LogIndexReader
+from coinpy.lib.wallet.formats.btc.chunk_file import MultiChunkIO
 
 
 
 def makeLogIndexReader(entries=[]):
     return  mock.Mock(iterentries = mock.Mock(return_value=entries))
-
-
-class TestLogIndex(unittest.TestCase):
-    def test_ParseLogIndexGroups_ParseEmptyArray_ReturnsEmptyArray(self):
-        logidx = []
-        
-        result = logindex_parse_groups(logidx)
-        
-        self.assertEquals(result, ([],[]))
-        
-    def test_ParseLogIndexGroups_ParseWrite_ReturnsOneArrayWithOneIndex(self):
-        logidx = [LogIndexEntry.WRITE]
-        
-        result = logindex_parse_groups(logidx)
-        
-        self.assertEquals(result, ([[0]], []))
-
-    def test_ParseLogIndexGroups_ParseTwoWrite_ReturnsTwoArraysWithEachOneIndex(self):
-        logidx = [LogIndexEntry.WRITE, LogIndexEntry.WRITE]
-
-        result = logindex_parse_groups(logidx)
-        
-        self.assertEquals(result, ([[0], [1]], []))
-
-    def test_ParseLogIndexGroups_ParseBeginTxTwice_RaisesCorruptLogIndexException(self):
-        logidx = [LogIndexEntry.BEGIN_TX, LogIndexEntry.BEGIN_TX]
-        
-        with self.assertRaises(CorruptLogIndexException):
-            logindex_parse_groups(logidx)
-
-    def test_ParseLogIndexGroups_ParseEndTxTwice_RaisesCorruptLogIndexException(self):
-        logidx = [LogIndexEntry.END_TX, LogIndexEntry.END_TX]
-        
-        with self.assertRaises(CorruptLogIndexException):
-            logindex_parse_groups(logidx)
-
-
-    def test_ParseLogIndexGroups_ParseTransaction_ReturnsIndexesBothInOneArray(self):
-        logidx = [LogIndexEntry.BEGIN_TX, LogIndexEntry.END_TX]
-
-        result = logindex_parse_groups(logidx)
-
-        self.assertEquals(result, ([[0,1]], []))
-
-    def test_ParseLogIndexGroups_ParseTwoTransactions_ReturnsIndexesBothInTwoArrays(self):
-        logidx = [LogIndexEntry.BEGIN_TX, LogIndexEntry.END_TX, LogIndexEntry.BEGIN_TX, LogIndexEntry.END_TX]
-
-        result = logindex_parse_groups(logidx)
-
-        self.assertEquals(result, ([[0,1], [2,3]], []))
-
-    def test_ParseLogIndexGroups_ParseWriteInTransaction_ReturnsIndexesInOneArray(self):
-        logidx = [LogIndexEntry.BEGIN_TX, LogIndexEntry.WRITE, LogIndexEntry.END_TX]
-
-        result = logindex_parse_groups(logidx)
-
-        self.assertEquals(result, ([[0,1,2]], []))
-        
-    def test_ParseLogIndexGroups_ParseWriteOutsideTransaction_ReturnsWriteIndexSeparately(self):
-        logidx = [LogIndexEntry.BEGIN_TX, LogIndexEntry.END_TX, LogIndexEntry.WRITE]
-
-        result = logindex_parse_groups(logidx)
-
-        self.assertEquals(result, ([[0,1], [2]], []))
-
-    def test_ParseLogIndexGroups_ParseUnclosedTransactions_ReturnsAsIncomplete(self):
-        logidx = [LogIndexEntry.BEGIN_TX]
-
-        result = logindex_parse_groups(logidx)
-
-        self.assertEquals(result, ([], [0]))
-
-    def test_ParseLogIndexGroups_ParseUnclosedTransactionWriteWrite_ReturnsInLastArray(self):
-        logidx = [LogIndexEntry.BEGIN_TX, LogIndexEntry.WRITE]
-
-        result = logindex_parse_groups(logidx)
-
-        self.assertEquals(result, ([], [0, 1]))
-
 
 
 
@@ -178,7 +101,7 @@ class TestTransactional(unittest.TestCase):
     def test_1(self):
         IO_SIZE = 1000
         BUFFER_SIZE = 1000
-        INDEX_COUNT = 100
+        INDEX_COUNT = 20
         io = IoHandle.using_stringio(BUFFER_SIZE)
         buffer_reader = LogBufferReader(io, BUFFER_SIZE)
         logbuffer = LogBuffer(buffer_reader)
@@ -187,11 +110,11 @@ class TestTransactional(unittest.TestCase):
         logindex_reader = LogIndexReader(io, INDEX_COUNT)
         logindex = SerializedLogIndex.new(logindex_reader)
         
-        io = IoHandle.using_stringio(IO_SIZE)
+        io = MultiChunkIO.using_stringios({0:IO_SIZE})
         log = TransactionLog(io, logindex, logbuffer)
         log.start_transaction()
-        log.write(3, "hello test")
-        log.write(12, "hello blog")
+        log.write(0, 3, "hello test")
+        log.write(0, 12, "hello blog")
 
 class TestTxChunkFile(unittest.TestCase):
     """def test_WalletFile_(self):

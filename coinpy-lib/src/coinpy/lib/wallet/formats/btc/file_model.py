@@ -10,6 +10,18 @@ class FileHeader():
     
 LOG_INDEX, LOG_BUFFER, MASTER_KEYS, KEYS, OUTPOINTS, METADATA, ACCOUNTS, UNSUBMITTED_TX = CHUNK_TYPES = range(8)
 
+LOG_INDEX_NAME= "ILOG"
+LOG_BUFFER_NAME= "bLOG"
+OUTPOINTS_NAME = "pOUT"
+CHUNK_NAMES = {LOG_INDEX:LOG_INDEX_NAME, 
+               LOG_BUFFER:LOG_BUFFER_NAME, 
+               MASTER_KEYS:"mKEY", 
+               KEYS:"sKEY", 
+               OUTPOINTS: OUTPOINTS_NAME, 
+               METADATA:"iNFO",
+               ACCOUNTS:"aCNT", 
+               UNSUBMITTED_TX:"uTXS"}
+
 class ChunkHeader(object):
     def __init__(self, name, version, length, crc):
         self.name = name
@@ -24,12 +36,14 @@ class ChunkHeader(object):
                 self.crc == other.crc)
 
 class Alloc(object):
-    def __init__(self, empty, size):
+    def __init__(self, empty, size, id=0):
         self.size = size
+        self.id = id
         self.empty = empty
         
     def __eq__(self, other):
         return (self.empty == other.empty and
+                self.id == other.id and
                 self.size == other.size)
         
     def __repr__(self):
@@ -51,11 +65,10 @@ class ItemHeader(object):
 
 
 class ChunkInfo(object):
-    def __init__(self, type, version=1, length=0, objects=0):
-        self.type = type
+    def __init__(self, name, version=1, length=0):
+        self.name = name
         self.version = version
         self.length = length
-        self.objects = objects
 
 class LogIndexEntry(object):
     BEGIN_TX, END_TX, WRITE, CHANGE_FILESIZE = COMMANDS = range(4)
@@ -116,12 +129,14 @@ class Metadata():
 
 class LogHeader(object):
     """ Header for entries in the write ahead log buffer` """
-    def __init__(self, address, length):
+    def __init__(self, chunk, address, length):
+        self.chunk = chunk
         self.address = address
         self.length = length
 
     def __eq__(self, other):
-        return (self.address == other.address and
+        return (self.chunk == other.chunk and
+                self.address == other.address and
                 self.length == other.length)
 
     def __repr__(self):

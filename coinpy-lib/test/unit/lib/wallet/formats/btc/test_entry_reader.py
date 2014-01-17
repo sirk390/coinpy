@@ -1,7 +1,7 @@
 import unittest
 from coinpy.lib.wallet.formats.btc.file_model import Alloc, Log, LogHeader
 from coinpy.lib.wallet.formats.btc.entry_reader import FixedSizeEntryReader, AllocatedRange,\
-    VarSizeEntryReader, InsufficientSpaceException, LogBufferReader
+    InsufficientSpaceException, LogBufferReader
 import mock
 from unit.parametrized_tests import testcases, UseParametrizedTests
 from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
@@ -57,19 +57,20 @@ class TestLogIndexReader(unittest.TestCase):
         mockIo.read.assert_called_once_with(0, serialized_size)
 
 class TestAllocatedRange(unittest.TestCase):
+    
     def test_AllocatedRange_InsertDataAtPosition_GetAllocReturnsSplittedAllocs(self):
-        r = AllocatedRange(io=mock.Mock(),
-                           iosize=20,
-                           serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
+        r = AllocatedRange.new(io=mock.Mock(),
+                               iosize=20,
+                               serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
         
         r.insert(0, data="abcde")
         
         self.assertEquals(r.getallocs(), [Alloc(empty=False, size=5), Alloc(empty=True, size=15)] )
         
     def test_AllocatedRange_AddDataTooLargeString_RaisesException(self):
-        r = AllocatedRange(io=mock.Mock(),
-                           iosize=17,
-                           serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=2))
+        r = AllocatedRange.new(io=mock.Mock(),
+                               iosize=17,
+                               serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=2))
         
         with self.assertRaises(InsufficientSpaceException):
             r.add(data="onebytetoolong")
@@ -77,9 +78,9 @@ class TestAllocatedRange(unittest.TestCase):
         
 
     def test_AllocatedRange_AddData_GetAllocReturnsSplittedAllocs(self):
-        r = AllocatedRange(io=mock.Mock(),
-                           iosize=20,
-                           serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
+        r = AllocatedRange.new(io=mock.Mock(),
+                               iosize=20,
+                               serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
         
         r.add(data="abcde")
         
@@ -89,7 +90,7 @@ class TestAllocatedRange(unittest.TestCase):
     def test_AllocatedRange_RemoveMergeWithNext(self):
         r = AllocatedRange(io=mock.Mock(),
                            iosize=14,
-                           allocs={0: Alloc(empty=False, size=3), 
+                           allpos={0: Alloc(empty=False, size=3), 
                                    3: Alloc(empty=False, size=4), 
                                    7: Alloc(empty=True, size=7)}, 
                            serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
@@ -101,7 +102,7 @@ class TestAllocatedRange(unittest.TestCase):
     def test_AllocatedRange_RemoveMergeWithPrev(self):
         r = AllocatedRange(io=mock.Mock(),
                            iosize=14,
-                           allocs={0: Alloc(empty=True, size=3), 
+                           allpos={0: Alloc(empty=True, size=3), 
                                    3: Alloc(empty=False, size=4), 
                                    7: Alloc(empty=False, size=7)}, 
                            serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
@@ -113,7 +114,7 @@ class TestAllocatedRange(unittest.TestCase):
     def test_AllocatedRange_RemoveNoMerge(self):
         r = AllocatedRange(io=mock.Mock(),
                            iosize=14,
-                           allocs={0: Alloc(empty=False, size=3), 
+                           allpos={0: Alloc(empty=False, size=3), 
                                    3: Alloc(empty=False, size=4), 
                                    7: Alloc(empty=False, size=7)}, 
                            serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
@@ -121,81 +122,101 @@ class TestAllocatedRange(unittest.TestCase):
         r.remove(3)
         
         self.assertEquals(r.getallocs(), [Alloc(empty=False, size=3), Alloc(empty=True, size=4), Alloc(empty=False, size=7)] )
+
+    def test_AllocatedRange_CreateNew_IterItemsIsEmpty(self):
+        SIZE = 1000
+        io = IoHandle.using_stringio(SIZE)
+        reader = AllocatedRange.new(io, SIZE)
+ 
+        reader2 = AllocatedRange.load(io, SIZE)
+
+        items = list(reader2.itervalues())
+        self.assertEquals(items, [])
+
+    def test_AllocatedRange_AddOneElements_CheckElementIsPresent(self):
+        SIZE = 50
+        io = IoHandle.using_stringio(SIZE)
+        reader = AllocatedRange.new(io, SIZE)
+ 
+        reader.add("ab")
         
-class TestVarSizeEntryReader(unittest.TestCase):
-    """
-    def test_VarSizeEntryReader_AddTwoElementsRemoveFirstThenReRead_SecondElementIsReturned(self):
+        #print repr(io.iohandle.getvalue())
+        reader2 = AllocatedRange.load(io, SIZE)
+
+        items = list(reader2.itervalues())
+        self.assertEquals(items, ["ab"])
+        
+    def test_AllocatedRange_AddTwoElementsRemoveFirstThenReRead_SecondElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = VarSizeEntryReader(io, SIZE, LogSerializer, new=True)
+        reader = AllocatedRange.new(io, SIZE)
  
-        reader.add(Log(423, "hello", "world"))
-        reader.add(Log(234, "aaa", "bbb")) 
+        reader.add("abcd")
+        reader.add("efghijkl") 
         reader.remove(0)
-        reader2 = VarSizeEntryReader(io, SIZE, LogSerializer)
+        reader2 = AllocatedRange.load(io, SIZE)
 
-        items = list(reader2.iteritems())
-        self.assertEquals(items, [(23, Log(234, "aaa", "bbb"))])
-
-    def test_VarSizeEntryReader_AddTwoElementsRemoveSecondThenReRead_FirstElementIsReturned(self):
+        items = list(reader2.itervalues())
+        self.assertEquals(items, ['efghijkl'])
+        
+    def test_AllocatedRange_AddTwoElementsRemoveSecondThenReRead_FirstElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = VarSizeEntryReader(io, SIZE, LogSerializer, new=True)
+        reader = AllocatedRange.new(io, SIZE)
  
-        reader.add(Log(423, "hello", "world"))
-        pos2 = reader.add(Log(234, "aaa", "bbb")) 
+        reader.add("abcd")
+        pos2 = reader.add("efghijkl") 
         reader.remove(pos2)
-        reader2 = VarSizeEntryReader(io, SIZE, LogSerializer)
+        reader2 = AllocatedRange.load(io, SIZE)
 
-        items = list(reader2.iteritems())
-        self.assertEquals(items, [(0, Log(423, "hello", "world"))])
-
-    def test_VarSizeEntryReader_AddThreeElementsRemoveSecondAndThirdThenReRead_FirstElementIsReturned(self):
+        items = list(reader2.itervalues())
+        self.assertEquals(items, ["abcd"])
+        
+    def test_AllocatedRange_AddThreeElementsRemoveSecondAndThirdThenReRead_FirstElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = VarSizeEntryReader(io, SIZE, LogSerializer, new=True)
+        reader = AllocatedRange.new(io, SIZE)
  
-        reader.add(Log(423, "hello", "world"))
-        pos2 = reader.add(Log(631, "x", "v"))
-        pos3 = reader.add(Log(234, "aaa", "bbb")) 
+        reader.add("abcd")
+        pos2 = reader.add("efghijkl")
+        pos3 = reader.add("mnopqrst") 
         reader.remove(pos2)
         reader.remove(pos3)
-        reader2 = VarSizeEntryReader(io, SIZE, LogSerializer)
+        reader2 = AllocatedRange.load(io, SIZE)
 
-        items = list(reader2.iteritems())
-        self.assertEquals(items, [(0, Log(423, "hello", "world"))])
+        items = list(reader2.itervalues())
+        self.assertEquals(items, ["abcd"])
 
-    def test_VarSizeEntryReader_AddThreeElementsRemoveFirstAndThirdThenReRead_SecondElementIsReturned(self):
+    def test_AllocatedRange_AddThreeElementsRemoveFirstAndThirdThenReRead_SecondElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = VarSizeEntryReader(io, SIZE, LogSerializer, new=True)
+        reader = AllocatedRange.new(io, SIZE)
  
-        pos1 = reader.add(Log(423, "hello", "world"))
-        reader.add(Log(631, "x", "v"))
-        pos3 = reader.add(Log(234, "aaa", "bbb")) 
+        pos1 = reader.add("abcd")
+        reader.add("efghijkl")
+        pos3 = reader.add("mnopqrst") 
         reader.remove(pos3)
         reader.remove(pos1)
-        reader2 = VarSizeEntryReader(io, SIZE, LogSerializer)
+        reader2 = AllocatedRange.load(io, SIZE)
 
-        items = list(reader2.iteritems())
-        self.assertEquals(items, [(23, Log(631, "x", "v"))])
+        items = list(reader2.itervalues())
+        self.assertEquals(items, ["efghijkl"])
 
-    def test_VarSizeEntryReader_AddThreeElementsRemoveAll_CheckIOIsIdenticalToTheBeginning(self):
+    def test_AllocatedRange_AddThreeElementsRemoveAll_CheckIOIsIdenticalToTheBeginning(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = VarSizeEntryReader(io, SIZE, LogSerializer, new=True)
+        reader = AllocatedRange.new(io, SIZE)
         
         io1 = io.iohandle.getvalue()
-        pos1 = reader.add(Log(423, "hello", "world"))
-        pos2 = reader.add(Log(631, "x", "v"))
-        pos3 = reader.add(Log(234, "aaa", "bbb")) 
+        pos1 = reader.add("abcd")
+        pos2 = reader.add("efghijkl")
+        pos3 = reader.add("mnopqrst") 
         reader.remove(pos3)
         reader.remove(pos2)
         reader.remove(pos1)
         io2 = io.iohandle.getvalue()
         
         self.assertEquals(io1, io2)
-    """
 
 class TestLogBufferReader(unittest.TestCase):
     def test_LogBufferReader(self):
@@ -203,11 +224,10 @@ class TestLogBufferReader(unittest.TestCase):
         io = IoHandle.using_stringio(SIZE)
         reader = LogBufferReader(io, SIZE)
  
-        reader.write_entry(1, Log(LogHeader(23123, 4), "abcd", "dcba"))
+        reader.write_entry(1, Log(LogHeader(5, 23123, 4), "abcd", "dcba"))
 
-        self.assertEquals( reader.read_entry(1), (Log(LogHeader(23123, 4), "abcd", "dcba"), 16))
+        self.assertEquals( reader.read_entry(1), (Log(LogHeader(5, 23123, 4), "abcd", "dcba"), 20))
 
-        
     """def test_1(self):
         NB_ELEM = 10
         io = IoHandle.using_stringio(LogIndexEntrySerializer.SERIALIZED_LENGTH * NB_ELEM)

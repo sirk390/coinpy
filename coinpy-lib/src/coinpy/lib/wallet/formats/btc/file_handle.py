@@ -1,26 +1,36 @@
 import StringIO
 
 class IoHandle( object ):
-    def __init__(self, iohandle, size):
+    def __init__(self, iohandle, debug=False):
         self.iohandle = iohandle
-        self.size = size
-        
-    def write(self, offset, data):
-        print "write", offset, data
-        self.iohandle.seek(offset)
+        #sel.size = size
+        self.debug = debug
+    
+    def write(self, offset=None, data=""):
+        if self.debug:
+            print "write", offset, repr(data)
+        if offset is not None:
+            self.iohandle.seek(offset)
         return self.iohandle.write(data)
         
-    def read(self, offset, length):
-        self.iohandle.seek(offset)
+    def read(self, offset=None, length=0):
+        if offset is not None:
+            self.iohandle.seek(offset)
         return self.iohandle.read(length)
+
+    def seek(self, offset, whence):
+        self.iohandle.seek(offset, whence)
+
+    def tell(self):
+        return self.iohandle.tell()
     
     @classmethod
     def from_string(cls, s):
-        return cls(StringIO.StringIO(s), len(s))
+        return cls(StringIO.StringIO(s))
 
     @classmethod
-    def using_stringio(cls, size):
-        return cls(StringIO.StringIO("\x00" * size), size)
+    def using_stringio(cls, size=0):
+        return cls(StringIO.StringIO("\x00" * size))
 
 class IoSectionHandle( object ):
     """ Read or Write to a subsection of a file """

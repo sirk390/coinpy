@@ -6,7 +6,7 @@ from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
 class Test(unittest.TestCase):
     def test_RandomAccessIoHandle_WriteDataAtPosition2_DataIsWritten(self):
         io = StringIO.StringIO("0123456789")
-        handle = IoHandle(io, 10)
+        handle = IoHandle(io)
         
         handle.write(2, "--")
 
@@ -14,7 +14,7 @@ class Test(unittest.TestCase):
 
     def test_RandomAccessIoHandle_ReadDataAtPosition3_DataIsReturned(self):
         io = StringIO.StringIO("0123456789")
-        handle = IoHandle(io, 10)
+        handle = IoHandle(io)
         
         result = handle.read(offset=2, length=3)
 

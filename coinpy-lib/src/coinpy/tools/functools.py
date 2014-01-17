@@ -1,5 +1,15 @@
 import itertools
 
+
+def only(lst, exception=Exception):
+    """ Returns the only element in an array or raises an Exception
+        inspired by ruby facets / only
+    """
+    l = len(lst)
+    if l != 1:
+        raise exception("Expected one element but found :%d " %(l))
+    return lst[0]
+
 def xgroupby(data, keyfunc):
     ''' Enhanced version of itertools.groupby that sorts and returns a dictionary '''
     data = sorted(data, key=keyfunc)
