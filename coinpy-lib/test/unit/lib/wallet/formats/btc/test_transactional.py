@@ -1,8 +1,8 @@
 import unittest
 import mock
 from coinpy.lib.wallet.formats.btc.file_model import LogIndexEntry
-from coinpy.lib.wallet.formats.btc.transactional import CorruptLogIndexException, TransactionLog,\
-     SerializedLogIndex, LogBuffer
+from coinpy.lib.wallet.formats.btc.transactional import CorruptLogIndexException,\
+     SerializedLogIndex, LogBuffer, TransactionalChunkFile
 from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
 from coinpy.lib.wallet.formats.btc.serialization import LogIndexEntrySerializer
 from pydoc import deque
@@ -97,7 +97,7 @@ class TestLogBuffer(unittest.TestCase):
         self.assertEquals(logbuff.writelogs, 
                           {(0, 1) : "log1", (10, 15): "log2"})
 
-class TestTransactional(unittest.TestCase):
+class TestTransactionalChunkFile(unittest.TestCase):
     def test_1(self):
         IO_SIZE = 1000
         BUFFER_SIZE = 1000
@@ -111,7 +111,7 @@ class TestTransactional(unittest.TestCase):
         logindex = SerializedLogIndex.new(logindex_reader)
         
         io = MultiChunkIO.using_stringios({0:IO_SIZE})
-        log = TransactionLog(io, logindex, logbuffer)
+        log = TransactionalChunkFile(io, logindex, logbuffer, 1, 2)
         log.start_transaction()
         log.write(0, 3, "hello test")
         log.write(0, 12, "hello blog")

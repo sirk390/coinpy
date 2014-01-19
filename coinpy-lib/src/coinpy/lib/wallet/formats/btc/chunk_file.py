@@ -49,14 +49,20 @@ class ChunkIO(object):
     def read(self, offset, length):
         return self.chunkfile.read(self.chunkid, offset, length)
     
+    @classmethod
+    def from_name(cls, chunk_file, name):
+        pos, header = chunk_file.get_chunk(name)
+        return cls(chunk_file, pos, header.length)
+    
 class ChunkFile(object):
     """ 
         chunk_reader (instance of ChunkReader)
         chunkinfos ( dict {int => ChunkHeader}: Dictionary mapping from IO index to ChunkHeader
     """
-    def __init__(self, io, chunkheaders=None):
+    def __init__(self, io, chunkheaders=None, serializer=ChunkHeaderSerializer):
         self.io = io
         self.chunkheaders = chunkheaders or {}
+        self.serializer = serializer
         
     def get_chunk(self, name):
         """ Get the position of chunk called {name} 
@@ -64,14 +70,6 @@ class ChunkFile(object):
         pos_header = [(pos, header) for pos, header in self.chunkheaders.iteritems() if header.name == name]
         return only(pos_header)
 
-    def make_handle(self, chunkpos):
-        size = self.chunkheaders[chunkpos].length
-        return IoSectionHandle(self.io, self._chunk_start(chunkpos), size ) 
-
-    def open_chunk(self, name):
-        pos, header = self.get_chunk(name)
-        return pos, header, ChunkIO(self, pos, header.length)
-    
     def write(self, chunkpos, address, data):
         header = self.chunkheaders[chunkpos]
         if not (0 <= address <= header.length - len(data)): 
@@ -83,7 +81,7 @@ class ChunkFile(object):
         header = self.chunkheaders[chunkpos]
         data = self.io.read(self._chunk_start(chunkpos),header.length)
         header.crc = zlib.crc32(data)
-        self.io.write(chunkpos,  ChunkHeaderSerializer.serialize(header))
+        self.io.write(chunkpos,  self.serializer.serialize(header))
 
     def read(self, chunkpos, address, length):
         header = self.chunkheaders[chunkpos]
@@ -92,7 +90,7 @@ class ChunkFile(object):
         return self.io.read(self._chunk_start(chunkpos) + address, length)
     
     def _chunk_start(self, chunkpos):
-        return chunkpos + ChunkHeaderSerializer.SERIALIZED_LENGTH
+        return chunkpos + self.serializer.SERIALIZED_LENGTH
     
     @staticmethod
     def new(self, chunkdefs):
@@ -103,9 +101,8 @@ class ChunkFile(object):
     
     def append_chunk(self, name, length, version=1):
         data = "\x00" * length
-        print zlib.crc32(data)
         header = ChunkHeader(name=name, version=version, length=length, crc=zlib.crc32(data))
-        headerdata = ChunkHeaderSerializer.serialize(header)
+        headerdata = self.serializer.serialize(header)
         self.io.seek(0, SEEK_END)
         pos = self.io.tell()
         self.io.write(data=headerdata + data)
@@ -113,7 +110,8 @@ class ChunkFile(object):
         return pos
 
     @staticmethod
-    def open(io, iosize, start_pos=0):
+    def open(io, iosize):
+        start_pos = io.tell()
         chunkheaders = dict( (pos, header) for pos, header in ChunkHeaderReader.readall(io, iosize, start_pos))
         return ChunkFile(io, chunkheaders)
 

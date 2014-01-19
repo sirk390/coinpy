@@ -5,12 +5,14 @@ from pydoc import deque
 from coinpy.tools.event import Event
 from coinpy.tools.functools import rindex, lindex
 from coinpy.lib.wallet.formats.btc.serialization import LogIndexEntrySerializer
-from coinpy.lib.wallet.formats.btc.entry_reader import FixedSizeEntryReader
+from coinpy.lib.wallet.formats.btc.entry_reader import FixedSizeEntryReader,\
+    LogIndexReader, LogBufferReader
+from coinpy.lib.wallet.formats.btc.chunk_file import ChunkFile, ChunkIO
 
 CHUNK_SIZE=16
 
 from coinpy.lib.wallet.formats.btc.file_model import LogIndexEntry, Log,\
-    LogHeader
+    LogHeader, LOG_INDEX_NAME, LOG_BUFFER_NAME
 
 class CorruptLogIndexException(Exception):
     pass
@@ -163,14 +165,14 @@ class LogBuffer(object):
         return log
 
 
-class TransactionLog(object):
-    """
-        writelogs (dict (int,int) => Log): Dictionnary mapping from (start_offset, end_offset) in LogBuffer to Log instance.
-    """
-    def __init__(self, io, logindex, logbuffer):
-        self.io = io
+class TransactionalChunkFile(object):
+    def __init__(self, chunkfile, logindex, logbuffer, logindexpos, logbufferpos):
+        self.chunkfile = chunkfile
         self.logindex = logindex
         self.logbuffer = logbuffer
+        self.logindexpos = logindexpos
+        self.logbufferpos = logbufferpos
+
         self.logindex.ON_COMMITING.subscribe(self.on_commiting)
         
     def recover(self):
@@ -181,13 +183,13 @@ class TransactionLog(object):
 
     def write(self, chunkid, address, data):
         size = len(data)
-        log = Log(LogHeader(chunkid, address, len(data)), data, self.io.read(chunkid, address, size))
+        log = Log(LogHeader(chunkid, address, len(data)), data, self.chunkfile.read(chunkid, address, size))
         bufferpos = self.logbuffer.find_empty_location_for_log(log)
         self.logbuffer.write_entry(bufferpos, log)
         self.logindex.log(LogIndexEntry(LogIndexEntry.WRITE, bufferpos))
 
     def read(self, chunkid, address, length):
-        return self.io.read(chunkid, address, length)
+        return self.chunkfile.read(chunkid, address, length)
     
     def end_transaction(self):
         self.logindex.log(LogIndexEntry(LogIndexEntry.END_TX))
@@ -199,25 +201,61 @@ class TransactionLog(object):
         """
         logidx = event.logindex
         log = self.logbuffer.read_entry(logidx.argument)
-        self.io.write(log.logheader.chunk, log.logheader.address, log.data)
+        self.chunkfile.write(log.logheader.chunk, log.logheader.address, log.data)
  
     def commit(self):
         self.logindex.commit()
+    
+    @classmethod
+    def load(cls, io, iosize):
+        chunkfile = ChunkFile.open(io, iosize)
+        logindexio = ChunkIO.from_name(chunkfile, LOG_INDEX_NAME)
+        logbufferio = ChunkIO.from_name(chunkfile, LOG_BUFFER_NAME)
+       
+        logindex_reader = LogIndexReader(logindexio, logindexio.size/LogIndexEntrySerializer.SERIALIZED_LENGTH)
+        logindex = SerializedLogIndex.load(logindex_reader)
+
+        logbuffer_reader = LogBufferReader(logbufferio, logbufferio.size)
+        logbuffer = LogBuffer.load(logindex, logbuffer_reader)
+                
+        return cls(chunkfile, logindex, logbuffer, logindexio.chunkid, logbufferio.chunkid)
+
+    @classmethod
+    def new(cls, io, INDEX_COUNT=50, BUFFER_SIZE=10000):
+        chunkfile = ChunkFile(io)
+        chunkfile.append_chunk( LOG_INDEX_NAME, INDEX_COUNT * LogIndexEntrySerializer.SERIALIZED_LENGTH)
+        chunkfile.append_chunk( LOG_BUFFER_NAME, BUFFER_SIZE )
+        #Setup log index and log buffer
+        logindexio = ChunkIO.from_name(chunkfile, LOG_INDEX_NAME)
+        logindex_reader = LogIndexReader(logindexio, INDEX_COUNT)
+        logindex = SerializedLogIndex.new(logindex_reader)
+        
+        logbufferio = ChunkIO.from_name(chunkfile,LOG_BUFFER_NAME)
+        
+        buffer_reader = LogBufferReader(logbufferio, logbufferio.size)
+        logbuffer = LogBuffer(buffer_reader)
+        return cls(chunkfile, logindex, logbuffer, logindexio.chunkid, logbufferio.chunkid)
+
         
 class TransactionalIO(object):
     """ Transactionally read and write a single Chunk.
-        E.g. Allows to write outpoints of privatekeys transactionaly
+        E.g. Allows to write outpoints or privatekeys transactionaly
     """
-    def __init__(self, transaction_log, chunkid):
-        self.tx_log = transaction_log
+    def __init__(self, txchunkfile, chunkid, chunkheader):
+        self.txchunkfile = txchunkfile
         self.chunkid = chunkid
-    
+        self.chunkheader = chunkheader
+        self.size = self.chunkheader.length
+
     def write(self, address, data):
-        return self.tx_log.write(self.chunkid, address, data)
+        return self.txchunkfile.write(self.chunkid, address, data)
     
     def read(self, address, length):
-        return self.tx_log.read(self.chunkid, address, length)
+        return self.txchunkfile.read(self.chunkid, address, length)
     
-    
-    
-        
+    @classmethod
+    def from_chunkname(cls, txchunkfile, name):
+        chunkpos, chunkheader = txchunkfile.chunkfile.get_chunk(name) 
+        return cls(txchunkfile, chunkpos, chunkheader)
+
+

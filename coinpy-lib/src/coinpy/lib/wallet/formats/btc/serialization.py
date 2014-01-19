@@ -5,6 +5,7 @@ from coinpy.tools.functools import invert_dict
 from coinpy.lib.wallet.formats.btc.wallet_model import PubKeyOutpoint,\
     MultiSigOutpoint, ScriptHashOutpoint, PublicKey, OutpointIndex
 from coinpy.model.protocol.structures.uint256 import Uint256
+from coinpy.tools.hex import hexstr
 
 class DeserializationException(Exception):
     pass
@@ -32,7 +33,7 @@ class FileHeaderSerializer(FixedSizeSerializer(12)):
             raise DeserializationException("File header has incorrect length: %s" % (len(data)))
         signature, version = data[:8], data[8:]
         if signature != FileHeaderSerializer.SIGNATURE:
-            raise DeserializationException("Incorrect file signature: found %s instead of %s" % (signature, FileHeaderSerializer.SIGNATURE))
+            raise DeserializationException("Incorrect file signature: found %s instead of %s" % (hexstr(signature), hexstr(FileHeaderSerializer.SIGNATURE)))
         return FileHeader(struct.unpack(">I", version))
 
 class ChunkHeaderSerializer(FixedSizeSerializer(16)):

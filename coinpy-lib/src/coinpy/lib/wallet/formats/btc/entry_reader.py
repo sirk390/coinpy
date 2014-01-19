@@ -6,6 +6,7 @@ from coinpy.lib.wallet.formats.btc.serialization import ItemHeaderSerializer,\
 from coinpy.lib.wallet.formats.btc.file_model import ItemHeader, Alloc, Log
 import heapq
 from coinpy.lib.serialization.structures.s11n_outpoint import OutpointSerializer
+import UserDict
 
 
 class FixedSizeEntryReader(object):
@@ -44,17 +45,19 @@ class InsufficientSpaceException(Exception):
 
 class AllocatedRange(object):
     #rename to SerilializedDict? / KeySerializer for AllocSerializer
-    def __init__(self, io, iosize, allpos=None, serializer=AllocSerializer):
+    def __init__(self, io, iosize, allpos=None, pos_by_id=None, serializer=AllocSerializer):
         self.io = io
         self.iosize = iosize
-        self.allpos = allpos or {}
+        self.allpos = allpos or {} # pos => Alloc
+        self.pos_by_id =  pos_by_id or {} # id => pos
         self.serializer = serializer
         self.header_size = self.serializer.SERIALIZED_LENGTH
 
     @classmethod
     def load(cls, io, iosize, serializer=AllocSerializer):
         allpos = dict(cls.readallocs(io, iosize, serializer))
-        return cls( io, iosize, allpos, serializer)
+        pos_by_id = dict((header.id, pos) for pos, header in allpos.iteritems())
+        return cls( io, iosize, allpos, pos_by_id, serializer)
 
     @classmethod
     def new(cls, io, iosize, serializer=AllocSerializer):
@@ -118,6 +121,7 @@ class AllocatedRange(object):
         self.io.write(pos, newdata)
         self.allpos[pos] = newobjheader
         self.allpos[pos + self.serializer.SERIALIZED_LENGTH + len(data)] = newemptylocationheader
+        self.pos_by_id[id] = pos
 
     def remove_merging_with_next(self, pos, nextpos):
         header = self.allpos[pos]
@@ -151,7 +155,8 @@ class AllocatedRange(object):
         return [v for k,v in sorted(self.allpos.items(), key=lambda (k,v):k)]
 
 
-    def remove(self, pos):
+    def remove(self, id):
+        pos = self.pos_by_id[id] 
         nextpos = self._nextpos(pos)
         if nextpos is not None and self.is_empty(nextpos):
             return self.remove_merging_with_next(pos, nextpos)
@@ -175,7 +180,7 @@ class AllocatedRange(object):
             if p == pos:
                 return sortedpos[i-1] if i else None
     
-class SerializedObjectDict(object):
+class SerializedObjectDict(UserDict.DictMixin):
     """ Read and writes an IO containing a variable number of unordered entries.
         This is used for OutpointIndex, PrivateKeys, ...
     """
@@ -183,7 +188,7 @@ class SerializedObjectDict(object):
         self.allocated = allocated
         self.objects = objects
         self.serializer = serializer
-
+        
     @classmethod
     def new(cls, io, iosize, serializer):
         allocated = AllocatedRange.new(io, iosize)
@@ -198,23 +203,23 @@ class SerializedObjectDict(object):
                 objects[header.id] = (pos, serializer.deserialize(allocated.readobject(pos)))
         return cls(allocated, objects, serializer)
     
-    def iteritems(self):
-        for id, (pos, obj) in self.objects.iteritems():
-            yield id, obj
-        
-    def set(self, id, obj):
+    def __getitem__(self, id):
+        return self.objects[id] 
+    
+    def __setitem__(self, id, obj):
         data = self.serializer.serialize(obj)
         if id in self.objects:
             self.allocated.remove(id)
         pos = self.allocated.add(id, data)
         self.objects[id] = (pos, obj)
     
-    def remove(self, id):
+    def __delitem__(self, id):
         pos, obj = self.objects[id]
         del self.objects[id]
         self.allocated.remove(pos)
 
-
+    def __iter__(self):
+        return self.objects.__iter__()
 
 class LogBufferReader(object):
     """ Read and writes an IO
@@ -246,52 +251,3 @@ class LogBufferReader(object):
         data = self.io.read(pos+self.serializer.SERIALIZED_LENGTH, 2*logheader.length)
         return (Log(logheader, data[:logheader.length], data[logheader.length:]), totallength)
 
-    
-class ChunkReader(object):
-    """ Go through a file, read and deserialize ChunkHeader's """
-    def __init__(self):
-        pass
-        
-    @staticmethod
-    def readheader(iohandle, pos):
-        """ Read and returm a ChunkHeader from the position `pos` in the file 
-            Returns None if the file is too short.
-        """ 
-        chunk_header_data = iohandle.read(pos, ChunkHeaderSerializer.CHUNKHEADER_SIZE)
-        if len(chunk_header_data) == ChunkHeaderSerializer.CHUNKHEADER_SIZE:
-            return ChunkHeaderSerializer.deserialize(chunk_header_data)
-
-    @staticmethod
-    def iterchunkheaders(iohandle):
-        pos = 0
-        chunk_header = ChunkReader.readheader(iohandle, pos)
-        while chunk_header:
-            total_length = ChunkHeaderSerializer.CHUNKHEADER_SIZE + chunk_header.length
-            yield pos, chunk_header
-            pos += total_length
-            chunk_header = ChunkReader.readheader(iohandle, pos)
-
-'''
-
-class ChunkItemLoader(object):
-    """ Go through a chunk, read items's """
-    def __init__(self):
-        pass
-        
-    @classmethod
-    def readheader(cls, iohandle, pos):
-        """ Read and returm a ChunkHeader from the position `pos` in the file 
-            Returns None if the file is too short.
-        """ 
-        chunk_header_data = iohandle.read(pos, ItemHeaderSerializer.SERIALIZED_LENGTH)
-        return ItemHeaderSerializer.deserialize(chunk_header_data)
-
-    @classmethod
-    def iterchunkitems(cls, iohandle, pos, max_pos):
-        while pos < max_pos:
-            itemheader = cls.readheader(iohandle, pos)
-            yield pos, itemheader
-            pos += cls.SERIALIZED_LENGTH + itemheader.data_length
- 
-
-'''

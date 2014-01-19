@@ -1,28 +1,16 @@
-from coinpy.lib.wallet.formats.btc.file_model import FileHeader, WalletFile,\
-    LogIndexChunk, KeysChunk, LogBufferChunk, OutpointsChunk, Metadata,\
-    MetadataChunk, LOG_INDEX_NAME, ChunkHeader, CHUNK_NAMES, LOG_BUFFER, OUTPOINTS,\
-    LOG_BUFFER_NAME, OUTPOINTS_NAME
+from coinpy.lib.wallet.formats.btc.file_model import FileHeader, LOG_INDEX_NAME, ChunkHeader, CHUNK_NAMES, LOG_BUFFER, OUTPOINTS,\
+    LOG_BUFFER_NAME, OUTPOINTS_NAME, LogIndexEntry, Log, LogHeader
 from coinpy.lib.wallet.formats.btc.wallet_model import BtcWallet, Delete, Set,\
     ItemSet
 from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
 from coinpy.lib.wallet.formats.btc.entry_reader import  LogBufferReader, LogIndexReader, SerializedObjectDict
 from coinpy.lib.wallet.formats.btc.transactional import LogBuffer,\
-    SerializedLogIndex, LogIndex, TransactionLog,\
-    TransactionalIO
+    SerializedLogIndex, LogIndex, TransactionalIO, TransactionalChunkFile
 from coinpy.lib.wallet.formats.btc.serialization import LogIndexEntrySerializer,\
     OutpointIndexSerializer, ChunkHeaderSerializer, FileHeaderSerializer
-from coinpy.lib.wallet.formats.btc.chunk_file import ChunkFile
+from coinpy.lib.wallet.formats.btc.chunk_file import ChunkFile, ChunkIO
 import zlib
 
-
-def new_empty_walletfile():
-    return WalletFile( FileHeader(version=1),
-                       chunks = [LogIndexChunk( nb_entries=100 ),
-                                 LogBufferChunk( size=100*1024 ),
-                                 KeysChunk( size=100*1024 ),
-                                 OutpointsChunk( size=100*1024 ),
-                                 MetadataChunk( Metadata("\0" ** 32, comment="New Wallet"))]
-                        )
 
 class SerializedItemSet( ItemSet ):
     def __init__(self, serialized_dict, items_by_key=None):
@@ -47,69 +35,50 @@ class SerializedItemSet( ItemSet ):
         return SerializedItemSet(serialized_dict, items_by_key)
     
 
+
 class WalletFile(object):
-    def __init__(self, txlog, outpoint_dict):
-        self.txlog = txlog
+    def __init__(self, fileheader, txchunk_file, outpoint_dict):
+        self.fileheader = fileheader
+        self.txchunk_file = txchunk_file
         self.outpoints = outpoint_dict
         
     def start_tx(self):
-        self.txlog.start_transaction()
+        self.txchunk_file.start_transaction()
+
+    def commit(self):
+        self.txchunk_file.commit()
+
     
     def end_tx(self):
-        self.txlog.end_transaction()
+        self.txchunk_file.end_transaction()
 
     @classmethod
     def load(cls, io, iosize):
-        chunkfile = ChunkFile.open(io, iosize)
-        _, logindexheader, logindexio = chunkfile.open_chunk(LOG_INDEX_NAME)
-        _, logbufferheader, logbufferio = chunkfile.open_chunk(LOG_BUFFER_NAME)
-       
-        logindex_reader = LogIndexReader(logindexio, logindexheader.length/LogIndexEntrySerializer.SERIALIZED_LENGTH)
-        logindex = SerializedLogIndex.load(logindex_reader)
-
-        logbuffer_reader = LogBufferReader(logbufferio, logbufferheader.length)
-        logbuffer = LogBuffer.load(logindex, logbuffer_reader)
-        
-        txlog = TransactionLog(chunkfile, logindex, logbuffer)
-        
-        outpointchunk, outpointchunkheader = chunkfile.get_chunk(OUTPOINTS_NAME) 
-        outpoint_io = TransactionalIO(txlog, outpointchunk)
-        outpoint_dict = SerializedObjectDict.load(outpoint_io, outpointchunkheader.length, serializer=OutpointIndexSerializer)
-        return cls(txlog, outpoint_dict)
-
+        # read fileheader
+        fileheader = FileHeaderSerializer.deserialize(io.read(length=FileHeaderSerializer.SERIALIZED_LENGTH))
+                                                      
+        txchunk_file = TransactionalChunkFile.load(io, iosize)
+        outpoint_io = TransactionalIO.from_chunkname(txchunk_file, OUTPOINTS_NAME)
+        outpoint_dict = SerializedObjectDict.load(outpoint_io, outpoint_io.size, serializer=OutpointIndexSerializer)
+        return cls(fileheader, txchunk_file, outpoint_dict)
+    """
+            fileheader = FileHeader()
+            io.write(FileHeaderSerializer.serialize(fileheader))
+    """
     @classmethod
-    def new(cls, io):
-        IO_SIZE = 1000
-        BUFFER_SIZE = 10000
-        INDEX_COUNT = 50
-        OUTPOINTS_SIZE = 1000
-        
-        fileheader = FileHeader()
-        io.write(FileHeaderSerializer.serialize(fileheader))
-        #write chunks
-        chunkfile = ChunkFile(io)
-        chunkfile.append_chunk( LOG_INDEX_NAME, INDEX_COUNT * LogIndexEntrySerializer.SERIALIZED_LENGTH)
-        chunkfile.append_chunk( LOG_BUFFER_NAME, BUFFER_SIZE )
+    def new(cls, io, fileheader=FileHeader(), INDEX_COUNT=50, BUFFER_SIZE=10000, OUTPOINTS_SIZE=1000):
+        fileheader = io.write(data=FileHeaderSerializer.serialize(fileheader))
+
+        txchunk_file = TransactionalChunkFile.new(io, INDEX_COUNT=INDEX_COUNT, BUFFER_SIZE=BUFFER_SIZE)
+        chunkfile = txchunk_file.chunkfile
+        # Appending/format other chunks (Not done transactionally)
         chunkfile.append_chunk( OUTPOINTS_NAME, OUTPOINTS_SIZE )
-        #Load log index and log buffer
-        _, _logindexheader, logindexio = chunkfile.open_chunk(LOG_INDEX_NAME)
-        logindex_reader = LogIndexReader(logindexio, INDEX_COUNT)
-
-        logindex = SerializedLogIndex.new(logindex_reader)
-        _, logbufferheader, logbufferio = chunkfile.open_chunk(LOG_BUFFER_NAME)
-        buffer_reader = LogBufferReader(logbufferio, logbufferheader.length)
-        logbuffer = LogBuffer(buffer_reader)
-        # format other chunks ( not transactionally)
-        _, outpointsheader, outpointsio = chunkfile.open_chunk(OUTPOINTS_NAME)
-        outpoint_dict = SerializedObjectDict.new(outpointsio, outpointsheader.length, serializer=OutpointIndexSerializer)
-        SerializedItemSet.load(outpoint_dict)
-        # 
-        txlog = TransactionLog(chunkfile, logindex, logbuffer)
-
-        outpointchunk, outpointchunkheader = chunkfile.get_chunk(OUTPOINTS_NAME) 
-        outpoint_io = TransactionalIO(txlog, outpointchunk)
+        outpointsio = ChunkIO.from_name(chunkfile, OUTPOINTS_NAME)
+        outpoint_dict = SerializedObjectDict.new(outpointsio, outpointsio.size, serializer=OutpointIndexSerializer)
+        # re-open them transactionally
+        outpoint_io = TransactionalIO.from_chunkname(txchunk_file, OUTPOINTS_NAME)
         outpoint_dict = SerializedObjectDict.load(outpoint_io, OUTPOINTS_SIZE, OutpointIndexSerializer)
-        return cls(txlog, outpoint_dict)
+        return cls(fileheader, txchunk_file, outpoint_dict)
 
 
 class SerilializedWallet(BtcWallet):
@@ -129,8 +98,8 @@ class SerilializedWallet(BtcWallet):
     @classmethod
     def load(cls, io):
         chunkfile = ChunkFile.open(io)
-        _, logindexheader, logindexio = chunkfile.open_chunk(LOG_INDEX_NAME)
-        _, logbufferheader, logbufferio = chunkfile.open_chunk(LOG_BUFFER_NAME)
+        _, logindexheader, logindexio = ChunkIO.from_name(chunkfile, LOG_INDEX_NAME)
+        _, logbufferheader, logbufferio = ChunkIO.from_name(chunkfile, LOG_BUFFER_NAME)
        
         logindex_reader = LogIndexReader(logindexio, logindexheader.length/LogIndexEntrySerializer.SERIALIZED_LENGTH)
         logindex = SerializedLogIndex.load(logindex_reader)

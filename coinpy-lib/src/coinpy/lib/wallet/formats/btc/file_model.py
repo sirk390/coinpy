@@ -3,7 +3,10 @@ class FileHeader():
     def __init__(self, signature="\x89WLT\r\n\x1a\n", version=1):
         self.signature = signature
         self.version = version
-        
+     
+    def __repr__(self):
+        return "<FileHeader version:%d>" % (self.version)
+    
     def __eq__(self, other):
         return (self.signature == other.signature and
                 self.version == other.version)
@@ -64,12 +67,6 @@ class ItemHeader(object):
         return "<%s(%s)>" % (self.__class__.__name__, " ".join("%s:%s" % (k,v) for k,v in  self.__dict__.items()))
 
 
-class ChunkInfo(object):
-    def __init__(self, name, version=1, length=0):
-        self.name = name
-        self.version = version
-        self.length = length
-
 class LogIndexEntry(object):
     BEGIN_TX, END_TX, WRITE, CHANGE_FILESIZE = COMMANDS = range(4)
     """ Entry in the write ahead log index """
@@ -92,35 +89,8 @@ class LogIndexEntry(object):
         
     def __repr__(self):
         return "<%s(%s)>" % (self.__class__.__name__, " ".join("%s:%s" % (k,v) for k,v in  self.__dict__.items()))
-                
-class LogIndexChunk(object):
-    def __init__(self, entries):
-        pass
-    
-class LogBufferChunk(object):
-    def __init__(self, size):
-        pass
-    
-class KeysChunk(object):
-    def __init__(self, size):
-        pass
 
-class OutpointsChunk(object):
-    def __init__(self, size):
-        pass
 
-class WalletFile(object):
-    def __init__(self, file_header, log_index_chunk, log_buffer_chunk, keys_chunk, outpoints_chunk, metadata_chunk):
-        self.file_header = file_header
-        self.log_index_chunk = log_index_chunk
-        self.log_buffer_chunk = log_buffer_chunk
-        self.keys_chunk = keys_chunk
-        self.outpoints_chunk = outpoints_chunk
-        self.metadata_chunk = metadata_chunk
-
-class MetadataChunk():
-    def __init__(self, metadata):
-        self.metadata = metadata
 
 class Metadata():
     def __init__(self, wallet_id, comment):
