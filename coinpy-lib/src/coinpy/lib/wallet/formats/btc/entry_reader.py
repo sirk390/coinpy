@@ -1,9 +1,9 @@
 from io import SEEK_CUR
 import os
 from coinpy.lib.wallet.formats.btc.serialization import ItemHeaderSerializer,\
-    ChunkHeaderSerializer, AllocSerializer, LogHeaderSerializer,\
-    LogIndexEntrySerializer, OutpointIndexSerializer
-from coinpy.lib.wallet.formats.btc.file_model import ItemHeader, Alloc, Log
+    ChunkHeaderSerializer, ItemHeaderSerializer, LogHeaderSerializer,\
+    LogIndexEntrySerializer, OutpointIndexSerializer, IdSerializer
+from coinpy.lib.wallet.formats.btc.file_model import ItemHeader, ItemHeader, Log
 import heapq
 from coinpy.lib.serialization.structures.s11n_outpoint import OutpointSerializer
 import UserDict
@@ -43,26 +43,24 @@ def LogIndexReader(io, nbentries):
 class InsufficientSpaceException(Exception):
     pass
 
-class AllocatedRange(object):
-    #rename to SerilializedDict? / KeySerializer for AllocSerializer
-    def __init__(self, io, iosize, allpos=None, pos_by_id=None, serializer=AllocSerializer):
+class SerializedSet(object):
+    #rename to SerilializedDict? / KeySerializer for ItemHeaderSerializer
+    def __init__(self, io, iosize, allpos=None, serializer=ItemHeaderSerializer):
         self.io = io
         self.iosize = iosize
-        self.allpos = allpos or {} # pos => Alloc
-        self.pos_by_id =  pos_by_id or {} # id => pos
+        self.allpos = allpos or {} # pos => ItemHeader
         self.serializer = serializer
         self.header_size = self.serializer.SERIALIZED_LENGTH
 
     @classmethod
-    def load(cls, io, iosize, serializer=AllocSerializer):
+    def load(cls, io, iosize, serializer=ItemHeaderSerializer):
         allpos = dict(cls.readallocs(io, iosize, serializer))
-        pos_by_id = dict((header.id, pos) for pos, header in allpos.iteritems())
-        return cls( io, iosize, allpos, pos_by_id, serializer)
+        return cls( io, iosize, allpos, serializer)
 
     @classmethod
-    def new(cls, io, iosize, serializer=AllocSerializer):
+    def new(cls, io, iosize, serializer=ItemHeaderSerializer):
         """ could be moved to a function """
-        header = Alloc(empty=True, size=iosize - serializer.SERIALIZED_LENGTH)
+        header = ItemHeader(empty=True, size=iosize - serializer.SERIALIZED_LENGTH)
         io.write(0, serializer.serialize(header))
         return cls(io, iosize, {0: header}, serializer)
 
@@ -79,8 +77,9 @@ class AllocatedRange(object):
             pos += serializer.SERIALIZED_LENGTH + header.size
 
     def iteritems(self):
-        for pos, header in self.allpos.iteritems(): 
-            yield pos, header
+        for pos, header in self.allpos.iteritems():
+            if not header.empty:
+                yield pos, header
 
     def iterposvalues(self):
         for pos, header in self.allpos.iteritems():
@@ -102,33 +101,32 @@ class AllocatedRange(object):
         header = serializer.deserialize(headerdata)
         return header
 
-    def add(self, id, data):
+    def add(self, data):
         pos = self.find_empty_location(len(data))
         if pos is None:
             raise InsufficientSpaceException("Not enough space for data")
-        self.insert(pos, id, data)
+        self.insert(pos, data)
         return pos
         
-    def insert(self, pos, id, data):
+    def insert(self, pos, data):
         """ Replace an empty location at {pos} by {data} """
         assert self.allpos[pos].empty
         oldemptyheader = self.allpos[pos]
-        newobjheader = Alloc(empty=False, id=id, size=len(data))
-        newemptylocationheader = Alloc(True, oldemptyheader.size - len(data) - self.serializer.SERIALIZED_LENGTH)
+        newobjheader = ItemHeader(empty=False, size=len(data))
+        newemptylocationheader = ItemHeader(True, oldemptyheader.size - len(data) - self.serializer.SERIALIZED_LENGTH)
         newdata = (self.serializer.serialize(newobjheader) + 
                    data +
                    self.serializer.serialize(newemptylocationheader))
         self.io.write(pos, newdata)
         self.allpos[pos] = newobjheader
         self.allpos[pos + self.serializer.SERIALIZED_LENGTH + len(data)] = newemptylocationheader
-        self.pos_by_id[id] = pos
 
     def remove_merging_with_next(self, pos, nextpos):
         header = self.allpos[pos]
         nextheader = self.allpos[nextpos]
         assert not header.empty
         assert nextheader.empty
-        newemptyheader = Alloc(empty=True, size=header.size + self.serializer.SERIALIZED_LENGTH + nextheader.size)
+        newemptyheader = ItemHeader(empty=True, size=header.size + self.serializer.SERIALIZED_LENGTH + nextheader.size)
         self.io.write(pos, self.serializer.serialize(newemptyheader) + 
                       "\x00" * (header.size + self.serializer.SERIALIZED_LENGTH)) #Note: erasing previous data
         self.allpos[pos] = newemptyheader
@@ -137,7 +135,7 @@ class AllocatedRange(object):
     def remove_merging_with_prev(self, pos, nextpos):
         header = self.allpos[pos]
         nextheader = self.allpos[nextpos]
-        newemptyheader = Alloc(empty=True, size=header.size + self.serializer.SERIALIZED_LENGTH + nextheader.size)
+        newemptyheader = ItemHeader(empty=True, size=header.size + self.serializer.SERIALIZED_LENGTH + nextheader.size)
         self.io.write(pos, self.serializer.serialize(newemptyheader))
         self.io.write(nextpos, "\x00" * (nextheader.size + self.serializer.SERIALIZED_LENGTH)) #Note: erasing previous data
         self.allpos[pos] = newemptyheader
@@ -155,8 +153,7 @@ class AllocatedRange(object):
         return [v for k,v in sorted(self.allpos.items(), key=lambda (k,v):k)]
 
 
-    def remove(self, id):
-        pos = self.pos_by_id[id] 
+    def remove(self, pos):
         nextpos = self._nextpos(pos)
         if nextpos is not None and self.is_empty(nextpos):
             return self.remove_merging_with_next(pos, nextpos)
@@ -180,43 +177,48 @@ class AllocatedRange(object):
             if p == pos:
                 return sortedpos[i-1] if i else None
     
-class SerializedObjectDict(UserDict.DictMixin):
+class SerializedDict(UserDict.DictMixin):
     """ Read and writes an IO containing a variable number of unordered entries.
         This is used for OutpointIndex, PrivateKeys, ...
     """
-    def __init__(self, allocated, objects, serializer):
-        self.allocated = allocated
+    def __init__(self, serialized_set, objects, serializer, idserializer=IdSerializer):
+        self.serialized_set = serialized_set
         self.objects = objects
         self.serializer = serializer
+        self.idserializer = idserializer
         
     @classmethod
     def new(cls, io, iosize, serializer):
-        allocated = AllocatedRange.new(io, iosize)
+        allocated = SerializedSet.new(io, iosize)
         return cls(allocated, {}, serializer)
            
     @classmethod
-    def load(cls, io, iosize, serializer):
-        allocated = AllocatedRange.load(io, iosize)
+    def load(cls, io, iosize, serializer, idserializer=IdSerializer):
+        serialized_set = SerializedSet.load(io, iosize)
         objects = {}
-        for pos, header in allocated.iteritems():
-            if not header.empty:
-                objects[header.id] = (pos, serializer.deserialize(allocated.readobject(pos)))
-        return cls(allocated, objects, serializer)
+        l = idserializer.SERIALIZED_LENGTH
+        for pos, header in serialized_set.iteritems():
+            data = serialized_set.readobject(pos)
+            id_data, obj_data = data[:l], data[l:]
+            objects[idserializer.deserialize(id_data)] = (pos, serializer.deserialize(obj_data))
+        return cls(serialized_set, objects, serializer, idserializer)
     
     def __getitem__(self, id):
-        return self.objects[id] 
+        pos, obj = self.objects[id] 
+        return obj
     
     def __setitem__(self, id, obj):
-        data = self.serializer.serialize(obj)
+        data = IdSerializer.serialize(id) + self.serializer.serialize(obj)
         if id in self.objects:
-            self.allocated.remove(id)
-        pos = self.allocated.add(id, data)
+            pos, obj = self.objects[id]
+            self.serialized_set.remove(pos)
+        pos = self.serialized_set.add(data)
         self.objects[id] = (pos, obj)
     
     def __delitem__(self, id):
         pos, obj = self.objects[id]
+        self.serialized_set.remove(pos)
         del self.objects[id]
-        self.allocated.remove(pos)
 
     def __iter__(self):
         return self.objects.__iter__()

@@ -151,18 +151,18 @@ class TestWalletSerialization(unittest.TestCase):
                           )
 
     def test_serialize_NotEmptyItemHeader_HexValueIsCorrect(self):
-        item_header = ItemHeader(empty=False, id=0x43ecda, size=0xec39a0)
+        item_header = ItemHeader(empty=False, size=0xec39a0)
         
         serialized = ItemHeaderSerializer.serialize(item_header)
 
-        self.assertEquals(hexstr(serialized), "01" "0043ecda" "00ec39a0")
+        self.assertEquals(hexstr(serialized), "01" "00ec39a0")
 
     def test_serialize_EmptyItemHeader_HexValueIsCorrect(self):
-        item_header = ItemHeader(empty=True, id=0x12ecda, size=0xdc39a0)
+        item_header = ItemHeader(empty=True, size=0xdc39a0)
         
         serialized = ItemHeaderSerializer.serialize(item_header)
 
-        self.assertEquals(hexstr(serialized), "00" "0012ecda" "00dc39a0")
+        self.assertEquals(hexstr(serialized), "00" "00dc39a0")
 
 
 

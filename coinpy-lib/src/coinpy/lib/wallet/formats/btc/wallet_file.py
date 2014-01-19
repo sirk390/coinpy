@@ -3,7 +3,7 @@ from coinpy.lib.wallet.formats.btc.file_model import FileHeader, LOG_INDEX_NAME,
 from coinpy.lib.wallet.formats.btc.wallet_model import BtcWallet, Delete, Set,\
     ItemSet
 from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
-from coinpy.lib.wallet.formats.btc.entry_reader import  LogBufferReader, LogIndexReader, SerializedObjectDict
+from coinpy.lib.wallet.formats.btc.entry_reader import  LogBufferReader, LogIndexReader, SerializedDict
 from coinpy.lib.wallet.formats.btc.transactional import LogBuffer,\
     SerializedLogIndex, LogIndex, TransactionalIO, TransactionalChunkFile
 from coinpy.lib.wallet.formats.btc.serialization import LogIndexEntrySerializer,\
@@ -59,7 +59,7 @@ class WalletFile(object):
                                                       
         txchunk_file = TransactionalChunkFile.load(io, iosize)
         outpoint_io = TransactionalIO.from_chunkname(txchunk_file, OUTPOINTS_NAME)
-        outpoint_dict = SerializedObjectDict.load(outpoint_io, outpoint_io.size, serializer=OutpointIndexSerializer)
+        outpoint_dict = SerializedDict.load(outpoint_io, outpoint_io.size, serializer=OutpointIndexSerializer)
         return cls(fileheader, txchunk_file, outpoint_dict)
     """
             fileheader = FileHeader()
@@ -74,10 +74,10 @@ class WalletFile(object):
         # Appending/format other chunks (Not done transactionally)
         chunkfile.append_chunk( OUTPOINTS_NAME, OUTPOINTS_SIZE )
         outpointsio = ChunkIO.from_name(chunkfile, OUTPOINTS_NAME)
-        outpoint_dict = SerializedObjectDict.new(outpointsio, outpointsio.size, serializer=OutpointIndexSerializer)
+        outpoint_dict = SerializedDict.new(outpointsio, outpointsio.size, serializer=OutpointIndexSerializer)
         # re-open them transactionally
         outpoint_io = TransactionalIO.from_chunkname(txchunk_file, OUTPOINTS_NAME)
-        outpoint_dict = SerializedObjectDict.load(outpoint_io, OUTPOINTS_SIZE, OutpointIndexSerializer)
+        outpoint_dict = SerializedDict.load(outpoint_io, OUTPOINTS_SIZE, OutpointIndexSerializer)
         return cls(fileheader, txchunk_file, outpoint_dict)
 
 
@@ -139,14 +139,14 @@ class SerilializedWallet(BtcWallet):
         logbuffer = LogBuffer(buffer_reader)
         # format other chunks ( not transactionally)
         _, outpointsheader, outpointsio = chunkfile.open_chunk(OUTPOINTS_NAME)
-        outpoint_dict = SerializedObjectDict.new(outpointsio, outpointsheader.length, serializer=OutpointIndexSerializer)
+        outpoint_dict = SerializedDict.new(outpointsio, outpointsheader.length, serializer=OutpointIndexSerializer)
         SerializedItemSet.load(outpoint_dict)
         # 
         txlog = TransactionLog(chunkfile, logindex, logbuffer)
 
         outpointchunk, outpointchunkheader = chunkfile.get_chunk(OUTPOINTS_NAME) 
         outpoint_io = TransactionalIO(txlog, outpointchunk)
-        outpoint_reader = SerializedObjectDict.load(outpoint_io, OUTPOINTS_SIZE, OutpointIndexSerializer)
+        outpoint_reader = SerializedDict.load(outpoint_io, OUTPOINTS_SIZE, OutpointIndexSerializer)
         outpoints = SerializedItemSet.load(outpoint_reader)
         return cls(txlog, outpoints)
 

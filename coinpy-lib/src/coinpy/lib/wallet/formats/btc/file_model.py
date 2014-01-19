@@ -38,34 +38,17 @@ class ChunkHeader(object):
                 self.length == other.length and
                 self.crc == other.crc)
 
-class Alloc(object):
-    def __init__(self, empty, size, id=0):
-        self.size = size
-        self.id = id
-        self.empty = empty
-        
-    def __eq__(self, other):
-        return (self.empty == other.empty and
-                self.id == other.id and
-                self.size == other.size)
-        
-    def __repr__(self):
-        return "<%s(%s)>" % (self.__class__.__name__, " ".join("%s:%s" % (k,v) for k,v in  self.__dict__.items()))
-   
 class ItemHeader(object):
-    def __init__(self, empty, id, size):
-        self.empty = empty
-        self.id = id
+    def __init__(self, empty, size):
         self.size = size
+        self.empty = empty
         
     def __eq__(self, other):
         return (self.empty == other.empty and
-                self.id == other.id and
                 self.size == other.size)
         
     def __repr__(self):
         return "<%s(%s)>" % (self.__class__.__name__, " ".join("%s:%s" % (k,v) for k,v in  self.__dict__.items()))
-
 
 class LogIndexEntry(object):
     BEGIN_TX, END_TX, WRITE, CHANGE_FILESIZE = COMMANDS = range(4)

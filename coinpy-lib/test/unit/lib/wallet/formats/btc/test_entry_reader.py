@@ -1,10 +1,11 @@
 import unittest
-from coinpy.lib.wallet.formats.btc.file_model import Alloc, Log, LogHeader
-from coinpy.lib.wallet.formats.btc.entry_reader import FixedSizeEntryReader, AllocatedRange,\
-    InsufficientSpaceException, LogBufferReader
+from coinpy.lib.wallet.formats.btc.file_model import ItemHeader, Log, LogHeader
+from coinpy.lib.wallet.formats.btc.entry_reader import FixedSizeEntryReader, SerializedSet,\
+    InsufficientSpaceException, LogBufferReader, SerializedDict
 import mock
 from unit.parametrized_tests import testcases, UseParametrizedTests
 from coinpy.lib.wallet.formats.btc.file_handle import IoHandle
+from coinpy.lib.wallet.formats.btc.serialization import LogHeaderSerializer
 
 class TestLogIndexReader(unittest.TestCase):
     __metaclass__ = UseParametrizedTests
@@ -56,19 +57,19 @@ class TestLogIndexReader(unittest.TestCase):
         
         mockIo.read.assert_called_once_with(0, serialized_size)
 
-class TestAllocatedRange(unittest.TestCase):
+class TestSerializedSet(unittest.TestCase):
     
-    def test_AllocatedRange_InsertDataAtPosition_GetAllocReturnsSplittedAllocs(self):
-        r = AllocatedRange.new(io=mock.Mock(),
+    def test_SerializedSet_InsertDataAtPosition_GetAllocReturnsSplittedAllocs(self):
+        r = SerializedSet.new(io=mock.Mock(),
                                iosize=20,
                                serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
         
         r.insert(0, data="abcde")
         
-        self.assertEquals(r.getallocs(), [Alloc(empty=False, size=5), Alloc(empty=True, size=15)] )
+        self.assertEquals(r.getallocs(), [ItemHeader(empty=False, size=5), ItemHeader(empty=True, size=15)] )
         
-    def test_AllocatedRange_AddDataTooLargeString_RaisesException(self):
-        r = AllocatedRange.new(io=mock.Mock(),
+    def test_SerializedSet_AddDataTooLargeString_RaisesException(self):
+        r = SerializedSet.new(io=mock.Mock(),
                                iosize=17,
                                serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=2))
         
@@ -77,135 +78,135 @@ class TestAllocatedRange(unittest.TestCase):
         
         
 
-    def test_AllocatedRange_AddData_GetAllocReturnsSplittedAllocs(self):
-        r = AllocatedRange.new(io=mock.Mock(),
+    def test_SerializedSet_AddData_GetAllocReturnsSplittedAllocs(self):
+        r = SerializedSet.new(io=mock.Mock(),
                                iosize=20,
                                serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
         
         r.add(data="abcde")
         
-        self.assertEquals(r.getallocs(), [Alloc(empty=False, size=5), Alloc(empty=True, size=15)] )
+        self.assertEquals(r.getallocs(), [ItemHeader(empty=False, size=5), ItemHeader(empty=True, size=15)] )
         
 
-    def test_AllocatedRange_RemoveMergeWithNext(self):
-        r = AllocatedRange(io=mock.Mock(),
+    def test_SerializedSet_RemoveMergeWithNext(self):
+        r = SerializedSet(io=mock.Mock(),
                            iosize=14,
-                           allpos={0: Alloc(empty=False, size=3), 
-                                   3: Alloc(empty=False, size=4), 
-                                   7: Alloc(empty=True, size=7)}, 
+                           allpos={0: ItemHeader(empty=False, size=3), 
+                                   3: ItemHeader(empty=False, size=4), 
+                                   7: ItemHeader(empty=True, size=7)}, 
                            serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
         
         r.remove(3)
         
-        self.assertEquals(r.getallocs(), [Alloc(empty=False, size=3), Alloc(empty=True, size=11)] )
+        self.assertEquals(r.getallocs(), [ItemHeader(empty=False, size=3), ItemHeader(empty=True, size=11)] )
         
-    def test_AllocatedRange_RemoveMergeWithPrev(self):
-        r = AllocatedRange(io=mock.Mock(),
+    def test_SerializedSet_RemoveMergeWithPrev(self):
+        r = SerializedSet(io=mock.Mock(),
                            iosize=14,
-                           allpos={0: Alloc(empty=True, size=3), 
-                                   3: Alloc(empty=False, size=4), 
-                                   7: Alloc(empty=False, size=7)}, 
+                           allpos={0: ItemHeader(empty=True, size=3), 
+                                   3: ItemHeader(empty=False, size=4), 
+                                   7: ItemHeader(empty=False, size=7)}, 
                            serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
         
         r.remove(3)
         
-        self.assertEquals(r.getallocs(), [Alloc(empty=True, size=7), Alloc(empty=False, size=7)] )
+        self.assertEquals(r.getallocs(), [ItemHeader(empty=True, size=7), ItemHeader(empty=False, size=7)] )
         
-    def test_AllocatedRange_RemoveNoMerge(self):
-        r = AllocatedRange(io=mock.Mock(),
+    def test_SerializedSet_RemoveNoMerge(self):
+        r = SerializedSet(io=mock.Mock(),
                            iosize=14,
-                           allpos={0: Alloc(empty=False, size=3), 
-                                   3: Alloc(empty=False, size=4), 
-                                   7: Alloc(empty=False, size=7)}, 
+                           allpos={0: ItemHeader(empty=False, size=3), 
+                                   3: ItemHeader(empty=False, size=4), 
+                                   7: ItemHeader(empty=False, size=7)}, 
                            serializer=mock.Mock(serialize=mock.Mock(return_value=""), SERIALIZED_LENGTH=0))
         
         r.remove(3)
         
-        self.assertEquals(r.getallocs(), [Alloc(empty=False, size=3), Alloc(empty=True, size=4), Alloc(empty=False, size=7)] )
+        self.assertEquals(r.getallocs(), [ItemHeader(empty=False, size=3), ItemHeader(empty=True, size=4), ItemHeader(empty=False, size=7)] )
 
-    def test_AllocatedRange_CreateNew_IterItemsIsEmpty(self):
+    def test_SerializedSet_CreateNew_IterItemsIsEmpty(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = AllocatedRange.new(io, SIZE)
+        reader = SerializedSet.new(io, SIZE)
  
-        reader2 = AllocatedRange.load(io, SIZE)
+        reader2 = SerializedSet.load(io, SIZE)
 
         items = list(reader2.itervalues())
         self.assertEquals(items, [])
 
-    def test_AllocatedRange_AddOneElements_CheckElementIsPresent(self):
+    def test_SerializedSet_AddOneElements_CheckElementIsPresent(self):
         SIZE = 50
         io = IoHandle.using_stringio(SIZE)
-        reader = AllocatedRange.new(io, SIZE)
+        reader = SerializedSet.new(io, SIZE)
  
         reader.add("ab")
         
         #print repr(io.iohandle.getvalue())
-        reader2 = AllocatedRange.load(io, SIZE)
+        reader2 = SerializedSet.load(io, SIZE)
 
         items = list(reader2.itervalues())
         self.assertEquals(items, ["ab"])
         
-    def test_AllocatedRange_AddTwoElementsRemoveFirstThenReRead_SecondElementIsReturned(self):
+    def test_SerializedSet_AddTwoElementsRemoveFirstThenReRead_SecondElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = AllocatedRange.new(io, SIZE)
+        reader = SerializedSet.new(io, SIZE)
  
         reader.add("abcd")
         reader.add("efghijkl") 
         reader.remove(0)
-        reader2 = AllocatedRange.load(io, SIZE)
+        reader2 = SerializedSet.load(io, SIZE)
 
         items = list(reader2.itervalues())
         self.assertEquals(items, ['efghijkl'])
         
-    def test_AllocatedRange_AddTwoElementsRemoveSecondThenReRead_FirstElementIsReturned(self):
+    def test_SerializedSet_AddTwoElementsRemoveSecondThenReRead_FirstElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = AllocatedRange.new(io, SIZE)
+        reader = SerializedSet.new(io, SIZE)
  
         reader.add("abcd")
         pos2 = reader.add("efghijkl") 
         reader.remove(pos2)
-        reader2 = AllocatedRange.load(io, SIZE)
+        reader2 = SerializedSet.load(io, SIZE)
 
         items = list(reader2.itervalues())
         self.assertEquals(items, ["abcd"])
         
-    def test_AllocatedRange_AddThreeElementsRemoveSecondAndThirdThenReRead_FirstElementIsReturned(self):
+    def test_SerializedSet_AddThreeElementsRemoveSecondAndThirdThenReRead_FirstElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = AllocatedRange.new(io, SIZE)
+        reader = SerializedSet.new(io, SIZE)
  
         reader.add("abcd")
         pos2 = reader.add("efghijkl")
         pos3 = reader.add("mnopqrst") 
         reader.remove(pos2)
         reader.remove(pos3)
-        reader2 = AllocatedRange.load(io, SIZE)
+        reader2 = SerializedSet.load(io, SIZE)
 
         items = list(reader2.itervalues())
         self.assertEquals(items, ["abcd"])
 
-    def test_AllocatedRange_AddThreeElementsRemoveFirstAndThirdThenReRead_SecondElementIsReturned(self):
+    def test_SerializedSet_AddThreeElementsRemoveFirstAndThirdThenReRead_SecondElementIsReturned(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = AllocatedRange.new(io, SIZE)
+        reader = SerializedSet.new(io, SIZE)
  
         pos1 = reader.add("abcd")
         reader.add("efghijkl")
         pos3 = reader.add("mnopqrst") 
         reader.remove(pos3)
         reader.remove(pos1)
-        reader2 = AllocatedRange.load(io, SIZE)
+        reader2 = SerializedSet.load(io, SIZE)
 
         items = list(reader2.itervalues())
         self.assertEquals(items, ["efghijkl"])
 
-    def test_AllocatedRange_AddThreeElementsRemoveAll_CheckIOIsIdenticalToTheBeginning(self):
+    def test_SerializedSet_AddThreeElementsRemoveAll_CheckIOIsIdenticalToTheBeginning(self):
         SIZE = 1000
         io = IoHandle.using_stringio(SIZE)
-        reader = AllocatedRange.new(io, SIZE)
+        reader = SerializedSet.new(io, SIZE)
         
         io1 = io.iohandle.getvalue()
         pos1 = reader.add("abcd")
@@ -217,6 +218,17 @@ class TestAllocatedRange(unittest.TestCase):
         io2 = io.iohandle.getvalue()
         
         self.assertEquals(io1, io2)
+        
+class TestSerializedDict(unittest.TestCase):
+    def test_SerializedDict_AddElementAndReload_DictIsTheSame(self):
+        SIZE = 1000
+        io = IoHandle.using_stringio(SIZE)
+        serialized_dict = SerializedDict.new(io, SIZE, LogHeaderSerializer)
+        
+        serialized_dict[4] = LogHeader(1, 32, 21)
+        
+        d2 = SerializedDict.load(io, SIZE, LogHeaderSerializer)
+        self.assertEquals(list(d2.iteritems()), [(4, LogHeader(1, 32, 21))])
 
 class TestLogBufferReader(unittest.TestCase):
     def test_LogBufferReader(self):
@@ -242,8 +254,8 @@ class TestLogBufferReader(unittest.TestCase):
         print reader.read_entry(1)
 
 
-    def test_AllocatedRange_FillLargeEnoughEmptyLocation_GetHeadersAddEntry2(self):
-        r = AllocatedRange(io=mock.Mock(),
+    def test_SerializedSet_FillLargeEnoughEmptyLocation_GetHeadersAddEntry2(self):
+        r = SerializedSet(io=mock.Mock(),
                            space=[(None, 100)], 
                            header_serializer=mock.Mock(serialize=mock.Mock(return_value="-----"), SERIALIZED_LENGTH=5))
         

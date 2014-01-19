@@ -1,6 +1,6 @@
 import struct
 from coinpy.lib.wallet.formats.btc.file_model import ChunkHeader,\
-     FileHeader, LogIndexEntry, ItemHeader, Log, Alloc, LogHeader
+     FileHeader, LogIndexEntry, ItemHeader, Log, ItemHeader, LogHeader
 from coinpy.tools.functools import invert_dict
 from coinpy.lib.wallet.formats.btc.wallet_model import PubKeyOutpoint,\
     MultiSigOutpoint, ScriptHashOutpoint, PublicKey, OutpointIndex
@@ -91,37 +91,29 @@ class LogIndexEntrySerializer(object):
                               argument,
                               bool(needs_commit)))
 
-class ItemHeaderSerializer(FixedSizeSerializer(9)):
+class ItemHeaderSerializer(FixedSizeSerializer(5)):
     @staticmethod
     def serialize(item_header):
-        return struct.pack(">BII", 
+        return struct.pack(">BI", 
                            not item_header.empty,
-                           item_header.id,
                            item_header.size)
 
     @staticmethod
     def deserialize(data):
         if len(data) != ItemHeaderSerializer.SERIALIZED_LENGTH:
-            raise DeserializationException("item_header incorrect length: %s" % (len(data)))
-        empty, id, size = struct.unpack(">BII", data)
-        return (ItemHeader(not empty, id, size))
+            raise DeserializationException(" ItemHeader incorrect length: %s" % (len(data)))
+        empty, size = struct.unpack(">BI", data)
+        return (ItemHeader(not empty, size))
 
-class AllocSerializer(FixedSizeSerializer(9)):
+class IdSerializer(FixedSizeSerializer(4)):
     @staticmethod
-    def serialize(item_header):
-        return struct.pack(">BII", 
-                           not item_header.empty,
-                           item_header.id,
-                           item_header.size)
+    def serialize(id):
+        return struct.pack(">I", id)
 
     @staticmethod
     def deserialize(data):
-        if len(data) != AllocSerializer.SERIALIZED_LENGTH:
-            raise DeserializationException(" Alloc incorrect length: %s" % (len(data)))
-        empty, id, size = struct.unpack(">BII", data)
-        return (Alloc(not empty, size, id))
-
-
+        id,  = struct.unpack(">I", data)
+        return id
 
 
 
