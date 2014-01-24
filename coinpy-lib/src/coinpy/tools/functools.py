@@ -10,6 +10,22 @@ def only(lst, exception=Exception):
         raise exception("Expected one element but found :%d " %(l))
     return lst[0]
 
+def unfold(value, func, condition=lambda value: value):
+    """Generate all value = func(value) while condition(value).
+        anamorphisms ? 
+       Examples:
+       >>>list(unfold(10, lambda n: n-1))
+       [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]    
+    """
+    while condition(value):
+        yield value
+        value = func(value)
+
+def selfreduce(obj, func, cond):
+    while (cond):
+        obj = func(obj)
+    return (obj)
+
 def xgroupby(data, keyfunc):
     ''' Enhanced version of itertools.groupby that sorts and returns a dictionary '''
     data = sorted(data, key=keyfunc)
